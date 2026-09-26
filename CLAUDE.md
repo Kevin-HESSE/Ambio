@@ -61,3 +61,17 @@ All main projects are in the `src` folder.
 
 - SQLite, connection string `DefaultConnection` in `appsettings.json`
 - Migrations live in `Data/Migrations`
+## Documentation
+
+- Roadmap and phases: `docs/roadmap.md` (each phase = GitHub Milestone). Tick checkboxes as tasks land.
+- Target architecture: `docs/architecture.md`; plugins: `docs/plugins.md`; deployment: `docs/deployment.md`; tests: `docs/testing.md`.
+- Decisions: `docs/adr/` — add a new ADR for any significant decision, never rewrite an accepted one.
+- Docs are written in English.
+
+## Architecture rules
+
+- Domain entities have no reference to the database: no EF Core package, no data annotations, no `DbContext`.
+- Table configuration only through `IEntityTypeConfiguration<T>` classes in `Postulo.Infrastructure/Persistence/Configurations/`.
+- Data access: `IDbContextFactory<ApplicationDbContext>` with one short-lived context per operation (Microsoft's Blazor Server guidance). No repositories, no unit of work — keep it simple.
+- Services return DTOs (records), never entities. Mapping is written by hand as `ToDto()` extension methods in a `<Feature>MappingExtensions` class. No mapping library.
+- Plugin projects are named `Postulo.Plugins.<Domain>.<Purpose>` (e.g. `Postulo.Plugins.CV.Abstractions`).
