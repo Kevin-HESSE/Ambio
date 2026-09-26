@@ -14,5 +14,9 @@ Each significant decision is recorded as a short ADR: context, decision, consequ
 | [0008](0008-docker-hub-multi-arch-images.md) | Multi-arch Docker images on Docker Hub | Accepted |
 | [0009](0009-early-deployment-and-incremental-demo.md) | Early deployment and an incremental demo | Accepted |
 | [0010](0010-dbcontext-factory-without-repositories.md) | DbContext factory, without repositories or unit of work | Accepted |
+| [0011](0011-company-centric-model-with-job-offers.md) | Company-centric model with job offers and an application hierarchy | Accepted |
+| [0012](0012-archive-instead-of-delete.md) | Archive instead of delete | Accepted |
+| [0013](0013-guid-v7-primary-keys.md) | GUID v7 primary keys | Accepted |
+| [0014](0014-short-id-and-slug-urls.md) | Short id and slug in application URLs | Accepted |
 
 New ADRs copy the structure of an existing one and take the next number. An ADR is never edited once accepted: a new ADR supersedes it.

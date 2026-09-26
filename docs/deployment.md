@@ -65,7 +65,7 @@ Run Postulo behind Caddy, Traefik, Nginx or your NAS's proxy.
 
 ## Demo
 
-Set `Postulo__Demo__Enabled=true` to seed a demo account with sample companies, applications, cover letters and CVs. The demo is extended in every phase of the [roadmap](roadmap.md).
+Set `Postulo__Demo__Enabled=true` to seed a demo account with sample companies, job offers, applications, contacts, cover letters and CVs. The demo is extended in every phase of the [roadmap](roadmap.md).
 
 ## Backup and restore
 

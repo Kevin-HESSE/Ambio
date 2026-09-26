@@ -64,7 +64,7 @@ All main projects are in the `src` folder.
 ## Documentation
 
 - Roadmap and phases: `docs/roadmap.md` (each phase = GitHub Milestone). Tick checkboxes as tasks land.
-- Target architecture: `docs/architecture.md`; plugins: `docs/plugins.md`; deployment: `docs/deployment.md`; tests: `docs/testing.md`.
+- Target architecture: `docs/architecture.md`; data model: `docs/data-model.md`; plugins: `docs/plugins.md`; deployment: `docs/deployment.md`; tests: `docs/testing.md`.
 - Decisions: `docs/adr/` — add a new ADR for any significant decision, never rewrite an accepted one.
 - Docs are written in English.
 

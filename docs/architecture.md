@@ -51,34 +51,29 @@ flowchart LR
 | Mapping | Written by hand as extension methods (`ToDto()`) in `Application/<Feature>/<Feature>MappingExtensions.cs`. No mapping library. |
 | Data access | `await using var db = await dbFactory.CreateDbContextAsync(ct);` in each service method. No repositories, no unit of work. |
 | Queries | LINQ projections to DTOs so EF translates them to SQL, `AsNoTracking()` for reads |
+| Application URLs | `/applications/{ShortId}-{slug}`, `ShortId` generated with NanoId, looked up by `ShortId`, redirected to the canonical slug ([ADR 0014](adr/0014-short-id-and-slug-urls.md)) |
 | Plugin naming | `Postulo.Plugins.<Domain>.<Purpose>` — see [plugins.md](plugins.md) |
 
 ## Data model
 
 ```mermaid
 erDiagram
-    COMPANY ||--o{ JOB_APPLICATION : "receives"
+    COMPANY ||--o{ JOB_OFFER : "publishes"
+    COMPANY ||--o{ SPONTANEOUS_APPLICATION : "receives"
+    COMPANY ||--o{ COMPANY_NOTE : "research"
+    COMPANY ||--o{ CONTACT : "employs"
+    JOB_OFFER ||--o{ JOB_OFFER_POSTING : "published on"
+    JOB_OFFER ||--o{ OFFER_APPLICATION : "answered by"
+    OFFER_APPLICATION ||--|| JOB_APPLICATION : "is a"
+    SPONTANEOUS_APPLICATION ||--|| JOB_APPLICATION : "is a"
     JOB_APPLICATION ||--o{ STATUS_CHANGE : "history"
     JOB_APPLICATION ||--o{ COVER_LETTER : "has"
+    JOB_APPLICATION ||--o{ INTERACTION : "timeline"
     JOB_APPLICATION |o--o{ CV_DOCUMENT : "sent with"
     CANDIDATE_PROFILE ||--o{ EXPERIENCE : ""
     CANDIDATE_PROFILE ||--o{ EDUCATION : ""
     CANDIDATE_PROFILE ||--o{ SKILL : ""
 
-    JOB_APPLICATION {
-        guid Id
-        string Title
-        string OfferUrl
-        string Source
-        date AppliedOn
-        enum Status
-        string Notes
-    }
-    COVER_LETTER {
-        guid Id
-        string Title
-        text Content "plain text"
-    }
     CV_DOCUMENT {
         guid Id
         guid JobApplicationId "null = general CV"
@@ -90,6 +85,8 @@ erDiagram
         datetime CreatedAt
     }
 ```
+
+The company is the anchor: its profile, research notes and contacts are kept across every offer and application. An application is either an `OfferApplication` or a `SpontaneousApplication`: subtypes of an abstract `JobApplication`, mapped as one table (TPH). Fields, invariants, delete rules and persistence conventions are in **[data-model.md](data-model.md)** ([ADR 0011](adr/0011-company-centric-model-with-job-offers.md), [ADR 0012](adr/0012-archive-instead-of-delete.md)).
 
 - **Cover letters** are plain text stored in SQLite.
 - **CVs** are files on disk. `CvDocument` holds their metadata and, for generated CVs, the frozen snapshot of the data used to render them ([ADR 0007](adr/0007-cv-snapshots-selection-and-override.md)).

@@ -11,6 +11,7 @@ Each phase maps to a GitHub Milestone, and each checkbox maps to an issue.
 | [0](#phase-0--foundations) | Foundations | Layered solution, CI, template samples removed |
 | [1](#phase-1--application-tracking-mvp) | Application tracking (MVP) | Track applications, cover letters, and uploaded CVs |
 | [2](#phase-2--docker-deployment--demo) | Docker, deployment & demo | Multi-arch image on Docker Hub, running demo |
+| [2b](#phase-2b--company-research--contacts) | Company research & contacts | Research notes, contacts, recruiters, interviews |
 | [3](#phase-3--candidate-profile--cv-generation) | Profile & CV generation | CVs generated with QuestPDF (per application + general CV) |
 | [4](#phase-4--cv-template-plugins) | CV template plugins | Third-party templates loaded from `/plugins` |
 | [5](#phase-5--identity--i18n) | Identity & i18n | Real email, GitHub login, FR/EN UI |
@@ -32,11 +33,20 @@ Each phase maps to a GitHub Milestone, and each checkbox maps to an issue.
 
 ## Phase 1 — Application tracking (MVP)
 
-- [ ] Domain: `Company`, `JobApplication`, `ApplicationStatus`, `StatusChange` (history)
+- [ ] Domain (see [data-model.md](data-model.md), [ADR 0011](adr/0011-company-centric-model-with-job-offers.md)):
+  - `Company` profile (name, kind, website, industry, size, location)
+  - `JobOffer` with a plain-text copy of the ad, and `JobOfferPosting` (the same offer seen on several sites)
+  - Abstract `JobApplication` with `OfferApplication` and `SpontaneousApplication`, mapped as TPH with a check constraint
+  - `ApplicationStatus` and `StatusChange` (history), `Channel` (online form, email, referral…)
 - [ ] Status workflow: `Draft → Applied → Interview → Offer / Rejected / Withdrawn`, with every change timestamped
-- [ ] EF Core mapping classes and migration
+- [ ] Archiving instead of deleting ([ADR 0012](adr/0012-archive-instead-of-delete.md)), with an "Archived" filter and a restore action
+- [ ] EF Core mapping classes and migration, `SaveChangesInterceptor` for `CreatedAt`/`UpdatedAt`
 - [ ] Application services returning DTOs, with the mapping written as extension methods
-- [ ] Pages: list of applications (filters by status/company, sort by date), detail, create/edit
+- [ ] Pages:
+  - Applications: list (filters by status, company and kind, sort by date), detail, create/edit
+  - Readable application URLs `/applications/482913-backend-developer-acme`: `ShortId` generated with NanoId (numeric for now) + slug, with a redirect to the canonical slug ([ADR 0014](adr/0014-short-id-and-slug-urls.md))
+  - Companies: list and detail with every offer and application for the company
+  - Offers: list, detail with their postings, create/edit with a duplicate suggestion (same company, similar title)
 - [ ] `Home` dashboard: counts by status, recent activity
 - [ ] **Cover letters**: plain text, 1..n per application, textarea editor, copy to clipboard
 - [ ] **CV upload**: attach the PDF that was actually sent (`CvDocument` with `Source = Uploaded`), stored through `IDocumentStorage` under `/data/documents`
@@ -53,9 +63,21 @@ Each phase maps to a GitHub Milestone, and each checkbox maps to an issue.
 - [ ] Forwarded headers enabled for running behind a reverse proxy
 - [ ] `docker-compose.yml` example
 - [ ] GitHub Actions: multi-arch build (`linux/amd64`, `linux/arm64`) with buildx, pushed to Docker Hub on version tags
-- [ ] **Demo**: `DemoDataSeeder` enabled with `Postulo__Demo__Enabled=true`, which seeds a demo account and sample companies, applications, cover letters, and an uploaded CV
+- [ ] **Demo**: `DemoDataSeeder` enabled with `Postulo__Demo__Enabled=true`, which seeds a demo account and sample companies, offers posted on several sites, offer and spontaneous applications, cover letters, and an uploaded CV
 - [ ] README: quick start with Docker and a demo section
 - [ ] [deployment.md](deployment.md): volumes, environment variables, backup of `/data`
+
+## Phase 2b — Company research & contacts
+
+Enriches the company, which is shared by every application to it (see [data-model.md](data-model.md)).
+
+- [ ] `CompanyNote`: dated research notes in plain text, shown as a timeline on the company page
+- [ ] `Contact`: CRUD per company, optional linking to applications (never required: form applications have no contact)
+- [ ] Recruiter company on offers (`RecruiterCompanyId`): agencies and ESNs, with a possibly unknown end client
+- [ ] `Interaction`: interviews, calls, emails, follow-ups per application, with the contacts involved
+- [ ] Dashboard: upcoming interviews
+- [ ] Unit + EF integration tests (hierarchy queries, archived rows filtered out)
+- [ ] Extend demo: a recruitment agency, contacts, research notes, and an upcoming interview
 
 ## Phase 3 — Candidate profile & CV generation
 

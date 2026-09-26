@@ -14,6 +14,7 @@
 ## Features
 
 - **Application tracking**: companies, job offers, status workflow (Applied → Interview → Offer / Rejected…) with a full history, and a dashboard.
+- **Company research**: every company keeps its profile, dated research notes, contacts and interviews across all your applications, and an offer seen on several sites is saved once.
 - **Cover letters**: plain-text letters attached to each application.
 - **CVs per application**: upload the CV you sent, or generate one from your profile by selecting the relevant experiences and tailoring the summary. Each CV is frozen, so you always know what was sent.
 - **General CV**: a CV not tied to any offer, ready to share on LinkedIn and other networks.
