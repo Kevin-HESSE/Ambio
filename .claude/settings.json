@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allows": [
+      "Bash(dotnet test *)",
+      "Bash(dotnet build *)"
+    ],
+    "deny": [
+      "Read(./**/.env*)",
+      "Write(./**/.env*)",
+      "Read(./**/.appsettings*)",
+      "Write(./**/.appsettings*)",
+      "Bash(dotnet ef *)"
+    ]
+  }
+}
