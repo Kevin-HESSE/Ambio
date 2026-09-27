@@ -81,6 +81,7 @@ Publish it, drop the folder into `/plugins`, and restart. See the [plugin guide]
 
 - [Roadmap](docs/roadmap.md)
 - [Architecture](docs/architecture.md)
+- [Design system](docs/design-system.md)
 - [CV template plugins](docs/plugins.md)
 - [Deployment](docs/deployment.md)
 - [Testing](docs/testing.md)

@@ -52,6 +52,7 @@ flowchart LR
 | Data access | `await using var db = await dbFactory.CreateDbContextAsync(ct);` in each service method. No repositories, no unit of work. |
 | Queries | LINQ projections to DTOs so EF translates them to SQL, `AsNoTracking()` for reads |
 | Application URLs | `/applications/{ShortId}-{slug}`, `ShortId` generated with NanoId, looked up by `ShortId`, redirected to the canonical slug ([ADR 0014](adr/0014-short-id-and-slug-urls.md)) |
+| UI tokens | Colors, typography and spacing come from `--postulo-*` CSS variables mapped onto Bootstrap. No hard-coded colors in components. See [design-system.md](design-system.md) ([ADR 0015](adr/0015-neutral-visual-identity-with-status-colors.md)) |
 | Plugin naming | `Postulo.Plugins.<Domain>.<Purpose>` — see [plugins.md](plugins.md) |
 
 ## Data model

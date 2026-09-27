@@ -47,6 +47,7 @@ Each phase maps to a GitHub Milestone, and each checkbox maps to an issue.
   - Readable application URLs `/applications/482913-backend-developer-acme`: `ShortId` generated with NanoId (numeric for now) + slug, with a redirect to the canonical slug ([ADR 0014](adr/0014-short-id-and-slug-urls.md))
   - Companies: list and detail with every offer and application for the company
   - Offers: list, detail with their postings, create/edit with a duplicate suggestion (same company, similar title)
+- [ ] Apply the design system ([design-system.md](design-system.md), [ADR 0015](adr/0015-neutral-visual-identity-with-status-colors.md)): `--postulo-*` variables and their Bootstrap mapping in `app.css`, light/dark theme, self-hosted Source Sans 3 and Bootstrap Icons, `StatusBadge` and `Tag` components
 - [ ] `Home` dashboard: counts by status, recent activity
 - [ ] **Cover letters**: plain text, 1..n per application, textarea editor, copy to clipboard
 - [ ] **CV upload**: attach the PDF that was actually sent (`CvDocument` with `Source = Uploaded`), stored through `IDocumentStorage` under `/data/documents`
