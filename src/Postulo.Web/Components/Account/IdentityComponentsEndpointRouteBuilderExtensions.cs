@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text.Json;
+
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
+
 using Postulo.Web.Components.Account.Pages;
 using Postulo.Web.Components.Account.Pages.Manage;
 using Postulo.Web.Data;
