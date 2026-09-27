@@ -21,7 +21,7 @@ Each phase maps to a GitHub Milestone, and each checkbox maps to an issue.
 
 ## Phase 0 — Foundations
 
-- [ ] Restructure the solution into layers (see [architecture.md](architecture.md)): `Ambio.Domain`, `Ambio.Application`, `Ambio.Infrastructure`, `Ambio.Web`
+- [x] Restructure the solution into layers (see [architecture.md](architecture.md)): `Ambio.Domain`, `Ambio.Application`, `Ambio.Infrastructure`, `Ambio.Web`
 - [ ] Move `ApplicationDbContext` and migrations to `Ambio.Infrastructure`, set up `ApplyConfigurationsFromAssembly`, and register the context with `AddDbContextFactory` ([ADR 0010](adr/0010-dbcontext-factory-without-repositories.md))
 - [ ] Remove the template samples (`Counter`, `Weather`, `Auth` pages, and their nav links)
 - [ ] Remove passkey support (pages, endpoints, `PasskeySubmit` component)
