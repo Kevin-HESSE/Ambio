@@ -1,5 +1,8 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/Ambio.Application/Ambio.Application.csproj" />
+    <Project Path="src/Ambio.Domain/Ambio.Domain.csproj" />
+    <Project Path="src/Ambio.Infrastructure/Ambio.Infrastructure.csproj" />
     <Project Path="src/Ambio.Web/Ambio.Web.csproj" />
   </Folder>
 </Solution>
