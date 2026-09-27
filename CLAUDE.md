@@ -2,7 +2,7 @@
 
 ## Project state
 
-Ambio is at the "fresh template" stage: a .NET 10 Blazor Web App (`dotnet new blazor --auth Individual`) with ASP.NET Core Identity. `Counter`, `Weather`, and `Auth` pages are template samples; there is no domain code or test project yet.
+Ambio is at the "fresh template" stage: a .NET 10 Blazor Web App (`dotnet new blazor --auth Individual`) with ASP.NET Core Identity, split into layered projects (Domain, Application, Infrastructure, Web). `Counter`, `Weather`, and `Auth` pages are template samples; the Domain, Application and Infrastructure projects are still empty and there is no test project yet.
 
 ## Stack
 
@@ -42,7 +42,12 @@ There are no tests or linters configured yet.
 
 All main projects are in the `src` folder.
 
-- `src/Ambio.Web`, Interactive Server (no web assembly)
+- `src/Ambio.Domain`: entities and domain rules, references nothing
+- `src/Ambio.Application`: service interfaces, DTOs, mapping extensions; references Domain
+- `src/Ambio.Infrastructure`: service implementations, EF Core, storage; references Application and Domain
+- `src/Ambio.Web`: Blazor UI (Interactive Server, no web assembly), Identity, composition root; references Application and Infrastructure
+
+See `docs/architecture.md` for the full dependency rules.
 
 ### Routing
 

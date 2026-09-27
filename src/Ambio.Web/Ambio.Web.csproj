@@ -19,4 +19,9 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Ambio.Application\Ambio.Application.csproj" />
+    <ProjectReference Include="..\Ambio.Infrastructure\Ambio.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>
