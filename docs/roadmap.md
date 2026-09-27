@@ -42,13 +42,15 @@ Each phase maps to a GitHub Milestone, and each checkbox maps to an issue.
 - [ ] Archiving instead of deleting ([ADR 0012](adr/0012-archive-instead-of-delete.md)), with an "Archived" filter and a restore action
 - [ ] EF Core mapping classes and migration, `SaveChangesInterceptor` for `CreatedAt`/`UpdatedAt`
 - [ ] Application services returning DTOs, with the mapping written as extension methods
-- [ ] Pages:
-  - Applications: list (filters by status, company and kind, sort by date), detail, create/edit
+- [ ] Pages (specified in [ui.md](ui.md), [ADR 0016](adr/0016-responsive-navigation-bottom-tabs-and-sidebar.md)):
+  - Applications: list (filters by status, company and kind, sort by date), detail with Overview, Cover letters and CV tabs, create/edit, status change
   - Readable application URLs `/applications/482913-backend-developer-acme`: `ShortId` generated with NanoId (numeric for now) + slug, with a redirect to the canonical slug ([ADR 0014](adr/0014-short-id-and-slug-urls.md))
   - Companies: list and detail with every offer and application for the company
   - Offers: list, detail with their postings, create/edit with a duplicate suggestion (same company, similar title)
+  - Settings: follow-up delay (`UserSettings`), theme
 - [ ] Apply the design system ([design-system.md](design-system.md), [ADR 0015](adr/0015-neutral-visual-identity-with-status-colors.md)): `--postulo-*` variables and their Bootstrap mapping in `app.css`, light/dark theme, self-hosted Source Sans 3 and Bootstrap Icons, `StatusBadge` and `Tag` components
-- [ ] `Home` dashboard: counts by status, recent activity
+- [ ] App shell: responsive layout (sidebar ≥ 992 px, bottom tab bar + "More" sheet below), logo and favicon, theme selector (System / Light / Dark), restyled Log in and Account pages
+- [ ] `Home` dashboard: counts by status, **Follow up** (applications still Applied after the configured delay), recent activity
 - [ ] **Cover letters**: plain text, 1..n per application, textarea editor, copy to clipboard
 - [ ] **CV upload**: attach the PDF that was actually sent (`CvDocument` with `Source = Uploaded`), stored through `IDocumentStorage` under `/data/documents`
   - PDF only, size limit configurable

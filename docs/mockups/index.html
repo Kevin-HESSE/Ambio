@@ -1,0 +1,221 @@
+<title>Postulo Screens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="postulo.css">
+<style>
+  :root {
+    --v-bg: #E9EDF3;
+    --v-panel: #FFFFFF;
+    --v-line: #D8DEE8;
+    --v-text: #0F172A;
+    --v-muted: #5B6679;
+    --v-accent: #4F46E5;
+    --v-accent-soft: #EEF2FF;
+    --v-accent-text: #4338CA;
+    --v-dot: rgb(15 23 42 / 0.09);
+    --v-device: #0F172A;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --v-bg: #0B1120; --v-panel: #111a2e; --v-line: #24304a; --v-text: #EEF2F8; --v-muted: #9AA6BB;
+      --v-accent: #818CF8; --v-accent-soft: #1E1B4B; --v-accent-text: #A5B4FC; --v-dot: rgb(255 255 255 / 0.06); --v-device: #334155;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --v-bg: #0B1120; --v-panel: #111a2e; --v-line: #24304a; --v-text: #EEF2F8; --v-muted: #9AA6BB;
+    --v-accent: #818CF8; --v-accent-soft: #1E1B4B; --v-accent-text: #A5B4FC; --v-dot: rgb(255 255 255 / 0.06); --v-device: #334155;
+    color-scheme: dark;
+  }
+  body { background: var(--v-bg); color: var(--v-text); font: 15px/1.45 "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif; }
+  * { box-sizing: border-box; }
+  button, select { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--v-accent); outline-offset: 2px; }
+
+  .top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding: 10px 16px; background: var(--v-panel); border-bottom: 1px solid var(--v-line); }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; margin-right: auto; }
+  .brand .mk { width: 26px; height: 26px; border-radius: 7px; background: #4F46E5; color: #fff; display: grid; place-items: center; font-size: 15px; }
+  .brand small { font-weight: 400; color: var(--v-muted); font-size: 14px; }
+  .ctl { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--v-muted); }
+  .seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: 8px; background: var(--v-bg); border: 1px solid var(--v-line); }
+  .seg button { border: 0; background: none; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--v-muted); }
+  .seg button[aria-pressed="true"] { background: var(--v-panel); color: var(--v-text); box-shadow: 0 1px 2px rgb(0 0 0 / 0.12); }
+
+  .layout { display: grid; grid-template-columns: 1fr; }
+  .side { display: none; }
+  .picker { width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--v-line); background: var(--v-panel); }
+  @media (min-width: 960px) {
+    .layout { grid-template-columns: 250px minmax(0, 1fr); }
+    .side { display: block; position: sticky; top: 57px; align-self: start; height: calc(100vh - 57px); overflow-y: auto; padding: 16px 12px 32px; border-right: 1px solid var(--v-line); background: var(--v-panel); }
+    .main .mobile-picker { display: none; }
+  }
+  .side h2 { margin: 16px 8px 6px; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--v-muted); }
+  .side h2:first-child { margin-top: 0; }
+  .side a { display: block; padding: 6px 8px; border-radius: 6px; color: var(--v-text); text-decoration: none; font-size: 14.5px; }
+  .side a:hover { background: var(--v-bg); }
+  .side a[aria-current="true"] { background: var(--v-accent-soft); color: var(--v-accent-text); font-weight: 600; }
+  .side .mo { font-size: 12px; color: var(--v-muted); font-weight: 400; }
+
+  .main { padding: 20px 16px 48px; min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+  .mobile-picker { display: flex; gap: 8px; }
+  .info { display: grid; gap: 10px; max-width: 1100px; }
+  .info .eyebrow { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--v-muted); font-weight: 600; }
+  .info h1 { margin: 0; font-size: 26px; line-height: 1.2; text-wrap: balance; }
+  .info code { font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--v-panel); border: 1px solid var(--v-line); padding: 2px 6px; border-radius: 5px; overflow-wrap: anywhere; }
+  .notes { display: grid; gap: 8px 20px; grid-template-columns: 1fr; margin: 0; }
+  @media (min-width: 720px) { .notes { grid-template-columns: 1fr 1fr; } }
+  .notes div { background: var(--v-panel); border: 1px solid var(--v-line); border-radius: 8px; padding: 10px 14px; }
+  .notes dt { font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--v-muted); margin-bottom: 2px; }
+  .notes dd { margin: 0; max-width: 65ch; }
+  .nav-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .nav-row button { border: 1px solid var(--v-line); background: var(--v-panel); border-radius: 8px; padding: 5px 12px; cursor: pointer; font-weight: 600; }
+  .nav-row .pos { color: var(--v-muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+
+  .stage { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; padding: 20px; border-radius: 12px; background-color: var(--v-bg); background-image: radial-gradient(var(--v-dot) 1px, transparent 1px); background-size: 16px 16px; border: 1px solid var(--v-line); min-width: 0; }
+  .device { margin: 0; display: flex; flex-direction: column; gap: 8px; }
+  .device figcaption { font-size: 13px; color: var(--v-muted); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .scaler { position: relative; overflow: hidden; border-radius: 14px; box-shadow: 0 0 0 1px var(--v-device), 0 12px 30px -12px rgb(15 23 42 / 0.35); }
+  .scaler.phone { border-radius: 28px; box-shadow: 0 0 0 6px var(--v-device), 0 12px 30px -12px rgb(15 23 42 / 0.35); margin: 6px; }
+  .scaler > .pf { position: absolute; top: 0; left: 0; transform-origin: 0 0; }
+  .placeholder { display: grid; place-items: center; text-align: center; padding: 24px; color: var(--v-muted); border: 1px dashed var(--v-line); border-radius: 12px; background: var(--v-panel); }
+  .foot { color: var(--v-muted); font-size: 13px; max-width: 80ch; }
+  @media (prefers-reduced-motion: no-preference) { .scaler > .pf { transition: opacity .15s; } }
+</style>
+
+<header class="top">
+  <div class="brand"><span class="mk">P</span>Postulo <small>MVP screens</small></div>
+  <div class="ctl">Device
+    <div class="seg" id="device" role="group" aria-label="Device">
+      <button data-v="mobile">Mobile</button><button data-v="desktop">Desktop</button><button data-v="both">Both</button>
+    </div>
+  </div>
+  <div class="ctl">App theme
+    <div class="seg" id="theme" role="group" aria-label="App theme">
+      <button data-v="auto">Auto</button><button data-v="light">Light</button><button data-v="dark">Dark</button>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="side" id="side" aria-label="Screens"></nav>
+  <div class="main">
+    <div class="mobile-picker"><label class="sr" for="picker" hidden>Screen</label><select id="picker" class="picker" aria-label="Screen"></select></div>
+    <section class="info" aria-live="polite">
+      <div class="nav-row"><span class="eyebrow" id="grp"></span><span class="pos" id="pos"></span>
+        <button id="prev" aria-label="Previous screen">←</button><button id="next" aria-label="Next screen">→</button></div>
+      <h1 id="ttl"></h1>
+      <div><code id="route"></code></div>
+      <dl class="notes"><div><dt>Content</dt><dd id="content"></dd></div><div><dt>Later phases</dt><dd id="later"></dd></div></dl>
+    </section>
+    <div class="stage" id="stage"></div>
+    <p class="foot">Same markup at 390 px and 1440 px: the layout switches at 992 px (Bootstrap <code>lg</code>). Colors, type and spacing are the <code>--postulo-*</code> tokens from docs/design-system.md. Demo data is fictional. Links inside the screens navigate between mockups.</p>
+  </div>
+</div>
+
+<script src="icons.js"></script>
+<script src="screens.js"></script>
+<script>
+(function () {
+  const S = window.SCREENS;
+  const $ = (id) => document.getElementById(id);
+  const store = {
+    get(k, d) { try { return localStorage.getItem(k) || d; } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+  };
+  let device = store.get("postulo.device", "both");
+  let theme = store.get("postulo.theme", "auto");
+  let current = 0;
+
+  // Screen list
+  const groups = [];
+  S.forEach((s, i) => { let g = groups.find((x) => x.name === s.group); if (!g) groups.push(g = { name: s.group, items: [] }); g.items.push([s, i]); });
+  $("side").innerHTML = groups.map((g) => `<h2>${g.name}</h2>` + g.items.map(([s, i]) => `<a href="#${s.id}" data-i="${i}">${s.title}${s.mobileOnly ? ' <span class="mo">· mobile</span>' : ""}</a>`).join("")).join("");
+  $("picker").innerHTML = groups.map((g) => `<optgroup label="${g.name}">` + g.items.map(([s, i]) => `<option value="${s.id}">${s.title}</option>`).join("") + "</optgroup>").join("");
+  $("picker").addEventListener("change", (e) => { location.hash = e.target.value; });
+
+  function effectiveTheme() {
+    if (theme !== "auto") return theme;
+    const t = document.documentElement.getAttribute("data-theme");
+    if (t === "dark" || t === "light") return t;
+    return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+
+  function frames() {
+    const s = S[current];
+    const list = [];
+    if (device !== "desktop") list.push({ kind: "mobile", w: 390, h: 844 });
+    if (device !== "mobile") list.push({ kind: "desktop", w: 1440, h: 900 });
+    return list.map((f) => ({ ...f, skip: f.kind === "desktop" && s.mobileOnly }));
+  }
+
+  function scales(list) {
+    const W = $("stage").clientWidth - 40 - 12;
+    if (list.length === 2 && W >= 900) {
+      let sd = (W - 24 - 12) / (390 * 900 / 844 + 1440);
+      let sm = Math.min(1, sd * 900 / 844);
+      sd = Math.min(1, (W - 24 - 12 - 390 * sm) / 1440);
+      return [sm, sd];
+    }
+    return list.map((f) => Math.min(1, (W - (f.kind === "mobile" ? 12 : 0)) / f.w));
+  }
+
+  function render() {
+    const s = S[current];
+    $("grp").textContent = s.group;
+    $("pos").textContent = `${current + 1} / ${S.length}`;
+    $("ttl").textContent = s.title;
+    $("route").textContent = s.route;
+    $("content").textContent = s.content;
+    $("later").textContent = s.later;
+    $("picker").value = s.id;
+    document.querySelectorAll("#side a").forEach((a) => a.setAttribute("aria-current", String(+a.dataset.i === current)));
+    document.querySelectorAll("#device button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === device)));
+    document.querySelectorAll("#theme button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === theme)));
+
+    const list = frames();
+    const sc = scales(list);
+    const html = s.render();
+    const t = effectiveTheme();
+    $("stage").innerHTML = list.map((f, i) => {
+      const k = sc[i];
+      const cap = `${f.kind === "mobile" ? "Mobile" : "Desktop"} · ${f.w} px`;
+      if (f.skip) return `<figure class="device"><figcaption>${cap}</figcaption><div class="placeholder" style="width:${Math.round(f.w * k)}px;height:${Math.round(f.h * k)}px">Mobile only.<br>On desktop these entries sit at the bottom of the sidebar.</div></figure>`;
+      return `<figure class="device"><figcaption>${cap}</figcaption>
+        <div class="scaler ${f.kind === "mobile" ? "phone" : ""}" style="width:${Math.round(f.w * k)}px;height:${Math.round(f.h * k)}px">
+          <div class="pf" data-bs-theme="${t}" style="width:${f.w}px;height:${f.h}px;transform:scale(${k})">${html}</div>
+        </div></figure>`;
+    }).join("");
+  }
+
+  function fromHash() {
+    const id = location.hash.slice(1);
+    const i = S.findIndex((s) => s.id === id);
+    current = i >= 0 ? i : 0;
+    render();
+  }
+  const go = (d) => { location.hash = S[(current + d + S.length) % S.length].id; };
+
+  $("prev").onclick = () => go(-1);
+  $("next").onclick = () => go(1);
+  $("device").onclick = (e) => { const v = e.target.closest("button")?.dataset.v; if (v) { device = v; store.set("postulo.device", v); render(); } };
+  $("theme").onclick = (e) => { const v = e.target.closest("button")?.dataset.v; if (v) { theme = v; store.set("postulo.theme", v); render(); } };
+  // Mock buttons do nothing; links navigate between screens through the hash.
+  $("stage").addEventListener("click", (e) => { if (e.target.closest("button")) e.preventDefault(); });
+  document.addEventListener("keydown", (e) => {
+    if (e.target.closest("input, textarea, select")) return;
+    if (e.key === "ArrowRight") go(1);
+    if (e.key === "ArrowLeft") go(-1);
+  });
+  addEventListener("hashchange", fromHash);
+  let raf, lastW = 0;
+  new ResizeObserver(() => {
+    const w = $("stage").clientWidth;
+    if (w === lastW) return;
+    lastW = w; cancelAnimationFrame(raf); raf = requestAnimationFrame(render);
+  }).observe($("stage"));
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
+  new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  fromHash();
+})();
+</script>

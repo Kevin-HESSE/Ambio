@@ -229,6 +229,14 @@ Dated events of an application: `Interview`, `PhoneCall`, `Email`, `FollowUp`, `
 - Cover letters are plain text, with 1..n per application.
 - `CvDocument` is the metadata of a CV file (uploaded or generated). With `JobApplicationId = null`, it's a general CV. See [architecture.md](architecture.md#data-model) and [ADR 0007](adr/0007-cv-snapshots-selection-and-override.md).
 
+### UserSettings
+
+A single row of preferences for the account ([ADR 0002](adr/0002-single-user-application.md)), edited on the Settings page ([ui.md](ui.md#screens)). It's not linked to the other entities, so it's left out of the diagram.
+
+- `FollowUpAfterDays` (default `7`): an application still `Applied` after this many days, with no status change, appears in **Follow up** on the dashboard.
+- The theme isn't stored here: it's a per-browser choice kept in `localStorage`.
+- Language joins it in [Phase 5](roadmap.md#phase-5--identity--i18n).
+
 ## Relationships and deletion
 
 Rows are **archived** (`ArchivedAt`) instead of deleted ([ADR 0012](adr/0012-archive-instead-of-delete.md)). A hard delete is only possible when nothing references the row.

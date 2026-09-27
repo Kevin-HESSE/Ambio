@@ -19,5 +19,6 @@ Each significant decision is recorded as a short ADR: context, decision, consequ
 | [0013](0013-guid-v7-primary-keys.md) | GUID v7 primary keys | Accepted |
 | [0014](0014-short-id-and-slug-urls.md) | Short id and slug in application URLs | Accepted |
 | [0015](0015-neutral-visual-identity-with-status-colors.md) | Neutral visual identity with status colors | Accepted |
+| [0016](0016-responsive-navigation-bottom-tabs-and-sidebar.md) | Responsive navigation: bottom tabs on mobile, sidebar on desktop | Accepted |
 
 New ADRs copy the structure of an existing one and take the next number. An ADR is never edited once accepted: a new ADR supersedes it.

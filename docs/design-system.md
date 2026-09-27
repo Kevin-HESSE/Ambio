@@ -4,10 +4,11 @@ Postulo's visual identity: neutral grays with a single indigo accent. The only o
 
 > Status: the tokens exist in Figma. They are applied to the app in [Phase 1](roadmap.md#phase-1--application-tracking-mvp) (CSS variables mapped onto Bootstrap 5.3).
 
-**Figma**: [Postulo](https://www.figma.com/design/3ys0FLvxXEynaZmFtUxAda/Postulo) has three pages:
+**Figma**: [Postulo](https://www.figma.com/design/3ys0FLvxXEynaZmFtUxAda/Postulo) has two pages:
 - `Foundations`: primitives, semantic colors, statuses, tags, typography, spacing and radius.
 - `Components`: `StatusBadge`, `Tag`, and an application-list preview in light and dark.
-- `Design`: screens.
+
+The screens are specified in [ui.md](ui.md) and mocked up in HTML in [`mockups/`](mockups/index.html), with the same tokens. A third Figma page, `Screens`, is planned for them.
 
 ## Principles
 
@@ -72,14 +73,14 @@ Each status of `ApplicationStatus` ([data model](data-model.md#application-hiera
 - `border`: badge border;
 - `solid`: the dot in the badge, and dashboard charts.
 
-| Status | Label (FR) | Hue | Light `bg` / `fg` / `border` / `solid` | Dark `bg` / `fg` / `border` / `solid` | Icon |
-|---|---|---|---|---|---|
-| `Draft` | Brouillon | gray, **dashed** border | `#FFFFFF` / `#475569` / `#CBD5E1` / `#64748B` | `#0F172A` / `#CBD5E1` / `#475569` / `#64748B` | `bi-pencil` |
-| `Applied` | Envoyée | blue | `#EFF6FF` / `#1D4ED8` / `#BFDBFE` / `#2563EB` | `#172554` / `#93C5FD` / `#1E40AF` / `#3B82F6` | `bi-send` |
-| `Interview` | Entretien | amber | `#FFFBEB` / `#92400E` / `#FDE68A` / `#D97706` | `#451A03` / `#FCD34D` / `#92400E` / `#F59E0B` | `bi-people` |
-| `Offer` | Offre reçue | green | `#ECFDF5` / `#065F46` / `#A7F3D0` / `#059669` | `#022C22` / `#6EE7B7` / `#065F46` / `#10B981` | `bi-trophy` |
-| `Rejected` | Refusée | red | `#FEF2F2` / `#B91C1C` / `#FECACA` / `#DC2626` | `#450A0A` / `#FCA5A5` / `#991B1B` / `#EF4444` | `bi-x-circle` |
-| `Withdrawn` | Abandonnée | gray, filled | `#F1F5F9` / `#475569` / `#E2E8F0` / `#475569` | `#1E293B` / `#CBD5E1` / `#334155` / `#94A3B8` | `bi-slash-circle` |
+| Status | Label | Label (FR) | Hue | Light `bg` / `fg` / `border` / `solid` | Dark `bg` / `fg` / `border` / `solid` | Icon |
+|---|---|---|---|---|---|---|
+| `Draft` | Draft | Brouillon | gray, **dashed** border | `#FFFFFF` / `#475569` / `#CBD5E1` / `#64748B` | `#0F172A` / `#CBD5E1` / `#475569` / `#64748B` | `bi-pencil` |
+| `Applied` | Applied | Envoyée | blue | `#EFF6FF` / `#1D4ED8` / `#BFDBFE` / `#2563EB` | `#172554` / `#93C5FD` / `#1E40AF` / `#3B82F6` | `bi-send` |
+| `Interview` | Interview | Entretien | amber | `#FFFBEB` / `#92400E` / `#FDE68A` / `#D97706` | `#451A03` / `#FCD34D` / `#92400E` / `#F59E0B` | `bi-people` |
+| `Offer` | Offer received | Offre reçue | green | `#ECFDF5` / `#065F46` / `#A7F3D0` / `#059669` | `#022C22` / `#6EE7B7` / `#065F46` / `#10B981` | `bi-trophy` |
+| `Rejected` | Rejected | Refusée | red | `#FEF2F2` / `#B91C1C` / `#FECACA` / `#DC2626` | `#450A0A` / `#FCA5A5` / `#991B1B` / `#EF4444` | `bi-x-circle` |
+| `Withdrawn` | Withdrawn | Abandonnée | gray, filled | `#F1F5F9` / `#475569` / `#E2E8F0` / `#475569` | `#1E293B` / `#CBD5E1` / `#334155` / `#94A3B8` | `bi-slash-circle` |
 
 - The hues follow the workflow `Draft → Applied → Interview → Offer / Rejected / Withdrawn`:
   - gray for what isn't sent yet or was dropped;
@@ -90,6 +91,7 @@ Each status of `ApplicationStatus` ([data model](data-model.md#application-hiera
 - **Draft** vs **Withdrawn**: both are gray. Draft is empty with a dashed border ("not sent yet"). Withdrawn is filled ("closed by me").
 - The **indigo accent is never used for a status**, so a badge can't be mistaken for a button or a link.
 - The `feedback/*` tokens share these hues (success = Offer, warning = Interview, danger = Rejected, info = Applied), so each color means the same thing everywhere in the app.
+- The UI and the mockups use the English labels. The French labels come with localization ([Phase 5](roadmap.md#phase-5--identity--i18n)). The Figma components still show the French labels and will be switched to English.
 - Icons come from [Bootstrap Icons](https://icons.getbootstrap.com/) (MIT). Figma shows a dot instead of the icon.
 
 ### Tags
@@ -103,7 +105,7 @@ Every attribute that isn't a status is a **neutral tag**. The icon distinguishes
 | `tag/archived` | Archived rows ([ADR 0012](adr/0012-archive-instead-of-delete.md)) | `#FFFFFF` / `#64748B` / `#CBD5E1` | `#0F172A` / `#94A3B8` / `#334155` |
 
 - A spontaneous application is the only tag in the accent color, because it changes how the row reads: there is no offer behind it.
-- An archived row is dimmed: its title uses `text/muted`, and it carries the `Archivée` tag.
+- An archived row is dimmed: its title uses `text/muted`, and it carries the `Archived` tag.
 - On the dashboard, an upcoming interaction (interview, call) reuses the `Interview` status tokens.
 
 ## Typography
@@ -157,12 +159,22 @@ Shadows are drawn in `#0F172A`:
 | `StatusBadge` | One variant per status (`Status=Draft…Withdrawn`), dot + label | `StatusBadge.razor`: takes an `ApplicationStatus`, renders the icon + localized label |
 | `Tag` | `Style=Neutral \| Accent \| Archived`, `Label` text property | `Tag.razor`: style + label + optional icon |
 
+The layout components (app shell, lists, tabs, sheets, toasts…) are listed in [ui.md](ui.md#components).
+
+## Logo
+
+A monogram and a wordmark:
+- the **mark** is a white "P" (`accent/on`) in a rounded square (`radius/lg`) filled with `accent/default`, 28 px in the app bar and the sidebar, 40 px on the log-in page;
+- the **wordmark** "Postulo" is set in Source Sans 3 SemiBold, in `text/primary`, next to the mark.
+
+The mark alone is the favicon. It follows the theme like any other token: `#4F46E5` with a white "P" in light, `#818CF8` with a `#020617` "P" in dark.
+
 ## From tokens to code
 
 Each token becomes a CSS custom property prefixed with `--postulo-`. The `/` in the name becomes `-`, for example `status/interview/bg` → `var(--postulo-status-interview-bg)`. This is the code syntax set on each Figma variable, so Dev Mode shows the CSS name.
 
 - The light values are declared on `:root`, and the dark values under `[data-bs-theme="dark"]`, the attribute Bootstrap 5.3 uses for its color modes.
-- The theme follows `prefers-color-scheme` by default.
+- The theme follows `prefers-color-scheme` by default, and the user can force Light or Dark ([ui.md](ui.md#patterns)).
 - Bootstrap's variables are mapped onto the tokens, so the stock components (buttons, forms, tables, cards) follow the identity without custom classes:
 
 | Bootstrap variable | Token |
