@@ -5,7 +5,7 @@
 
 ## Context
 
-Companies, contacts, offers and applications reference each other. Deleting a company would either orphan or destroy the history of its applications, which is the very record Postulo is meant to keep. Yet the lists must stay focused on what is current.
+Companies, contacts, offers and applications reference each other. Deleting a company would either orphan or destroy the history of its applications, which is the very record Ambio is meant to keep. Yet the lists must stay focused on what is current.
 
 ## Decision
 

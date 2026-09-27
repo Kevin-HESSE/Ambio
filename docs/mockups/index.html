@@ -1,8 +1,8 @@
-<title>Postulo Screens</title>
+<title>Ambio Screens</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap">
-<link rel="stylesheet" href="postulo.css">
+<link rel="stylesheet" href="ambio.css">
 <style>
   :root {
     --v-bg: #E9EDF3;
@@ -84,7 +84,7 @@
 </style>
 
 <header class="top">
-  <div class="brand"><span class="mk">P</span>Postulo <small>MVP screens</small></div>
+  <div class="brand"><span class="mk">P</span>Ambio <small>MVP screens</small></div>
   <div class="ctl">Device
     <div class="seg" id="device" role="group" aria-label="Device">
       <button data-v="mobile">Mobile</button><button data-v="desktop">Desktop</button><button data-v="both">Both</button>
@@ -109,7 +109,7 @@
       <dl class="notes"><div><dt>Content</dt><dd id="content"></dd></div><div><dt>Later phases</dt><dd id="later"></dd></div></dl>
     </section>
     <div class="stage" id="stage"></div>
-    <p class="foot">Same markup at 390 px and 1440 px: the layout switches at 992 px (Bootstrap <code>lg</code>). Colors, type and spacing are the <code>--postulo-*</code> tokens from docs/design-system.md. Demo data is fictional. Links inside the screens navigate between mockups.</p>
+    <p class="foot">Same markup at 390 px and 1440 px: the layout switches at 992 px (Bootstrap <code>lg</code>). Colors, type and spacing are the <code>--ambio-*</code> tokens from docs/design-system.md. Demo data is fictional. Links inside the screens navigate between mockups.</p>
   </div>
 </div>
 
@@ -123,8 +123,8 @@
     get(k, d) { try { return localStorage.getItem(k) || d; } catch (e) { return d; } },
     set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
   };
-  let device = store.get("postulo.device", "both");
-  let theme = store.get("postulo.theme", "auto");
+  let device = store.get("ambio.device", "both");
+  let theme = store.get("ambio.theme", "auto");
   let current = 0;
 
   // Screen list
@@ -198,8 +198,8 @@
 
   $("prev").onclick = () => go(-1);
   $("next").onclick = () => go(1);
-  $("device").onclick = (e) => { const v = e.target.closest("button")?.dataset.v; if (v) { device = v; store.set("postulo.device", v); render(); } };
-  $("theme").onclick = (e) => { const v = e.target.closest("button")?.dataset.v; if (v) { theme = v; store.set("postulo.theme", v); render(); } };
+  $("device").onclick = (e) => { const v = e.target.closest("button")?.dataset.v; if (v) { device = v; store.set("ambio.device", v); render(); } };
+  $("theme").onclick = (e) => { const v = e.target.closest("button")?.dataset.v; if (v) { theme = v; store.set("ambio.theme", v); render(); } };
   // Mock buttons do nothing; links navigate between screens through the hash.
   $("stage").addEventListener("click", (e) => { if (e.target.closest("button")) e.preventDefault(); });
   document.addEventListener("keydown", (e) => {

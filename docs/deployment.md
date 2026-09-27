@@ -1,6 +1,6 @@
 # Deployment
 
-Postulo ships as a Docker image published on Docker Hub for `linux/amd64` and `linux/arm64`, so it runs on a VPS as well as on an ARM NAS or a Raspberry Pi.
+Ambio ships as a Docker image published on Docker Hub for `linux/amd64` and `linux/arm64`, so it runs on a VPS as well as on an ARM NAS or a Raspberry Pi.
 
 > Status: planned for [Phase 2](roadmap.md#phase-2--docker-deployment--demo). Image name, tags and variables below are the target design.
 
@@ -22,10 +22,10 @@ Postulo ships as a Docker image published on Docker Hub for `linux/amd64` and `l
 
 | Variable | Purpose | Default |
 |---|---|---|
-| `ConnectionStrings__DefaultConnection` | SQLite connection string | `Data Source=/data/postulo.db` |
-| `Postulo__Storage__Root` | Root folder for documents and photos | `/data` |
-| `Postulo__Plugins__Path` | Plugin folder | `/plugins` |
-| `Postulo__Demo__Enabled` | Seed a demo account and data | `false` |
+| `ConnectionStrings__DefaultConnection` | SQLite connection string | `Data Source=/data/ambio.db` |
+| `Ambio__Storage__Root` | Root folder for documents and photos | `/data` |
+| `Ambio__Plugins__Path` | Plugin folder | `/plugins` |
+| `Ambio__Demo__Enabled` | Seed a demo account and data | `false` |
 | `Smtp__Host`, `Smtp__Port`, `Smtp__Username`, `Smtp__Password`, `Smtp__From` | Email sending; no email sent if unset | — |
 | `Authentication__GitHub__ClientId`, `Authentication__GitHub__ClientSecret` | GitHub login, disabled if unset | — |
 
@@ -33,8 +33,8 @@ Postulo ships as a Docker image published on Docker Hub for `linux/amd64` and `l
 
 ```yaml
 services:
-  postulo:
-    image: <dockerhub-user>/postulo:latest
+  ambio:
+    image: <dockerhub-user>/ambio:latest
     restart: unless-stopped
     ports:
       - "8080:8080"
@@ -51,7 +51,7 @@ services:
 
 ## Reverse proxy
 
-Run Postulo behind Caddy, Traefik, Nginx or your NAS's proxy.
+Run Ambio behind Caddy, Traefik, Nginx or your NAS's proxy.
 
 - Forwarded headers (`X-Forwarded-For`, `X-Forwarded-Proto`) are honoured so that redirects and OAuth callbacks use `https`.
 - Blazor Server needs **WebSockets**: make sure the proxy forwards the `Upgrade` and `Connection` headers.
@@ -65,7 +65,7 @@ Run Postulo behind Caddy, Traefik, Nginx or your NAS's proxy.
 
 ## Demo
 
-Set `Postulo__Demo__Enabled=true` to seed a demo account with sample companies, job offers, applications, contacts, cover letters and CVs. The demo is extended in every phase of the [roadmap](roadmap.md).
+Set `Ambio__Demo__Enabled=true` to seed a demo account with sample companies, job offers, applications, contacts, cover letters and CVs. The demo is extended in every phase of the [roadmap](roadmap.md).
 
 ## Backup and restore
 
@@ -73,14 +73,14 @@ All state lives in `/data`.
 
 ```bash
 # backup
-docker compose stop postulo
-tar czf postulo-backup-$(date +%F).tar.gz ./data
-docker compose start postulo
+docker compose stop ambio
+tar czf ambio-backup-$(date +%F).tar.gz ./data
+docker compose start ambio
 
 # restore
-docker compose stop postulo
-tar xzf postulo-backup-YYYY-MM-DD.tar.gz
-docker compose start postulo
+docker compose stop ambio
+tar xzf ambio-backup-YYYY-MM-DD.tar.gz
+docker compose start ambio
 ```
 
 Keep `/data/keys` in the backup: without it, existing cookies and 2FA tokens become invalid.

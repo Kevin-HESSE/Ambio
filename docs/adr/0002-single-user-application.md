@@ -5,7 +5,7 @@
 
 ## Context
 
-Postulo tracks one person's job search. It is self-hosted, one instance per user. Multi-tenancy would add data isolation on every query, user management, and quotas, with no benefit for this use case.
+Ambio tracks one person's job search. It is self-hosted, one instance per user. Multi-tenancy would add data isolation on every query, user management, and quotas, with no benefit for this use case.
 
 ## Decision
 

@@ -3,7 +3,7 @@
 The screens of the MVP ([Phase 1](roadmap.md#phase-1--application-tracking-mvp)), how the layout adapts to mobile, and how later phases fit in. Colors, type and spacing come from the [design system](design-system.md). The layout decisions are in [ADR 0016](adr/0016-responsive-navigation-bottom-tabs-and-sidebar.md).
 
 **Mockups**: [`docs/mockups/`](mockups/index.html) holds an HTML page that renders every screen at 390 px (mobile) and 1440 px (desktop), in light and dark.
-- It uses the real `--postulo-*` tokens ([`postulo.css`](mockups/postulo.css)), Source Sans 3 and Bootstrap Icons.
+- It uses the real `--ambio-*` tokens ([`ambio.css`](mockups/ambio.css)), Source Sans 3 and Bootstrap Icons.
 - Links inside the screens navigate between mockups.
 - To view it locally, serve the folder (`python3 -m http.server -d docs/mockups`) and open `http://localhost:8000`.
 - The screens aren't in Figma: the Figma Starter plan allows 20 MCP tool calls a month, which the design system used up. They can be rebuilt in Figma's `Screens` page later from this page.

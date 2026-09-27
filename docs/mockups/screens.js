@@ -1,6 +1,6 @@
-// Postulo — MVP screen mockups (see docs/ui.md).
+// Ambio — MVP screen mockups (see docs/ui.md).
 // Every screen is rendered from the same markup at 390 px and 1440 px; the
-// layout switches with the container query in postulo.css. Demo data is
+// layout switches with the container query in ambio.css. Demo data is
 // fictional.
 
 (function () {
@@ -67,7 +67,7 @@
       <a class="nav-item ${active === n.id ? "active" : ""}" href="#${n.go}">${ic(active === n.id ? n.iconOn : n.icon)}${n.label}${n.count ? `<span class="count">${n.count}</span>` : ""}</a>`).join("");
     return `
     <aside class="sidebar" aria-label="Main navigation">
-      <a class="logo" href="#dashboard"><span class="logo-mark">P</span>Postulo</a>
+      <a class="logo" href="#dashboard"><span class="logo-mark">P</span>Ambio</a>
       <div class="nav-label t-eyebrow">Tracking</div>
       ${items}
       <div class="sidebar-foot">
@@ -439,10 +439,10 @@ Jane Doe</textarea></div>
           <div class="field">
             <label class="form-label" for="na-offer">Job offer</label>
             <label class="input-icon">${ic("search")}<input id="na-offer" class="form-control focus" value="data engineer"></label>
-            <div class="card" style="box-shadow:var(--postulo-shadow-md)">
+            <div class="card" style="box-shadow:var(--ambio-shadow-md)">
               <ul class="list">
-                <li><a class="list-item" style="background:var(--postulo-bg-subtle)" href="#application-new"><div class="grow"><div class="title">Data Engineer</div><div class="meta">Lumen Health · Bordeaux · Fixed-term · No application yet</div></div>${ic("check2")}</a></li>
-                <li><a class="list-item" href="#offer-new">${ic("plus-lg")}<div class="grow"><div class="title" style="color:var(--postulo-accent-text)">Create a new offer “data engineer”</div><div class="meta">Company, title and link, the rest can wait</div></div></a></li>
+                <li><a class="list-item" style="background:var(--ambio-bg-subtle)" href="#application-new"><div class="grow"><div class="title">Data Engineer</div><div class="meta">Lumen Health · Bordeaux · Fixed-term · No application yet</div></div>${ic("check2")}</a></li>
+                <li><a class="list-item" href="#offer-new">${ic("plus-lg")}<div class="grow"><div class="title" style="color:var(--ambio-accent-text)">Create a new offer “data engineer”</div><div class="meta">Company, title and link, the rest can wait</div></div></a></li>
               </ul>
             </div>
           </div>
@@ -682,12 +682,12 @@ Hybrid: 2 days a week at the Nantes office.</p></div>
           <li><a href="#settings">${ic("gear")}Settings</a></li>
           <li><a href="#account">${ic("person-circle")}Account</a></li>
         </ul>
-        <div class="dialog-body" style="padding-top:8px;border-top:1px solid var(--postulo-border-default)">
+        <div class="dialog-body" style="padding-top:8px;border-top:1px solid var(--ambio-border-default)">
           <div class="field" style="padding-top:12px"><span class="form-label">Theme</span>
             <div class="segmented block"><button class="active">${ic("circle-half")}System</button><button>${ic("sun")}Light</button><button>${ic("moon-stars")}Dark</button></div>
           </div>
         </div>
-        <ul class="menu-list" style="padding:0 0 12px;border-top:1px solid var(--postulo-border-default)">
+        <ul class="menu-list" style="padding:0 0 12px;border-top:1px solid var(--ambio-border-default)">
           <li><button class="danger">${ic("box-arrow-right")}Log out</button></li>
         </ul>
       </div>
@@ -726,12 +726,12 @@ Hybrid: 2 days a week at the Nantes office.</p></div>
     return shell({
       nav: "account", title: "Account", back: "more",
       body: `
-      ${pageHeader("Account", { sub: "Manage how you sign in to Postulo" })}
+      ${pageHeader("Account", { sub: "Manage how you sign in to Ambio" })}
       <div class="manage">
         <nav class="manage-nav" aria-label="Account sections">${tabs}</nav>
         <div class="grow">
           <section class="card"><div class="card-header"><h2>Profile</h2></div><div class="card-body"><div class="form" style="grid-template-columns:1fr">
-            <div class="field"><label class="form-label" for="ac-u">Username</label><input id="ac-u" class="form-control" value="jane.doe@example.com" disabled style="background:var(--postulo-bg-subtle);color:var(--postulo-text-secondary)"></div>
+            <div class="field"><label class="form-label" for="ac-u">Username</label><input id="ac-u" class="form-control" value="jane.doe@example.com" disabled style="background:var(--ambio-bg-subtle);color:var(--ambio-text-secondary)"></div>
             <div class="field"><label class="form-label" for="ac-p">Phone number <span class="opt">(optional)</span></label><input id="ac-p" class="form-control" placeholder="+33 6 12 34 56 78"></div>
             <div class="action-bar"><button class="btn btn-primary">Save</button></div>
           </div></div></section>
@@ -743,15 +743,15 @@ Hybrid: 2 days a week at the Nantes office.</p></div>
   function login() {
     return `
     <div class="app-scroll" style="height:100%"><div class="auth">
-      <span class="logo logo-lg"><span class="logo-mark">P</span>Postulo</span>
+      <span class="logo logo-lg"><span class="logo-mark">P</span>Ambio</span>
       <section class="card"><div class="card-body">
-        <div><h1 class="t-h2">Log in</h1><p class="t-small secondary">Use the account created when Postulo was set up.</p></div>
+        <div><h1 class="t-h2">Log in</h1><p class="t-small secondary">Use the account created when Ambio was set up.</p></div>
         <div class="field"><label class="form-label" for="li-e">Email</label><input id="li-e" class="form-control" value="jane.doe@example.com" autocomplete="username"></div>
         <div class="field"><div style="display:flex;justify-content:space-between"><label class="form-label" for="li-p">Password</label><a class="t-small" href="#login">Forgot your password?</a></div><input id="li-p" type="password" class="form-control" value="password123" autocomplete="current-password"></div>
         <label class="check"><input type="checkbox" checked>Remember me</label>
         <a class="btn btn-primary btn-block" href="#dashboard">Log in</a>
       </div></section>
-      <p class="auth-foot">Postulo has a single account. Registration is closed.</p>
+      <p class="auth-foot">Ambio has a single account. Registration is closed.</p>
     </div></div>`;
   }
 

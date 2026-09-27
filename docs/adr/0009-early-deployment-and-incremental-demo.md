@@ -10,7 +10,7 @@ The app should be useful for an ongoing job search as soon as possible, and show
 ## Decision
 
 - The Docker and deployment phase comes right after the application-tracking MVP, before the candidate profile and CV generation.
-- The same phase adds a demo: a seeder enabled by `Postulo__Demo__Enabled` that creates a demo account and sample data.
+- The same phase adds a demo: a seeder enabled by `Ambio__Demo__Enabled` that creates a demo account and sample data.
 - Every following phase ends with a task that extends the demo with the new feature.
 - CV upload is part of the MVP, so sent CVs are kept before generation exists.
 

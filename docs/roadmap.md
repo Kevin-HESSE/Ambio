@@ -1,6 +1,6 @@
 # Roadmap
 
-Postulo is built in small, deployable increments.
+Ambio is built in small, deployable increments.
 
 > **Guiding principle: usable early.** The app is packaged and deployable right after the first feature (application tracking). A demo is set up in the same phase, and every later phase adds its new feature to the demo.
 
@@ -21,8 +21,8 @@ Each phase maps to a GitHub Milestone, and each checkbox maps to an issue.
 
 ## Phase 0 — Foundations
 
-- [ ] Restructure the solution into layers (see [architecture.md](architecture.md)): `Postulo.Domain`, `Postulo.Application`, `Postulo.Infrastructure`, `Postulo.Web`
-- [ ] Move `ApplicationDbContext` and migrations to `Postulo.Infrastructure`, set up `ApplyConfigurationsFromAssembly`, and register the context with `AddDbContextFactory` ([ADR 0010](adr/0010-dbcontext-factory-without-repositories.md))
+- [ ] Restructure the solution into layers (see [architecture.md](architecture.md)): `Ambio.Domain`, `Ambio.Application`, `Ambio.Infrastructure`, `Ambio.Web`
+- [ ] Move `ApplicationDbContext` and migrations to `Ambio.Infrastructure`, set up `ApplyConfigurationsFromAssembly`, and register the context with `AddDbContextFactory` ([ADR 0010](adr/0010-dbcontext-factory-without-repositories.md))
 - [ ] Remove the template samples (`Counter`, `Weather`, `Auth` pages, and their nav links)
 - [ ] Remove passkey support (pages, endpoints, `PasskeySubmit` component)
 - [ ] Single-user mode: close registration once an account exists ([ADR 0002](adr/0002-single-user-application.md))
@@ -48,7 +48,7 @@ Each phase maps to a GitHub Milestone, and each checkbox maps to an issue.
   - Companies: list and detail with every offer and application for the company
   - Offers: list, detail with their postings, create/edit with a duplicate suggestion (same company, similar title)
   - Settings: follow-up delay (`UserSettings`), theme
-- [ ] Apply the design system ([design-system.md](design-system.md), [ADR 0015](adr/0015-neutral-visual-identity-with-status-colors.md)): `--postulo-*` variables and their Bootstrap mapping in `app.css`, light/dark theme, self-hosted Source Sans 3 and Bootstrap Icons, `StatusBadge` and `Tag` components
+- [ ] Apply the design system ([design-system.md](design-system.md), [ADR 0015](adr/0015-neutral-visual-identity-with-status-colors.md)): `--ambio-*` variables and their Bootstrap mapping in `app.css`, light/dark theme, self-hosted Source Sans 3 and Bootstrap Icons, `StatusBadge` and `Tag` components
 - [ ] App shell: responsive layout (sidebar ≥ 992 px, bottom tab bar + "More" sheet below), logo and favicon, theme selector (System / Light / Dark), restyled Log in and Account pages
 - [ ] `Home` dashboard: counts by status, **Follow up** (applications still Applied after the configured delay), recent activity
 - [ ] **Cover letters**: plain text, 1..n per application, textarea editor, copy to clipboard
@@ -66,7 +66,7 @@ Each phase maps to a GitHub Milestone, and each checkbox maps to an issue.
 - [ ] Forwarded headers enabled for running behind a reverse proxy
 - [ ] `docker-compose.yml` example
 - [ ] GitHub Actions: multi-arch build (`linux/amd64`, `linux/arm64`) with buildx, pushed to Docker Hub on version tags
-- [ ] **Demo**: `DemoDataSeeder` enabled with `Postulo__Demo__Enabled=true`, which seeds a demo account and sample companies, offers posted on several sites, offer and spontaneous applications, cover letters, and an uploaded CV
+- [ ] **Demo**: `DemoDataSeeder` enabled with `Ambio__Demo__Enabled=true`, which seeds a demo account and sample companies, offers posted on several sites, offer and spontaneous applications, cover letters, and an uploaded CV
 - [ ] README: quick start with Docker and a demo section
 - [ ] [deployment.md](deployment.md): volumes, environment variables, backup of `/data`
 
@@ -89,19 +89,19 @@ Enriches the company, which is shared by every application to it (see [data-mode
 - [ ] **CV per application — selection + override** ([ADR 0007](adr/0007-cv-snapshots-selection-and-override.md)): choose profile items, override the title and summary for the job offer, then freeze the result as a snapshot
 - [ ] **General CV**: `CvDocument` with no application (`JobApplicationId = null`), meant for sharing on LinkedIn and other networks, with a "My CVs" page
 - [ ] QuestPDF rendering (`Source = Generated`), stored under `/data/documents`, with preview and download
-- [ ] Built-in template `Postulo.Plugins.CV.Default`
+- [ ] Built-in template `Ambio.Plugins.CV.Default`
 - [ ] Linux fonts bundled in the Docker image
-- [ ] `tools/Postulo.CvPlayground`: console app using the QuestPDF Companion to design templates by hand
+- [ ] `tools/Ambio.CvPlayground`: console app using the QuestPDF Companion to design templates by hand
 - [ ] PDF snapshot tests for the default template
 - [ ] Extend demo: seeded profile, a generated general CV, and a generated CV per demo application
 
 ## Phase 4 — CV template plugins
 
-- [ ] `Postulo.Plugins.CV.Abstractions`: `ICvTemplate`, `CvModel` (see [plugins.md](plugins.md))
+- [ ] `Ambio.Plugins.CV.Abstractions`: `ICvTemplate`, `CvModel` (see [plugins.md](plugins.md))
 - [ ] Plugin loader: scans `/plugins/<Name>/` at startup, one `AssemblyLoadContext` per plugin, sharing the contract and QuestPDF with the host
 - [ ] Faulty-plugin isolation: a plugin that fails to load or render is logged and disabled, and the app keeps running
 - [ ] Template picker when generating a CV, and a template list page (name, version, source)
-- [ ] Sample external plugin (for example `Postulo.Plugins.CV.Modern`) built and dropped into `/plugins` in CI
+- [ ] Sample external plugin (for example `Ambio.Plugins.CV.Modern`) built and dropped into `/plugins` in CI
 - [ ] PDF snapshot tests run against every bundled template
 - [ ] Extend demo: second template available in the demo image
 

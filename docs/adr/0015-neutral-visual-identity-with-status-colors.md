@@ -15,7 +15,7 @@ The app still uses the Blazor template defaults: Helvetica and a Bootstrap blue 
 - **Color is never the only signal**: a badge always has a label (and an icon in the app). All text pairs reach WCAG AA contrast (4.5:1), and status dots reach 3:1, in both themes.
 - **Light and dark themes** from the start, with a light and a dark value for every semantic token.
 - **Typography**: Source Sans 3 (OFL), self-hosted, with body text at 16 px.
-- **Figma is the source of the tokens**. The values are documented in hex in [design-system.md](../design-system.md), and they become `--postulo-*` CSS custom properties that are mapped onto Bootstrap 5.3's variables. Bootstrap stays the component library.
+- **Figma is the source of the tokens**. The values are documented in hex in [design-system.md](../design-system.md), and they become `--ambio-*` CSS custom properties that are mapped onto Bootstrap 5.3's variables. Bootstrap stays the component library.
 
 ## Consequences
 

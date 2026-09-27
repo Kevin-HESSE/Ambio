@@ -10,10 +10,10 @@ dotnet test
 
 | Project | Scope | Tools |
 |---|---|---|
-| `tests/Postulo.Domain.Tests` | Entities and domain rules (status workflow, invariants) | xUnit |
-| `tests/Postulo.Application.Tests` | Services and DTO mapping extensions | xUnit |
-| `tests/Postulo.Infrastructure.Tests` | EF Core mappings and queries, file storage, plugin loader, PDF snapshots | xUnit, SQLite in-memory |
-| `tests/Postulo.Web.Tests` | Blazor components | bUnit |
+| `tests/Ambio.Domain.Tests` | Entities and domain rules (status workflow, invariants) | xUnit |
+| `tests/Ambio.Application.Tests` | Services and DTO mapping extensions | xUnit |
+| `tests/Ambio.Infrastructure.Tests` | EF Core mappings and queries, file storage, plugin loader, PDF snapshots | xUnit, SQLite in-memory |
+| `tests/Ambio.Web.Tests` | Blazor components | bUnit |
 
 ## EF Core integration tests
 
@@ -37,4 +37,4 @@ Every CV template (built-in or bundled plugin) is rendered with a fixed `CvModel
 
 ## Designing templates by hand
 
-`tools/Postulo.CvPlayground` renders a template with sample data in the QuestPDF Companion for live preview. It isn't a test, but it's the fastest way to iterate on a layout before approving new snapshots. See [plugins.md](plugins.md#developing-a-template).
+`tools/Ambio.CvPlayground` renders a template with sample data in the QuestPDF Companion for live preview. It isn't a test, but it's the fastest way to iterate on a layout before approving new snapshots. See [plugins.md](plugins.md#developing-a-template).

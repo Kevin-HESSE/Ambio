@@ -1,6 +1,8 @@
-# Postulo
+# Ambio
 
 **Track your job applications, keep every CV and cover letter you sent, and generate tailored CVs from a single profile.**
+
+*Ambio* comes from the Latin *ambire*: to go around canvassing, to seek an office.
 
 ![.NET 10](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet)
 ![Blazor](https://img.shields.io/badge/Blazor-Interactive%20Server-512BD4?logo=blazor)
@@ -38,14 +40,14 @@ _Coming soon._ Screenshots will live in [`docs/screenshots/`](docs/screenshots/)
 ### Docker
 
 ```bash
-docker run -d --name postulo \
+docker run -d --name ambio \
   -p 8080:8080 \
   -v ./data:/data \
   -v ./plugins:/plugins \
-  <dockerhub-user>/postulo:latest
+  <dockerhub-user>/ambio:latest
 ```
 
-Open <http://localhost:8080> and create your account. Add `-e Postulo__Demo__Enabled=true` to explore with demo data.
+Open <http://localhost:8080> and create your account. Add `-e Ambio__Demo__Enabled=true` to explore with demo data.
 
 See [deployment](docs/deployment.md) for `docker compose`, reverse proxy, email and backups.
 
@@ -54,7 +56,7 @@ See [deployment](docs/deployment.md) for `docker compose`, reverse proxy, email 
 Requires the [.NET 10 SDK](https://dotnet.microsoft.com/download).
 
 ```bash
-dotnet run --project src/Postulo.Web
+dotnet run --project src/Ambio.Web
 ```
 
 ## Write your own CV template
@@ -101,6 +103,6 @@ Publish it, drop the folder into `/plugins`, and restart. See the [plugin guide]
 
 ## License
 
-Postulo is released under the [MIT License](LICENSE).
+Ambio is released under the [MIT License](LICENSE).
 
 PDF generation uses [QuestPDF](https://www.questpdf.com/), used under its [Community License](https://www.questpdf.com/license/), which applies to open-source projects like this one.

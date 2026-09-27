@@ -10,7 +10,7 @@ The template puts entities and the `DbContext` in the web project. As the domain
 ## Decision
 
 - **Domain entities have no reference to the database**: no EF Core package, no data annotations (`[Key]`, `[MaxLength]`…), no `DbContext`.
-- **Table configuration uses EF Core mapping classes**: one `IEntityTypeConfiguration<T>` per entity in `Postulo.Infrastructure/Persistence/Configurations/`, applied with `ApplyConfigurationsFromAssembly`.
+- **Table configuration uses EF Core mapping classes**: one `IEntityTypeConfiguration<T>` per entity in `Ambio.Infrastructure/Persistence/Configurations/`, applied with `ApplyConfigurationsFromAssembly`.
 - **Services return DTOs** (records). Blazor components never receive domain entities.
 - **Mapping is written by hand** as C# extension methods (`ToDto()`) in one `<Feature>MappingExtensions` class per feature, so the mapping is centralized. No mapping library.
 

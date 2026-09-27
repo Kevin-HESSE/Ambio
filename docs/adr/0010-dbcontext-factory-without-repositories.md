@@ -19,7 +19,7 @@ The Repository and Unit of Work patterns were considered on top of that. `DbCont
   ```
 
 - **No repositories, no unit of work.** Services use the `DbContext` directly, project queries to DTOs, and call `SaveChangesAsync` once at the end of each write operation.
-- Application defines service interfaces and DTOs. Their implementations live in `Postulo.Infrastructure`, which owns EF Core.
+- Application defines service interfaces and DTOs. Their implementations live in `Ambio.Infrastructure`, which owns EF Core.
 - ASP.NET Core Identity keeps its scoped `ApplicationDbContext`: since EF Core 6, `AddDbContextFactory` also registers the context as scoped, so the Identity stores keep working.
 
 ## Consequences

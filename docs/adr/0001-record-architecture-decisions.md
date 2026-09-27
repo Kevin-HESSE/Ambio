@@ -5,7 +5,7 @@
 
 ## Context
 
-Postulo is a portfolio project. Readers (recruiters, contributors, future me) should understand not only how it is built but why.
+Ambio is a portfolio project. Readers (recruiters, contributors, future me) should understand not only how it is built but why.
 
 ## Decision
 

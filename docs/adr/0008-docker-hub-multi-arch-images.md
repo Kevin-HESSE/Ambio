@@ -5,7 +5,7 @@
 
 ## Context
 
-Postulo runs on a VPS (usually amd64) or a NAS / single-board computer (often arm64), behind a reverse proxy.
+Ambio runs on a VPS (usually amd64) or a NAS / single-board computer (often arm64), behind a reverse proxy.
 
 ## Decision
 

@@ -1,29 +1,29 @@
 # CV template plugins
 
-Postulo renders CVs with [QuestPDF](https://www.questpdf.com/). Templates are plugins: .NET assemblies that implement a small contract and are loaded from the `/plugins` folder when the app starts.
+Ambio renders CVs with [QuestPDF](https://www.questpdf.com/). Templates are plugins: .NET assemblies that implement a small contract and are loaded from the `/plugins` folder when the app starts.
 
 > Status: planned for [Phase 4](roadmap.md#phase-4--cv-template-plugins). The contract below is the target design and may change before release.
 
 ## Naming convention
 
-Plugin projects are named after their purpose: `Postulo.Plugins.<Domain>.<Purpose>`.
+Plugin projects are named after their purpose: `Ambio.Plugins.<Domain>.<Purpose>`.
 
 | Project | Role |
 |---|---|
-| `Postulo.Plugins.CV.Abstractions` | Contract shared by the host and every CV template |
-| `Postulo.Plugins.CV.Default` | Built-in template, also the reference implementation |
-| `Postulo.Plugins.CV.<Name>` | Any other CV template, for example `Postulo.Plugins.CV.Modern` |
+| `Ambio.Plugins.CV.Abstractions` | Contract shared by the host and every CV template |
+| `Ambio.Plugins.CV.Default` | Built-in template, also the reference implementation |
+| `Ambio.Plugins.CV.<Name>` | Any other CV template, for example `Ambio.Plugins.CV.Modern` |
 
 The `<Domain>` segment leaves room for other plugin families later.
 
 ## Contract
 
 ```csharp
-namespace Postulo.Plugins.CV.Abstractions;
+namespace Ambio.Plugins.CV.Abstractions;
 
 public interface ICvTemplate
 {
-    string Id { get; }          // stable, unique: "postulo.default"
+    string Id { get; }          // stable, unique: "ambio.default"
     string Name { get; }        // shown in the template picker
     Version Version { get; }
 
@@ -45,12 +45,12 @@ Templates only receive data. They never access the database or the file system.
 
 ```text
 /plugins
-  Postulo.Plugins.CV.Modern/
-    Postulo.Plugins.CV.Modern.dll
+  Ambio.Plugins.CV.Modern/
+    Ambio.Plugins.CV.Modern.dll
     <private dependencies>.dll
 ```
 
-1. Reference `Postulo.Plugins.CV.Abstractions` and `QuestPDF` with `<Private>false</Private>` / `ExcludeAssets="runtime"` so they are **not** copied to the output.
+1. Reference `Ambio.Plugins.CV.Abstractions` and `QuestPDF` with `<Private>false</Private>` / `ExcludeAssets="runtime"` so they are **not** copied to the output.
 2. `dotnet publish` the plugin.
 3. Copy the output folder into the `/plugins` volume.
 4. Restart the container.
@@ -59,23 +59,23 @@ Templates only receive data. They never access the database or the file system.
 
 - Plugins are discovered **once, at startup** ([ADR 0003](adr/0003-runtime-plugin-loading-at-startup.md)). Adding or updating a plugin requires a restart.
 - Each plugin folder gets its own `AssemblyLoadContext`.
-- `Postulo.Plugins.CV.Abstractions` and `QuestPDF` are always resolved from the host, so the types match. Other dependencies are resolved from the plugin folder.
+- `Ambio.Plugins.CV.Abstractions` and `QuestPDF` are always resolved from the host, so the types match. Other dependencies are resolved from the plugin folder.
 - A plugin that fails to load (missing dependency, incompatible contract version, duplicate `Id`) is logged and skipped. A template that throws while rendering produces an error for that CV only.
 
 ## Versioning
 
-`Postulo.Plugins.CV.Abstractions` follows semantic versioning. The host refuses plugins built against a different **major** version.
+`Ambio.Plugins.CV.Abstractions` follows semantic versioning. The host refuses plugins built against a different **major** version.
 
 ## Developing a template
 
-`tools/Postulo.CvPlayground` is a console app that renders a template with sample data and opens it in the [QuestPDF Companion](https://www.questpdf.com/companion/usage.html), which gives live preview while you edit the layout.
+`tools/Ambio.CvPlayground` is a console app that renders a template with sample data and opens it in the [QuestPDF Companion](https://www.questpdf.com/companion/usage.html), which gives live preview while you edit the layout.
 
 ```bash
-dotnet run --project tools/Postulo.CvPlayground -- --template postulo.default
+dotnet run --project tools/Ambio.CvPlayground -- --template ambio.default
 ```
 
 Add a PDF snapshot test for every template (see [testing.md](testing.md)).
 
 ## Trust
 
-Plugins run in-process with the same permissions as the app. Postulo is a single-user, self-hosted application: only install plugins you trust.
+Plugins run in-process with the same permissions as the app. Ambio is a single-user, self-hosted application: only install plugins you trust.

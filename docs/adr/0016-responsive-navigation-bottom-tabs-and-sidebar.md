@@ -5,7 +5,7 @@
 
 ## Context
 
-Postulo must work on a phone: an application is often logged or updated right after reading an ad or taking a call. The template layout collapses its sidebar into a hamburger menu below 641 px, which hides the four sections behind an extra tap. The app will also grow: contacts and interactions (Phase 2b), profile and CVs (Phase 3), templates (Phase 4), language (Phase 5), export (Phase 6). The navigation and the page structure must take these without a redesign.
+Ambio must work on a phone: an application is often logged or updated right after reading an ad or taking a call. The template layout collapses its sidebar into a hamburger menu below 641 px, which hides the four sections behind an extra tap. The app will also grow: contacts and interactions (Phase 2b), profile and CVs (Phase 3), templates (Phase 4), language (Phase 5), export (Phase 6). The navigation and the page structure must take these without a redesign.
 
 ## Decision
 

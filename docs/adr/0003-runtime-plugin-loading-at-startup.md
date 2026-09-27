@@ -9,11 +9,11 @@ Users must be able to add or change CV templates without rebuilding the Docker i
 
 ## Decision
 
-- Templates are .NET assemblies implementing `ICvTemplate` from `Postulo.Plugins.CV.Abstractions`.
+- Templates are .NET assemblies implementing `ICvTemplate` from `Ambio.Plugins.CV.Abstractions`.
 - They are placed in `/plugins/<Name>/` (a Docker volume) and discovered **once at startup**.
 - Each plugin has its own `AssemblyLoadContext`. The contract assembly and QuestPDF are shared with the host.
 - No hot reload: adding or updating a plugin requires a restart.
-- Plugin projects follow the naming convention `Postulo.Plugins.<Domain>.<Purpose>`.
+- Plugin projects follow the naming convention `Ambio.Plugins.<Domain>.<Purpose>`.
 
 ## Consequences
 

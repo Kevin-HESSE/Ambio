@@ -14,6 +14,6 @@ Use [QuestPDF](https://www.questpdf.com/): a fluent C# API, a layout engine that
 ## Consequences
 
 - Templates are plain C#, which makes plugins natural (see ADR 0003).
-- Postulo is a public, MIT-licensed open-source project, which qualifies for the QuestPDF **Community License**. The license is set in code with `QuestPDF.Settings.License = LicenseType.Community`.
+- Ambio is a public, MIT-licensed open-source project, which qualifies for the QuestPDF **Community License**. The license is set in code with `QuestPDF.Settings.License = LicenseType.Community`.
 - The Docker image must include fonts for Linux rendering.
-- A `tools/Postulo.CvPlayground` console app is used to design templates with the Companion.
+- A `tools/Ambio.CvPlayground` console app is used to design templates with the Companion.

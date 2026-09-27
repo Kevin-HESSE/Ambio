@@ -1,24 +1,24 @@
 # Architecture
 
-Postulo is a .NET 10 Blazor Web App (Interactive Server only) using ASP.NET Core Identity, EF Core with SQLite, and QuestPDF.
+Ambio is a .NET 10 Blazor Web App (Interactive Server only) using ASP.NET Core Identity, EF Core with SQLite, and QuestPDF.
 
 ## Solution layout
 
 ```text
 src/
-  Postulo.Domain/                   Entities, value objects, domain rules — no infrastructure dependency
-  Postulo.Application/              Service interfaces, DTOs, mapping extensions
-  Postulo.Infrastructure/           Service implementations (EF Core via IDbContextFactory), storage, PDF, plugins, SMTP
-  Postulo.Web/                      Blazor UI, Identity, composition root
-  Postulo.Plugins.CV.Abstractions/  Public contract for CV template authors
-  Postulo.Plugins.CV.Default/       Built-in CV template (also the reference plugin)
+  Ambio.Domain/                   Entities, value objects, domain rules — no infrastructure dependency
+  Ambio.Application/              Service interfaces, DTOs, mapping extensions
+  Ambio.Infrastructure/           Service implementations (EF Core via IDbContextFactory), storage, PDF, plugins, SMTP
+  Ambio.Web/                      Blazor UI, Identity, composition root
+  Ambio.Plugins.CV.Abstractions/  Public contract for CV template authors
+  Ambio.Plugins.CV.Default/       Built-in CV template (also the reference plugin)
 tools/
-  Postulo.CvPlayground/             Console app + QuestPDF Companion for designing templates
+  Ambio.CvPlayground/             Console app + QuestPDF Companion for designing templates
 tests/
-  Postulo.Domain.Tests/
-  Postulo.Application.Tests/
-  Postulo.Infrastructure.Tests/     EF integration (SQLite in-memory), PDF snapshots
-  Postulo.Web.Tests/                bUnit component tests
+  Ambio.Domain.Tests/
+  Ambio.Application.Tests/
+  Ambio.Infrastructure.Tests/     EF integration (SQLite in-memory), PDF snapshots
+  Ambio.Web.Tests/                bUnit component tests
 ```
 
 ## Dependency rules
@@ -40,7 +40,7 @@ flowchart LR
 - **Infrastructure** implements the Application services with a short-lived `DbContext` per operation, created by `IDbContextFactory<ApplicationDbContext>`, as Microsoft recommends for Blazor Server. There are no repositories and no unit of work ([ADR 0010](adr/0010-dbcontext-factory-without-repositories.md)).
 - **Infrastructure** configures persistence exclusively with `IEntityTypeConfiguration<T>` classes in `Persistence/Configurations/`, which are applied with `ApplyConfigurationsFromAssembly`.
 - **Web** only consumes Application services and DTOs. It wires everything together in `Program.cs`.
-- **Plugins** only reference `Postulo.Plugins.CV.Abstractions` and QuestPDF.
+- **Plugins** only reference `Ambio.Plugins.CV.Abstractions` and QuestPDF.
 
 ## Conventions
 
@@ -52,9 +52,9 @@ flowchart LR
 | Data access | `await using var db = await dbFactory.CreateDbContextAsync(ct);` in each service method. No repositories, no unit of work. |
 | Queries | LINQ projections to DTOs so EF translates them to SQL, `AsNoTracking()` for reads |
 | Application URLs | `/applications/{ShortId}-{slug}`, `ShortId` generated with NanoId, looked up by `ShortId`, redirected to the canonical slug ([ADR 0014](adr/0014-short-id-and-slug-urls.md)) |
-| UI tokens | Colors, typography and spacing come from `--postulo-*` CSS variables mapped onto Bootstrap. No hard-coded colors in components. See [design-system.md](design-system.md) ([ADR 0015](adr/0015-neutral-visual-identity-with-status-colors.md)) |
+| UI tokens | Colors, typography and spacing come from `--ambio-*` CSS variables mapped onto Bootstrap. No hard-coded colors in components. See [design-system.md](design-system.md) ([ADR 0015](adr/0015-neutral-visual-identity-with-status-colors.md)) |
 | UI layout | Bottom tab bar + "More" sheet below 992 px, sidebar above. Lists are tables on desktop and cards on mobile; detail pages use tabs in the URL (`?tab=`). See [ui.md](ui.md) ([ADR 0016](adr/0016-responsive-navigation-bottom-tabs-and-sidebar.md)) |
-| Plugin naming | `Postulo.Plugins.<Domain>.<Purpose>` — see [plugins.md](plugins.md) |
+| Plugin naming | `Ambio.Plugins.<Domain>.<Purpose>` — see [plugins.md](plugins.md) |
 
 ## Data model
 
@@ -113,7 +113,7 @@ An uploaded CV (Phase 1) skips every step up to storage: the file is validated (
 
 ```text
 /data
-  postulo.db              SQLite database
+  ambio.db              SQLite database
   documents/<yyyy>/<id>.pdf
   photos/<id>.<ext>       optional profile photo
   keys/                   ASP.NET Core DataProtection keys

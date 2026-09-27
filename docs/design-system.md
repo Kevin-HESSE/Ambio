@@ -1,10 +1,10 @@
 # Design system
 
-Postulo's visual identity: neutral grays with a single indigo accent. The only other hues mark application statuses. The reasons are in [ADR 0015](adr/0015-neutral-visual-identity-with-status-colors.md).
+Ambio's visual identity: neutral grays with a single indigo accent. The only other hues mark application statuses. The reasons are in [ADR 0015](adr/0015-neutral-visual-identity-with-status-colors.md).
 
 > Status: the tokens exist in Figma. They are applied to the app in [Phase 1](roadmap.md#phase-1--application-tracking-mvp) (CSS variables mapped onto Bootstrap 5.3).
 
-**Figma**: [Postulo](https://www.figma.com/design/3ys0FLvxXEynaZmFtUxAda/Postulo) has two pages:
+**Figma**: [Ambio](https://www.figma.com/design/3ys0FLvxXEynaZmFtUxAda/Ambio) has two pages:
 - `Foundations`: primitives, semantic colors, statuses, tags, typography, spacing and radius.
 - `Components`: `StatusBadge`, `Tag`, and an application-list preview in light and dark.
 
@@ -165,13 +165,13 @@ The layout components (app shell, lists, tabs, sheets, toasts…) are listed in 
 
 A monogram and a wordmark:
 - the **mark** is a white "P" (`accent/on`) in a rounded square (`radius/lg`) filled with `accent/default`, 28 px in the app bar and the sidebar, 40 px on the log-in page;
-- the **wordmark** "Postulo" is set in Source Sans 3 SemiBold, in `text/primary`, next to the mark.
+- the **wordmark** "Ambio" is set in Source Sans 3 SemiBold, in `text/primary`, next to the mark.
 
 The mark alone is the favicon. It follows the theme like any other token: `#4F46E5` with a white "P" in light, `#818CF8` with a `#020617` "P" in dark.
 
 ## From tokens to code
 
-Each token becomes a CSS custom property prefixed with `--postulo-`. The `/` in the name becomes `-`, for example `status/interview/bg` → `var(--postulo-status-interview-bg)`. This is the code syntax set on each Figma variable, so Dev Mode shows the CSS name.
+Each token becomes a CSS custom property prefixed with `--ambio-`. The `/` in the name becomes `-`, for example `status/interview/bg` → `var(--ambio-status-interview-bg)`. This is the code syntax set on each Figma variable, so Dev Mode shows the CSS name.
 
 - The light values are declared on `:root`, and the dark values under `[data-bs-theme="dark"]`, the attribute Bootstrap 5.3 uses for its color modes.
 - The theme follows `prefers-color-scheme` by default, and the user can force Light or Dark ([ui.md](ui.md#patterns)).

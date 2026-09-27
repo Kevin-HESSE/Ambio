@@ -293,7 +293,7 @@ Every entity uses a `Guid` key created by the domain with `Guid.CreateVersion7()
 
 - **Identity at construction**: an entity has its id as soon as it is created, before `SaveChangesAsync`. The domain factories (`JobApplication`, `JobOffer`…) can build a whole graph (offer, postings, application) and reference ids without a database round trip. Services can also return the new id without reloading.
 - **File names**: a stored document is named after its id (`documents/<yyyy>/<id>.pdf`), so the file can be written before the row is saved and there are no name clashes.
-- **Export and import** ([Phase 6](roadmap.md#phase-6--data--showcase)): ids stay unique across Postulo instances. Importing an export into an instance that already has data doesn't collide with existing rows or require any id remapping.
+- **Export and import** ([Phase 6](roadmap.md#phase-6--data--showcase)): ids stay unique across Ambio instances. Importing an export into an instance that already has data doesn't collide with existing rows or require any id remapping.
 - **Demo seeding**: the demo data can use fixed, known ids.
 - **Non-guessable URLs**: `/applications/3` would reveal the number of applications, for example in screenshots or on the public demo. A GUID doesn't.
 
