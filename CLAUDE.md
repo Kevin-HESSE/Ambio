@@ -2,7 +2,7 @@
 
 ## Project state
 
-Ambio is at the "fresh template" stage: a .NET 10 Blazor Web App (`dotnet new blazor --auth Individual`) with ASP.NET Core Identity, split into layered projects (Domain, Application, Infrastructure, Web). `Counter`, `Weather`, and `Auth` pages are template samples; the Domain, Application and Infrastructure projects are still empty and there is no test project yet.
+Ambio is at the "fresh template" stage: a .NET 10 Blazor Web App (`dotnet new blazor --auth Individual`) with ASP.NET Core Identity, split into layered projects (Domain, Application, Infrastructure, Web). The Domain and Application projects are still empty, Infrastructure only holds the Identity `ApplicationDbContext` and its migrations, and there is no test project yet.
 
 ## Stack
 
