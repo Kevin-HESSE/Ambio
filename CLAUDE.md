@@ -32,8 +32,8 @@ dotnet watch --project src/Ambio.Web
 EF Core migrations
 
 ```bash
-dotnet ef migrations add <Name> --project src/Ambio.Web --output-dir Data/Migrations
-dotnet ef database update --project src/Ambio.Web
+dotnet ef migrations add <Name> --project src/Ambio.Infrastructure --startup-project src/Ambio.Web --output-dir Persistence/Migrations
+dotnet ef database update --project src/Ambio.Infrastructure --startup-project src/Ambio.Web
 ```
 
 There are no tests or linters configured yet.
@@ -55,7 +55,7 @@ See `docs/architecture.md` for the full dependency rules.
 - `IdentityRevalidatingAuthenticationStateProvider` periodically revalidates the security stamp for interactive circuits. `MapAdditionalIdentityEndpoints()` (in `Components/Account/IdentityComponentsEndpointRouteBuilderExtensions.cs`) adds the non-Razor endpoints (logout, external login, passkeys, personal data download).
 
 ### Identity
-- `ApplicationUser : IdentityUser` (add profile fields there, then add a migration). `RequireConfirmedAccount = true`, Identity schema version 3 (includes passkeys). Email is a no-op (`IdentityNoOpEmailSender`); `RegisterConfirmation.razor` special-cases it to show the confirmation link on screen — remove that branch when a real sender is added.
+- `ApplicationUser : IdentityUser` in `Ambio.Infrastructure/Persistence` (add profile fields there, then add a migration). `RequireConfirmedAccount = true`, Identity schema version 3 (includes passkeys). Email is a no-op (`IdentityNoOpEmailSender`); `RegisterConfirmation.razor` special-cases it to show the confirmation link on screen — remove that branch when a real sender is added.
 
 ### Static assets
 
@@ -65,7 +65,7 @@ See `docs/architecture.md` for the full dependency rules.
 ### Data
 
 - SQLite, connection string `DefaultConnection` in `appsettings.json`
-- Migrations live in `Data/Migrations`
+- `ApplicationDbContext` and migrations live in `src/Ambio.Infrastructure/Persistence` (`Persistence/Migrations`), registered with `AddDbContextFactory` by `AddDatabase()` in `InfrastructureExtensions.cs`
 ## Documentation
 
 - Roadmap and phases: `docs/roadmap.md` (each phase = GitHub Milestone). Tick checkboxes as tasks land.
