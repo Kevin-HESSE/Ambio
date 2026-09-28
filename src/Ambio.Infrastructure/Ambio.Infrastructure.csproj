@@ -10,4 +10,8 @@
     <ProjectReference Include="..\Ambio.Domain\Ambio.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
+  </ItemGroup>
+
 </Project>
