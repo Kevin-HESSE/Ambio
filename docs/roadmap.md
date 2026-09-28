@@ -23,7 +23,7 @@ Each phase maps to a GitHub Milestone, and each checkbox maps to an issue.
 
 - [x] Restructure the solution into layers (see [architecture.md](architecture.md)): `Ambio.Domain`, `Ambio.Application`, `Ambio.Infrastructure`, `Ambio.Web`
 - [x] Move `ApplicationDbContext` and migrations to `Ambio.Infrastructure`, set up `ApplyConfigurationsFromAssembly`, and register the context with `AddDbContextFactory` ([ADR 0010](adr/0010-dbcontext-factory-without-repositories.md))
-- [ ] Remove the template samples (`Counter`, `Weather`, `Auth` pages, and their nav links)
+- [x] Remove the template samples (`Counter`, `Weather`, `Auth` pages, and their nav links)
 - [ ] Remove passkey support (pages, endpoints, `PasskeySubmit` component)
 - [ ] Single-user mode: close registration once an account exists ([ADR 0002](adr/0002-single-user-application.md))
 - [ ] Add `.editorconfig` and enable `TreatWarningsAsErrors` for the new projects
