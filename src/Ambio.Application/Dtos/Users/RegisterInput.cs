@@ -5,7 +5,9 @@ namespace Ambio.Application.Dtos.Users;
 public record RegisterInput
 {
     [Required]
-    [EmailAddress]
+    [RegularExpression(
+        @"[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+(\.[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+)*@([A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?\.)+[A-Za-z]{2,}",
+        ErrorMessage = "The {0} field is not a valid e-mail address.")]
     [Display(Name = "Email")]
     public string Email { get; set; } = "";
 
