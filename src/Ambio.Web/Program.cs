@@ -28,6 +28,7 @@ builder.Services.AddDatabase(builder.Configuration);
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+builder.Services.AddApplicationServices();
 
 var app = builder.Build();
 

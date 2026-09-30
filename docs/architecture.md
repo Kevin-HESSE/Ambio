@@ -127,7 +127,8 @@ See [ADR 0005](adr/0005-sqlite-and-filesystem-storage.md) for why files live on 
 
 - Single user ([ADR 0002](adr/0002-single-user-application.md)): registration is closed once the account exists.
 - 2FA with an authenticator app, and recovery codes.
-- GitHub OAuth can only be linked to the existing account.
+- The account is created locally or with GitHub, and GitHub can be linked to a local account ([ADR 0017](adr/0017-account-creation-local-or-github.md)). Neither way can create a second account.
+- Account creation goes through `IUserService`, which serializes "check that no account exists, then create it" with an in-process semaphore: one instance per database.
 - Passkeys from the template are removed.
 - Email is sent through SMTP (MailKit) when configured, and falls back to the no-op sender otherwise.
 - `IdentityRevalidatingAuthenticationStateProvider` (from the template) revalidates the security stamp for interactive circuits.

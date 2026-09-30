@@ -1,4 +1,6 @@
+using Ambio.Application.Interfaces;
 using Ambio.Infrastructure.Persistence;
+using Ambio.Infrastructure.Service;
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -30,4 +32,13 @@ public static class InfrastructureExtensions
 
         return services;
     }
+
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+    {
+        services.AddSingleton<SemaphoreContainer>();
+        services.AddScoped<IUserService, UserService>();
+
+        return services;
+    }
+
 }

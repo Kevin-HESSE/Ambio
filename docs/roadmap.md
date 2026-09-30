@@ -25,7 +25,8 @@ Each phase maps to a GitHub Milestone, and each checkbox maps to an issue.
 - [x] Move `ApplicationDbContext` and migrations to `Ambio.Infrastructure`, set up `ApplyConfigurationsFromAssembly`, and register the context with `AddDbContextFactory` ([ADR 0010](adr/0010-dbcontext-factory-without-repositories.md))
 - [x] Remove the template samples (`Counter`, `Weather`, `Auth` pages, and their nav links)
 - [x] Remove passkey support (pages, endpoints, `PasskeySubmit` component)
-- [ ] Single-user mode: close registration once an account exists ([ADR 0002](adr/0002-single-user-application.md))
+- [x] Single-user mode: close registration once an account exists ([ADR 0002](adr/0002-single-user-application.md))
+- [ ] Create the account at first start, before the app is usable, instead of leaving registration open to whoever comes first ([ADR 0017](adr/0017-account-creation-local-or-github.md))
 - [ ] Add `.editorconfig` and enable `TreatWarningsAsErrors` for the new projects
 - [ ] Create test projects (xUnit, bUnit) — see [testing.md](testing.md)
 - [ ] GitHub Actions CI: restore, build, test on every push and pull request
@@ -110,7 +111,7 @@ Enriches the company, which is shared by every application to it (see [data-mode
 - [ ] MailKit SMTP email sender configured through environment variables, with the no-op sender kept when SMTP is not configured
 - [ ] Remove the no-op branch in `RegisterConfirmation.razor` when a real sender is configured
 - [ ] Keep 2FA (authenticator app) and recovery codes
-- [ ] GitHub OAuth login: can only be **linked** to the existing account, never used to create a second account
+- [ ] GitHub OAuth login: creates the account while none exists, or is linked to the existing one; never creates a second account, and account creation reuses `IUserService` ([ADR 0017](adr/0017-account-creation-local-or-github.md))
 - [ ] FR/EN UI localization with `IStringLocalizer` and a language switcher
 - [ ] Extend demo: language switcher visible in the demo
 

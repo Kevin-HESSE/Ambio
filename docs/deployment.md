@@ -59,8 +59,10 @@ Run Ambio behind Caddy, Traefik, Nginx or your NAS's proxy.
 
 ## First run
 
+> Run **one instance per database**. The guard that closes registration is in-process: two containers sharing the same SQLite file could each create an account ([ADR 0017](adr/0017-account-creation-local-or-github.md)).
+
 1. Start the container.
-2. Open the app and register: the first account becomes the only account and registration closes ([ADR 0002](adr/0002-single-user-application.md)).
+2. Open the app and register, with an email and a password or with GitHub: the first account becomes the only account and registration closes ([ADR 0002](adr/0002-single-user-application.md), [ADR 0017](adr/0017-account-creation-local-or-github.md)). Until then, anyone who reaches the instance can register, so do it before exposing the app.
 3. Enable 2FA from **Account → Two-factor authentication**.
 
 ## Demo

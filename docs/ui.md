@@ -78,7 +78,7 @@ The screens of the MVP ([Phase 1](roadmap.md#phase-1--application-tracking-mvp))
 
 | # | Screen | Route | Content | Later phases |
 |---|---|---|---|---|
-| 1 | Log in | `/Account/Login` | Logo, email, password, "Remember me". No registration link ([ADR 0002](adr/0002-single-user-application.md)). | GitHub login (5) |
+| 1 | Log in | `/Account/Login` | Logo, email, password, "Remember me". Registration link only while no account exists ([ADR 0002](adr/0002-single-user-application.md)). | GitHub login (5) |
 | 2 | Dashboard | `/` | Pipeline bar and a counter per status (each opens the filtered list), **Follow up**, recent activity. | Upcoming interviews (2b) |
 | 3 | Applications — list | `/applications` | Filters, table or cards. | — |
 | 4 | Applications — empty | `/applications` | Empty state with "New application" and "Add an offer". | — |

@@ -2,7 +2,7 @@
 
 ## Project state
 
-Ambio is at the "fresh template" stage: a .NET 10 Blazor Web App (`dotnet new blazor --auth Individual`) with ASP.NET Core Identity, split into layered projects (Domain, Application, Infrastructure, Web). The Domain and Application projects are still empty, Infrastructure only holds the Identity `ApplicationDbContext` and its migrations, and there is no test project yet.
+Ambio is at the "fresh template" stage: a .NET 10 Blazor Web App (`dotnet new blazor --auth Individual`) with ASP.NET Core Identity, split into layered projects (Domain, Application, Infrastructure, Web). The Domain project is still empty. Application holds `IUserService`, `ServiceResult` and the `RegisterInput` DTO; Infrastructure holds the Identity `ApplicationDbContext`, its migrations, and `UserService` with its singleton `SemaphoreContainer` (registered by `AddApplicationServices()`). There is no test project yet.
 
 ## Stack
 
@@ -56,6 +56,7 @@ See `docs/architecture.md` for the full dependency rules.
 
 ### Identity
 - `ApplicationUser : IdentityUser` in `Ambio.Infrastructure/Persistence` (add profile fields there, then add a migration). `RequireConfirmedAccount = true`, Identity schema version 3 (its passkey table is unused: passkey pages and endpoints were removed, see ADR 0002). Email is a no-op (`IdentityNoOpEmailSender`); `RegisterConfirmation.razor` special-cases it to show the confirmation link on screen — remove that branch when a real sender is added.
+- Single account (ADR 0002, ADR 0017): registration is open only while no user exists, and account creation goes through `IUserService.RegisterUserAsync`, guarded by an in-process semaphore. `ExternalLogin.razor` has its `@page` commented out until the GitHub OAuth issue, which must create accounts through `IUserService` too.
 
 ### Static assets
 
