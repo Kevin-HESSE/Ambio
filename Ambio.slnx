@@ -5,4 +5,7 @@
     <Project Path="src/Ambio.Infrastructure/Ambio.Infrastructure.csproj" />
     <Project Path="src/Ambio.Web/Ambio.Web.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Ambio.Application.Tests/Ambio.Application.Tests.csproj" />
+  </Folder>
 </Solution>
