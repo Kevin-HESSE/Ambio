@@ -72,7 +72,7 @@
 
     public async Task RegisterUser(EditContext editContext)
     {
-        var userResult = await UserService.RegisterUserAsync(Input);
+        var userResult = await UserService.RegisterUserAsync(Input, HttpContext.RequestAborted);
 
         if (!userResult.TryGetValue(out var userId))
         {

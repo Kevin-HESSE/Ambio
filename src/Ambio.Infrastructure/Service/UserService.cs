@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Ambio.Infrastructure.Service;
 
-public class UserService: IUserService
+internal class UserService: IUserService
 {
     private const string UserAlreadyExists = "User already exists";
     private const string UserNotFound = "User not found";
@@ -23,41 +23,53 @@ public class UserService: IUserService
     private readonly IUserStore<ApplicationUser> _userStore;
     private readonly IEmailSender<ApplicationUser> _emailSender;
     private readonly ILogger<UserService> _logger;
+    private readonly SemaphoreContainer _semaphoreContainer;
 
     public UserService(
         IEmailSender<ApplicationUser> emailSender,
         UserManager<ApplicationUser> userManager,
         IUserStore<ApplicationUser> userStore,
+        SemaphoreContainer semaphoreContainer,
         ILogger<UserService> logger)
     {
         _userManager = userManager;
         _userStore = userStore;
         _emailSender = emailSender;
         _logger = logger;
+        _semaphoreContainer = semaphoreContainer;
     }
 
-    public async Task<bool> HasUserAsync() => await _userManager.Users.AnyAsync();
+    public async Task<bool> HasUserAsync(CancellationToken cancellationToken = default) => await _userManager.Users.AnyAsync(cancellationToken);
 
-    public async Task<ServiceResult<string>> RegisterUserAsync(RegisterInput input)
+    public async Task<ServiceResult<string>> RegisterUserAsync(RegisterInput input, CancellationToken cancellationToken = default)
     {
-        if (await HasUserAsync())
+        await _semaphoreContainer.Semaphore.WaitAsync(cancellationToken);
+
+        try
         {
-            return ServiceResult<string>.Failure(UserAlreadyExists);
+            if (await HasUserAsync(cancellationToken))
+            {
+                return ServiceResult<string>.Failure(UserAlreadyExists);
+            }
+
+            var user = CreateUser();
+            await _userStore.SetUserNameAsync(user, input.Email, cancellationToken);
+            var emailStore = GetEmailStore();
+            await emailStore.SetEmailAsync(user, input.Email, cancellationToken);
+            var result = await _userManager.CreateAsync(user, input.Password);
+
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                return ServiceResult<string>.Failure(errors);
+            }
+
+            return ServiceResult<string>.Success(user.Id);
         }
-
-        var user = CreateUser();
-        await _userStore.SetUserNameAsync(user, input.Email, CancellationToken.None);
-        var emailStore = GetEmailStore();
-        await emailStore.SetEmailAsync(user, input.Email, CancellationToken.None);
-        var result = await _userManager.CreateAsync(user, input.Password);
-
-        if (!result.Succeeded)
+        finally
         {
-            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-            return ServiceResult<string>.Failure(errors);
+            _semaphoreContainer.Semaphore.Release();
         }
-
-        return ServiceResult<string>.Success(user.Id);
     }
 
     public async Task<ServiceResult> GenerateConfirmEmailAsync(string userId, string callbackUrl)
@@ -86,7 +98,7 @@ public class UserService: IUserService
         }
         catch (Exception exception)
         {
-            _logger.LogError(exception, "Failed to send email confirmation link. Exception: {Exception}", exception);
+            _logger.LogError(exception, "Failed to send email confirmation link.");
             return ServiceResult.Failure(EmailConfirmationFailed);
         }
     }

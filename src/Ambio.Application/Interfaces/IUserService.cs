@@ -5,7 +5,7 @@ namespace Ambio.Application.Interfaces;
 
 public interface IUserService
 {
-    public Task<bool> HasUserAsync();
-    public Task<ServiceResult<string>> RegisterUserAsync(RegisterInput input);
+    public Task<bool> HasUserAsync(CancellationToken cancellationToken = default);
+    public Task<ServiceResult<string>> RegisterUserAsync(RegisterInput input, CancellationToken cancellationToken = default);
     public Task<ServiceResult> GenerateConfirmEmailAsync(string userId, string callbackUrl);
 }

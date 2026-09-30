@@ -35,6 +35,7 @@ public static class InfrastructureExtensions
 
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
+        services.AddSingleton<SemaphoreContainer>();
         services.AddScoped<IUserService, UserService>();
 
         return services;
