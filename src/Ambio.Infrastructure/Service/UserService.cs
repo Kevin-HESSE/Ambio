@@ -15,10 +15,6 @@ namespace Ambio.Infrastructure.Service;
 
 internal class UserService: IUserService
 {
-    private const string UserAlreadyExists = "User already exists";
-    private const string UserNotFound = "User not found";
-    private const string EmailConfirmationFailed = "Sending Email confirmation failed";
-
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IUserStore<ApplicationUser> _userStore;
     private readonly IEmailSender<ApplicationUser> _emailSender;
@@ -49,7 +45,7 @@ internal class UserService: IUserService
         {
             if (await HasUserAsync(cancellationToken))
             {
-                return ServiceResult<string>.Failure(UserAlreadyExists);
+                return ServiceResult<string>.Failure(UserErrors.AlreadyExists);
             }
 
             var user = CreateUser();
@@ -78,7 +74,7 @@ internal class UserService: IUserService
 
         if (user == null)
         {
-            return ServiceResult.Failure(UserNotFound);
+            return ServiceResult.Failure(UserErrors.NotFound);
         }
 
         try
@@ -99,7 +95,7 @@ internal class UserService: IUserService
         catch (Exception exception)
         {
             _logger.LogError(exception, "Failed to send email confirmation link.");
-            return ServiceResult.Failure(EmailConfirmationFailed);
+            return ServiceResult.Failure(UserErrors.EmailConfirmationFailed);
         }
     }
 

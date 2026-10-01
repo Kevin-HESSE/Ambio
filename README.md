@@ -97,7 +97,7 @@ Publish it, drop the folder into `/plugins`, and restart. See the [plugin guide]
 - ASP.NET Core Identity 
 - EF Core + SQLite 
 - QuestPDF 
-- xUnit + bUnit 
+- xUnit, bUnit, NSubstitute, Playwright 
 - Docker 
 - GitHub Actions
 

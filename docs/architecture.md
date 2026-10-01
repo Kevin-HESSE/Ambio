@@ -15,10 +15,11 @@ src/
 tools/
   Ambio.CvPlayground/             Console app + QuestPDF Companion for designing templates
 tests/
-  Ambio.Domain.Tests/
-  Ambio.Application.Tests/
-  Ambio.Infrastructure.Tests/     EF integration (SQLite in-memory), PDF snapshots
+  Ambio.Domain.Tests/             Domain rules (created in Phase 1)
+  Ambio.Application.Tests/        DTO validation, mapping extensions
+  Ambio.Infrastructure.Tests/     Services, EF integration (SQLite in-memory), PDF snapshots
   Ambio.Web.Tests/                bUnit component tests
+  Ambio.E2E.Tests/                Playwright critical journeys
 ```
 
 ## Dependency rules

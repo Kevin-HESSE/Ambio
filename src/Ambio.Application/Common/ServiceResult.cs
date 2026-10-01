@@ -16,7 +16,7 @@ public record ServiceResult
     public static ServiceResult Success() => new(true);
     public static ServiceResult Failure(string message) => new(false, message);
 
-    public string GetMessage => Message ?? "An unknown error occurred";
+    public string GetMessage => Message ?? (IsSuccess ? "Operation Completed" : "An unknown error occurred");
 }
 
 public record ServiceResult<T> : ServiceResult
