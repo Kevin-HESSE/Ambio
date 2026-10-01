@@ -19,9 +19,9 @@ dotnet test
 
 Tests run against a real SQLite engine in memory, so they catch mapping and translation issues that the EF in-memory provider would hide.
 
-- Open one `SqliteConnection("DataSource=:memory:")` per test and keep it open for the test's lifetime.
+- Each test gets its own named in-memory database (`DataSource=file:<guid>?mode=memory&cache=shared`). A keeper `SqliteConnection` stays open for the test's lifetime, so the database survives while contexts open and close their own connections.
+- Services are registered with the production extensions (`AddDatabase()`, `AddApplicationServices()`), so tests use the same `IDbContextFactory<ApplicationDbContext>` and Identity setup as the app. See `tests/Ambio.Infrastructure.Tests/Fixtures/SqliteServiceProvider.cs`.
 - Create the schema with `Database.EnsureCreated()`.
-- Services under test get an `IDbContextFactory<ApplicationDbContext>` built over that connection, just like in production.
 - Test mapping classes (keys, required fields, relationships, cascade rules) and every LINQ projection to DTOs.
 
 ## Component tests
