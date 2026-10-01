@@ -8,5 +8,6 @@
   <Folder Name="/tests/">
     <Project Path="tests/Ambio.Application.Tests/Ambio.Application.Tests.csproj" />
     <Project Path="tests/Ambio.Infrastructure.Tests/Ambio.Infrastructure.Tests.csproj" />
+    <Project Path="tests/Ambio.Web.Tests/Ambio.Web.Tests.csproj" />
   </Folder>
 </Solution>
