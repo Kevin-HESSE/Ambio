@@ -51,31 +51,13 @@ No linters are configured yet.
 
 All main projects are in the `src` folder.
 
-- `src/Ambio.Domain`: entities and domain rules, references nothing
-- `src/Ambio.Application`: service interfaces, DTOs, mapping extensions; references Domain
-- `src/Ambio.Infrastructure`: service implementations, EF Core, storage; references Application and Domain
-- `src/Ambio.Web`: Blazor UI (Interactive Server, no web assembly), Identity, composition root; references Application and Infrastructure
+- `src/Ambio.Domain`: entities and domain rules
+- `src/Ambio.Application`: service interfaces, DTOs, mapping extensions
+- `src/Ambio.Infrastructure`: service implementations, EF Core, storage
+- `src/Ambio.Web`: Blazor UI, Identity, composition root
 
 See `docs/architecture.md` for the full dependency rules.
 
-### Routing
-
-- `Components/Routes.razor` uses `AuthorizeRouteView`; unauthenticated access to `[Authorize]` pages redirects via `RedirectToLogin`. 
-- `IdentityRevalidatingAuthenticationStateProvider` periodically revalidates the security stamp for interactive circuits. `MapAdditionalIdentityEndpoints()` (in `Components/Account/IdentityComponentsEndpointRouteBuilderExtensions.cs`) adds the non-Razor endpoints (logout, external login, personal data download).
-
-### Identity
-- `ApplicationUser : IdentityUser` in `Ambio.Infrastructure/Persistence` (add profile fields there, then add a migration). `RequireConfirmedAccount = true`, Identity schema version 3 (its passkey table is unused: passkey pages and endpoints were removed, see ADR 0002). Email is a no-op (`IdentityNoOpEmailSender`); `RegisterConfirmation.razor` special-cases it to show the confirmation link on screen — remove that branch when a real sender is added.
-- Single account (ADR 0002, ADR 0017): registration is open only while no user exists, and account creation goes through `IUserService.RegisterUserAsync`, guarded by an in-process semaphore. `ExternalLogin.razor` has its `@page` commented out until the GitHub OAuth issue, which must create accounts through `IUserService` too.
-
-### Static assets
-
-- Served via `MapStaticAssets()` and referenced through `@Assets["..."]` in `App.razor`. 
-- Bootstrap is vendored in `wwwroot/lib`.
-
-### Data
-
-- SQLite, connection string `DefaultConnection` in `appsettings.json`
-- `ApplicationDbContext` and migrations live in `src/Ambio.Infrastructure/Persistence` (`Persistence/Migrations`), registered with `AddDbContextFactory` by `AddDatabase()` in `InfrastructureExtensions.cs`
 ## Documentation
 
 - Roadmap and phases: `docs/roadmap.md` (each phase = GitHub Milestone). Tick checkboxes as tasks land.
@@ -83,10 +65,10 @@ See `docs/architecture.md` for the full dependency rules.
 - Decisions: `docs/adr/` — add a new ADR for any significant decision, never rewrite an accepted one.
 - Docs are written in English.
 
-## Architecture rules
+## Git
 
-- Domain entities have no reference to the database: no EF Core package, no data annotations, no `DbContext`.
-- Table configuration only through `IEntityTypeConfiguration<T>` classes in `Ambio.Infrastructure/Persistence/Configurations/`.
-- Data access: `IDbContextFactory<ApplicationDbContext>` with one short-lived context per operation (Microsoft's Blazor Server guidance). No repositories, no unit of work — keep it simple.
-- Services return DTOs (records), never entities. Mapping is written by hand as `ToDto()` extension methods in a `<Feature>MappingExtensions` class. No mapping library.
-- Plugin projects are named `Ambio.Plugins.<Domain>.<Purpose>` (e.g. `Ambio.Plugins.CV.Abstractions`).
+- Branches are named `type/short-name` (`feat/`, `fix/`, `refactor/`, `docs/`, `test/`, `chore/`, `ci/`).
+- Feature and fix branches merge into `dev` only: their pull requests target `dev`, never `main`. Only `dev` is merged into `main`.
+- Never commit without the user's explicit validation: stop at an uncommitted working tree and wait to be asked. A previous "commit" request does not cover later work. Don't end replies with a reminder that nothing is committed.
+- Implement multi-step plans one step at a time: build and test the step, then hand over for review (the user may edit the code). Once it is validated, re-read the touched files to pick up those edits and commit that step on its own before starting the next one.
+- Commit messages follow Conventional Commits (`type(scope): subject`, e.g. `feat(applications): add status history`), subject line only, no body. Required trailers such as `Co-Authored-By` are still appended.

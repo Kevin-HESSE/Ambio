@@ -19,7 +19,7 @@ Tests run on xUnit v3 with Microsoft.Testing.Platform, enabled for `dotnet test`
 
 - **Critical points first.** There is no coverage target. Test business rules, guards (such as the single-account semaphore of [ADR 0017](adr/0017-account-creation-local-or-github.md)), data access, integrations (such as email sending) and the journeys that would hurt if they broke. Don't test trivial getters or framework behavior.
 - **A test project is created when its layer has something worth testing.** `Ambio.Domain.Tests` comes with the first domain rule, not before.
-- **Real dependencies where they are cheap.** Services run against a real SQLite engine in memory, wired with the production DI extensions, rather than the EF in-memory provider or mocked contexts. Mocks are kept for what the test doesn't own.
+- **Real dependencies where they are cheap.** Services run against a real SQLite engine in memory, wired with the production DI extensions, rather than the EF in-memory provider or mocked contexts. Mocks are kept for what the test doesn't own, and are always NSubstitute mocks, never hand-written fakes.
 - **A few end-to-end journeys** cover what unit and component tests can't reach, such as the statically rendered Identity pages.
 
 ## Test projects
@@ -31,19 +31,19 @@ The content listed below is typical, not exhaustive: each project grows with its
 | `tests/Ambio.Domain.Tests` | Domain rules (status workflow, invariants) — created in Phase 1 | xUnit |
 | `tests/Ambio.Application.Tests` | DTO validation, `ServiceResult`, mapping extensions | xUnit |
 | `tests/Ambio.Infrastructure.Tests` | Service implementations (user management, email sending…), EF Core mappings and queries, file storage, plugin loader, PDF snapshots | xUnit, SQLite in-memory, NSubstitute |
-| `tests/Ambio.Web.Tests` | Interactive Blazor components | bUnit |
+| `tests/Ambio.Web.Tests` | Interactive Blazor components | bUnit, NSubstitute |
 | `tests/Ambio.E2E.Tests` | Critical user journeys in a real browser | xUnit, Playwright |
 
 Shared settings (target framework, xUnit package, global `using Xunit;`) live in `tests/Directory.Build.props`, and package versions in `Directory.Packages.props`.
 
 ## Conventions
 
-- **Layout.** Test folders and namespaces mirror `src` (`Service/UserServiceTests.cs` tests `Service/UserService.cs`).
+- **Layout.** Test folders and namespaces mirror the project under test, so they follow its feature folders ([ADR 0018](adr/0018-feature-folders-in-every-project.md)): `Users/UserServiceTests.cs` tests `Users/UserService.cs`. Helpers shared across features go in `Fixtures/`. End-to-end tests don't mirror a project: they are grouped by journey in `Journeys/`.
 - **Names.** `Method_Scenario_Result`, e.g. `RegisterUserAsync_WhenUserExists_Fails`.
 - **Member order.** Tests first, then private helpers (and helper types), then the data sets at the bottom of the class.
 - **Theories.** More than two rows go in a `[MemberData]` backed by a `TheoryData<T>` property. With one or two rows, keep `[InlineData]`.
 - **No magic strings.** Values reused in a class are named constants. Expected messages come from the production constants (e.g. `UserErrors.AlreadyExists`), never retyped. Data set rows can stay literal.
-- **Mocks.** Use NSubstitute, only for what the test doesn't own (an email sender, an external API). Services under test are resolved through the production DI extensions rather than built by hand.
+- **Mocks.** Use NSubstitute, never hand-written fakes, only for what the test doesn't own (an email sender, an external API, the Application services consumed by a component). Services under test are resolved through the production DI extensions rather than built by hand.
 
 ## EF Core integration tests
 
@@ -56,7 +56,7 @@ Tests run against a real SQLite engine in memory, so they catch mapping and tran
 
 ## Component tests
 
-bUnit renders components with fake Application services, and asserts on markup and interactions (filters, forms, validation messages). Test classes inherit `BunitContext`.
+bUnit renders components with NSubstitute mocks of the Application services, registered in the test context's `Services`, and asserts on markup and interactions (filters, forms, validation messages). Test classes inherit `BunitContext`.
 
 The Identity pages under `Components/Account` are rendered statically on the server and read `HttpContext`, which bUnit doesn't provide. They are covered by the end-to-end tests instead.
 

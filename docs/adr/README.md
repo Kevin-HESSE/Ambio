@@ -9,7 +9,7 @@ Each significant decision is recorded as a short ADR: context, decision, consequ
 | [0003](0003-runtime-plugin-loading-at-startup.md) | CV templates as plugin DLLs loaded at startup | Accepted |
 | [0004](0004-questpdf-for-cv-generation.md) | QuestPDF for CV generation | Accepted |
 | [0005](0005-sqlite-and-filesystem-storage.md) | SQLite for data, file system for documents | Accepted |
-| [0006](0006-persistence-ignorant-domain-and-dtos.md) | Persistence-ignorant domain, EF mapping classes, DTOs | Accepted |
+| [0006](0006-persistence-ignorant-domain-and-dtos.md) | Persistence-ignorant domain, EF mapping classes, DTOs | Accepted, partly superseded by [0018](0018-feature-folders-in-every-project.md) |
 | [0007](0007-cv-snapshots-selection-and-override.md) | Per-application CVs: selection + override, frozen as snapshots | Accepted |
 | [0008](0008-docker-hub-multi-arch-images.md) | Multi-arch Docker images on Docker Hub | Accepted |
 | [0009](0009-early-deployment-and-incremental-demo.md) | Early deployment and an incremental demo | Accepted |
@@ -21,5 +21,6 @@ Each significant decision is recorded as a short ADR: context, decision, consequ
 | [0015](0015-neutral-visual-identity-with-status-colors.md) | Neutral visual identity with status colors | Accepted |
 | [0016](0016-responsive-navigation-bottom-tabs-and-sidebar.md) | Responsive navigation: bottom tabs on mobile, sidebar on desktop | Accepted |
 | [0017](0017-account-creation-local-or-github.md) | Account creation: local or GitHub, one account at most | Accepted |
+| [0018](0018-feature-folders-in-every-project.md) | Feature folders in every project | Accepted |
 
 New ADRs copy the structure of an existing one and take the next number. An ADR is never edited once accepted: a new ADR supersedes it.

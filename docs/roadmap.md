@@ -31,6 +31,7 @@ Each phase maps to a GitHub Milestone, and each checkbox maps to an issue.
 - [x] Create test projects (xUnit, bUnit, Playwright) — see [testing.md](testing.md)
 - [ ] Apply the strict email validation of registration to every account form (Log in, Forgot password, Resend confirmation, Reset password, Change email)
 - [ ] GitHub Actions CI: restore, build, test on every push and pull request
+- [ ] Organize every project by feature folders ([ADR 0018](adr/0018-feature-folders-in-every-project.md))
 - [x] Add the MIT `LICENSE`
 
 ## Phase 1 — Application tracking (MVP)
