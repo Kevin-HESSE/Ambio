@@ -20,7 +20,9 @@ Shared settings live in `tests/Directory.Build.props`, package versions in `Dire
 
 ## Conventions
 
-- Folders and namespaces mirror the project under test, so they follow its feature folders (`Ambio.Application.Tests/Users/Dtos/RegisterInputValidationTests.cs` tests `Ambio.Application/Users/Dtos/RegisterInput.cs`).
+- Folders and namespaces mirror the project under test, so they follow its feature folders ([ADR 0018](../../docs/adr/0018-feature-folders-in-every-project.md)): `Ambio.Application.Tests/Users/Dtos/RegisterInputValidationTests.cs` tests `Ambio.Application/Users/Dtos/RegisterInput.cs`, `Ambio.Infrastructure.Tests/Users/UserServiceTests.cs` tests `Ambio.Infrastructure/Users/UserService.cs`.
+- Test helpers shared across features go in `Fixtures/`.
+- End-to-end tests are the exception: they don't mirror a project, so they are grouped by journey in `Journeys/`, with their fixtures in `Fixtures/`.
 - Test names follow `Method_Scenario_Result`, e.g. `RegisterUserAsync_WhenUserExists_Fails`.
 - Member order: tests first, then private helpers (and helper types), then the data sets at the bottom of the class.
 - Theories: more than two rows go in a `[MemberData]` backed by a `TheoryData<T>` property; with one or two rows, keep `[InlineData]`.
