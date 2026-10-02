@@ -39,7 +39,7 @@ flowchart LR
 - **Domain** references nothing: no EF Core, no data annotations, no `DbContext` ([ADR 0006](adr/0006-persistence-ignorant-domain-and-dtos.md)).
 - **Application** exposes services that return **DTOs**. Domain entities never reach the UI.
 - **Infrastructure** implements the Application services with a short-lived `DbContext` per operation, created by `IDbContextFactory<ApplicationDbContext>`, as Microsoft recommends for Blazor Server. There are no repositories and no unit of work ([ADR 0010](adr/0010-dbcontext-factory-without-repositories.md)).
-- **Infrastructure** configures persistence exclusively with `IEntityTypeConfiguration<T>` classes in `Persistence/Configurations/`, which are applied with `ApplyConfigurationsFromAssembly`.
+- **Infrastructure** configures persistence exclusively with `IEntityTypeConfiguration<T>` classes kept in the feature folder of their entity, which are applied with `ApplyConfigurationsFromAssembly` ([ADR 0018](adr/0018-feature-folders-in-every-project.md)).
 - **Web** only consumes Application services and DTOs. It wires everything together in `Program.cs`.
 - **Plugins** only reference `Ambio.Plugins.CV.Abstractions` and QuestPDF.
 
@@ -47,9 +47,10 @@ flowchart LR
 
 | Concern | Convention |
 |---|---|
-| Entity configuration | `Infrastructure/Persistence/Configurations/<Entity>Configuration.cs` implementing `IEntityTypeConfiguration<T>` |
+| Feature folders | Every project is organised by feature: `<Feature>/` (plural noun, e.g. `Users/`, `Companies/`) holds the feature's code, `Common/` the cross-feature code. Types take the singular entity name. Namespaces mirror folders. Tests mirror the project under test, except E2E tests grouped by journey ([ADR 0018](adr/0018-feature-folders-in-every-project.md)) |
+| Entity configuration | `Infrastructure/<Feature>/<Entity>Configuration.cs` implementing `IEntityTypeConfiguration<T>` |
 | DTOs | `record` types in `Application/<Feature>/Dtos/` |
-| Mapping | Written by hand as extension methods (`ToDto()`) in `Application/<Feature>/<Feature>MappingExtensions.cs`. No mapping library. |
+| Mapping | Written by hand as extension methods (`ToDto()`) in `Application/<Feature>/<Entity>MappingExtensions.cs`. No mapping library. |
 | Data access | `await using var db = await dbFactory.CreateDbContextAsync(ct);` in each service method. No repositories, no unit of work. |
 | Queries | LINQ projections to DTOs so EF translates them to SQL, `AsNoTracking()` for reads |
 | Application URLs | `/applications/{ShortId}-{slug}`, `ShortId` generated with NanoId, looked up by `ShortId`, redirected to the canonical slug ([ADR 0014](adr/0014-short-id-and-slug-urls.md)) |
