@@ -51,38 +51,16 @@ No linters are configured yet.
 
 All main projects are in the `src` folder.
 
-- `src/Ambio.Domain`: entities and domain rules, references nothing
-- `src/Ambio.Application`: service interfaces, DTOs, mapping extensions; references Domain
-- `src/Ambio.Infrastructure`: service implementations, EF Core, storage; references Application and Domain
-- `src/Ambio.Web`: Blazor UI (Interactive Server, no web assembly), Identity, composition root; references Application and Infrastructure
+- `src/Ambio.Domain`: entities and domain rules
+- `src/Ambio.Application`: service interfaces, DTOs, mapping extensions
+- `src/Ambio.Infrastructure`: service implementations, EF Core, storage
+- `src/Ambio.Web`: Blazor UI, Identity, composition root
 
 See `docs/architecture.md` for the full dependency rules.
 
-### Routing
-
-- `Components/Routes.razor` uses `AuthorizeRouteView`; unauthenticated access to `[Authorize]` pages redirects via `RedirectToLogin`. 
-- `IdentityRevalidatingAuthenticationStateProvider` periodically revalidates the security stamp for interactive circuits. `MapAdditionalIdentityEndpoints()` (in `Components/Account/IdentityComponentsEndpointRouteBuilderExtensions.cs`) adds the non-Razor endpoints (logout, external login, personal data download).
-
-### Identity
-- `ApplicationUser : IdentityUser` in `Ambio.Infrastructure/Persistence` (add profile fields there, then add a migration). `RequireConfirmedAccount = true`, Identity schema version 3 (its passkey table is unused: passkey pages and endpoints were removed, see ADR 0002). Email is a no-op (`IdentityNoOpEmailSender`); `RegisterConfirmation.razor` special-cases it to show the confirmation link on screen — remove that branch when a real sender is added.
-- Single account (ADR 0002, ADR 0017): registration is open only while no user exists, and account creation goes through `IUserService.RegisterUserAsync`, guarded by an in-process semaphore. `ExternalLogin.razor` has its `@page` commented out until the GitHub OAuth issue, which must create accounts through `IUserService` too.
-
-### Static assets
-
-- Served via `MapStaticAssets()` and referenced through `@Assets["..."]` in `App.razor`. 
-- Bootstrap is vendored in `wwwroot/lib`.
-
-### Data
-
-- SQLite, connection string `DefaultConnection` in `appsettings.json`
-- `ApplicationDbContext` and migrations live in `src/Ambio.Infrastructure/Persistence` (`Persistence/Migrations`), registered with `AddDbContextFactory` by `AddDatabase()` in `InfrastructureExtensions.cs`
 ## Documentation
 
 - Roadmap and phases: `docs/roadmap.md` (each phase = GitHub Milestone). Tick checkboxes as tasks land.
 - Target architecture: `docs/architecture.md`; data model: `docs/data-model.md`; design system (colors, typography, status badges): `docs/design-system.md`; screens, navigation and responsive layout: `docs/ui.md` (HTML mockups in `docs/mockups/`); plugins: `docs/plugins.md`; deployment: `docs/deployment.md`; tests and test conventions: `docs/testing.md`.
 - Decisions: `docs/adr/` — add a new ADR for any significant decision, never rewrite an accepted one.
 - Docs are written in English.
-
-## Architecture rules
-
-Conventions for each project live in `.claude/rules/` (one file per project: domain, application, infrastructure, web, plugins, tests), loaded when working in the matching folder.

@@ -4,6 +4,8 @@ paths: src/Ambio.Infrastructure/**
 
 # Infrastructure rules
 
+`Ambio.Infrastructure` references Application and Domain.
+
 ## Layout
 
 Code is organised by feature, like Application ([ADR 0018](../../docs/adr/0018-feature-folders-in-every-project.md)):
@@ -16,7 +18,7 @@ Code is organised by feature, like Application ([ADR 0018](../../docs/adr/0018-f
 
 ## Services
 
-- Infrastructure implements the Application interfaces. Implementations are `internal`, live in their feature folder, and are registered in `AddApplicationServices()`; the database and Identity are registered in `AddDatabase()` (both in `InfrastructureExtensions.cs`).
+- Infrastructure implements the Application interfaces. Implementations are `internal`, live in their feature folder, and are registered in `AddApplicationServices()`; the database and Identity are registered in `AddDatabase()` (both in `InfrastructureExtensions.cs`). `AddDatabase()` reads the SQLite connection string `DefaultConnection` from the Web project's `appsettings.json`.
 - Expected failures return `ServiceResult.Failure(<Feature>Errors.X)`. Unexpected exceptions are logged with `ILogger`, then mapped to a failure.
 - `ShortId` is generated with NanoId by the creating service, which retries while the value is taken ([ADR 0014](../../docs/adr/0014-short-id-and-slug-urls.md)).
 
@@ -46,5 +48,6 @@ See [docs/data-model.md](../../docs/data-model.md#conventions).
 
 ## Identity
 
-- `ApplicationUser` lives in `Users/`; Identity tables keep their `string` keys.
+- `ApplicationUser : IdentityUser` lives in `Users/`: add profile fields there, then add a migration. Identity tables keep their `string` keys.
+- `RequireConfirmedAccount = true`, Identity schema version 3. Its passkey table is unused: passkey pages and endpoints were removed (ADR 0002).
 - Single account: accounts are only created through `IUserService.RegisterUserAsync`, guarded by the `Common/SemaphoreContainer` semaphore (ADR 0002, ADR 0017).

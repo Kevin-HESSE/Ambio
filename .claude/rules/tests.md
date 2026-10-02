@@ -46,4 +46,3 @@ Shared settings live in `tests/Directory.Build.props`, package versions in `Dire
 - Every E2E class carries `[Trait("Category", "E2E")]`.
 - One test per critical journey only.
 - Select elements with `GetByRole` / `GetByLabel`; add a `data-testid` only when nothing else is stable. Assert with Playwright's `Expect`.
-- Fast loop without E2E: `dotnet test -- --filter-not-trait "Category=E2E"`.
