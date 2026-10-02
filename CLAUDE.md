@@ -85,8 +85,4 @@ See `docs/architecture.md` for the full dependency rules.
 
 ## Architecture rules
 
-- Domain entities have no reference to the database: no EF Core package, no data annotations, no `DbContext`.
-- Table configuration only through `IEntityTypeConfiguration<T>` classes in `Ambio.Infrastructure/Persistence/Configurations/`.
-- Data access: `IDbContextFactory<ApplicationDbContext>` with one short-lived context per operation (Microsoft's Blazor Server guidance). No repositories, no unit of work — keep it simple.
-- Services return DTOs (records), never entities. Mapping is written by hand as `ToDto()` extension methods in a `<Feature>MappingExtensions` class. No mapping library.
-- Plugin projects are named `Ambio.Plugins.<Domain>.<Purpose>` (e.g. `Ambio.Plugins.CV.Abstractions`).
+Conventions for each project live in `.claude/rules/` (one file per project: domain, application, infrastructure, web, plugins, tests), loaded when working in the matching folder.
