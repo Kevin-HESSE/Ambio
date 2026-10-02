@@ -27,7 +27,7 @@ Each phase maps to a GitHub Milestone, and each checkbox maps to an issue.
 - [x] Remove passkey support (pages, endpoints, `PasskeySubmit` component)
 - [x] Single-user mode: close registration once an account exists ([ADR 0002](adr/0002-single-user-application.md))
 - [ ] Create the account at first start, before the app is usable, instead of leaving registration open to whoever comes first ([ADR 0017](adr/0017-account-creation-local-or-github.md))
-- [ ] Add `.editorconfig` and enable `TreatWarningsAsErrors` for the new projects
+- [x] Add `.editorconfig` and enable `TreatWarningsAsErrors` for the new projects
 - [x] Create test projects (xUnit, bUnit, Playwright) — see [testing.md](testing.md)
 - [ ] Apply the strict email validation of registration to every account form (Log in, Forgot password, Resend confirmation, Reset password, Change email)
 - [ ] GitHub Actions CI: restore, build, test on every push and pull request
