@@ -35,13 +35,14 @@ Rate each check ✅ (validated), ❌ (not validated) or ⚠️ (partial, or cann
 1. **Tasks** - Verify every item of the issue's checklist against the actual code and files, whether it is ticked or not. The checkbox state is not proof.
 2. **Branch and PR** - Find the working branch (the issue's `Suggested branch:`, or the current branch from `git branch --show-current`). It must follow the `type/short-name` convention (`feat/`, `fix/`, `refactor/`, `docs/`, `ci/`...). Find its PR with `gh pr list --head <branch> --state all`. The PR must target `dev`, never `main`, and reference the issue.
 3. **Build** - `dotnet build` from the repo root must succeed. Report warnings; they are failures once `TreatWarningsAsErrors` is enabled in the solution.
-4. **Tests** - If test projects exist, `dotnet test` must pass. New behavior should be covered as described in `docs/testing.md` (xUnit for Domain/Application/Infrastructure, SQLite in-memory for EF Core, bUnit for components).
-5. **Architecture rules** (`CLAUDE.md`, `docs/architecture.md`, ADRs 0006 and 0010):
+4. **Tests** - If test projects exist, `dotnet test` must pass. New behavior should be covered as described in `docs/testing.md` and `.claude/rules/tests.md` (xUnit for Domain/Application/Infrastructure, SQLite in-memory for EF Core, bUnit for components, NSubstitute mocks and never hand-written fakes).
+5. **Architecture rules** (`.claude/rules/`, `docs/architecture.md`, ADRs 0006, 0010 and 0018):
    - `Ambio.Domain` references nothing: no EF Core package, no data annotations (`[Key]`, `[Table]`, `[MaxLength]`...), no `DbContext`.
    - Project references follow the layer direction (Application → Domain; Infrastructure → Application, Domain; Web → Application, Infrastructure).
-   - Table configuration only through `IEntityTypeConfiguration<T>` classes in `Ambio.Infrastructure/Persistence/Configurations/`.
+   - Every project is organised by feature (ADR 0018): code in `<Feature>/` (plural noun, types named after the singular entity), cross-feature code in `Common/` (and `Persistence/` for `ApplicationDbContext`, migrations and interceptors in Infrastructure, `Components/Layout/`, `Components/Shared/` and `Components/Pages/` in Web). Namespaces mirror folders. Tests mirror the project under test, except E2E tests in `Journeys/`.
+   - Table configuration only through `IEntityTypeConfiguration<T>` classes in the Infrastructure feature folder of the entity (`<Feature>/<Entity>Configuration.cs`).
    - Data access through `IDbContextFactory<ApplicationDbContext>` with one short-lived context per operation (`await using var db = await dbFactory.CreateDbContextAsync(ct);`). No repository or unit of work.
-   - Services return DTO records, never entities; Blazor components consume DTOs only. Mapping is hand-written `ToDto()` extension methods in a `<Feature>MappingExtensions` class. No mapping library.
+   - Services return DTO records, never entities; Blazor components consume DTOs only. Mapping is hand-written `ToDto()` extension methods in an `<Entity>MappingExtensions` class of the feature folder. No mapping library.
    - Plugin projects are named `Ambio.Plugins.<Domain>.<Purpose>`.
 6. **Migrations** - If entities or configurations changed, a matching migration exists in the migrations folder and the model snapshot is updated. Check by reading files; never run `dotnet ef`.
 7. **Commits** - For `git log dev..<branch>` (or the PR commits), every message follows Conventional Commits (`type(scope): subject`) with a subject line only and no body paragraph. Trailers such as `Co-Authored-By` are allowed.
