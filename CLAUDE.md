@@ -64,3 +64,11 @@ See `docs/architecture.md` for the full dependency rules.
 - Target architecture: `docs/architecture.md`; data model: `docs/data-model.md`; design system (colors, typography, status badges): `docs/design-system.md`; screens, navigation and responsive layout: `docs/ui.md` (HTML mockups in `docs/mockups/`); plugins: `docs/plugins.md`; deployment: `docs/deployment.md`; tests and test conventions: `docs/testing.md`.
 - Decisions: `docs/adr/` — add a new ADR for any significant decision, never rewrite an accepted one.
 - Docs are written in English.
+
+## Git
+
+- Branches are named `type/short-name` (`feat/`, `fix/`, `refactor/`, `docs/`, `test/`, `chore/`, `ci/`).
+- Feature and fix branches merge into `dev` only: their pull requests target `dev`, never `main`. Only `dev` is merged into `main`.
+- Never commit without the user's explicit validation: stop at an uncommitted working tree and wait to be asked. A previous "commit" request does not cover later work. Don't end replies with a reminder that nothing is committed.
+- Implement multi-step plans one step at a time: build and test the step, then hand over for review (the user may edit the code). Once it is validated, re-read the touched files to pick up those edits and commit that step on its own before starting the next one.
+- Commit messages follow Conventional Commits (`type(scope): subject`, e.g. `feat(applications): add status history`), subject line only, no body. Required trailers such as `Co-Authored-By` are still appended.
