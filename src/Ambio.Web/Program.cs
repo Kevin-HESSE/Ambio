@@ -1,11 +1,10 @@
 using Ambio.Infrastructure;
 using Ambio.Infrastructure.Persistence;
+using Ambio.Web.Components;
+using Ambio.Web.Components.Account;
 
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
-
-using Ambio.Web.Components;
-using Ambio.Web.Components.Account;
 
 var builder = WebApplication.CreateBuilder(args);
 
