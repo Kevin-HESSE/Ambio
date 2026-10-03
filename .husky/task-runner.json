@@ -7,6 +7,11 @@
        "command": "dotnet",
        "args": ["format", "--verify-no-changes", "--include", "${staged}"],
        "include": ["**/*.cs"]
+     },
+     {
+       "name": "commit-message-linter",
+       "command": "dotnet",
+       "args": ["husky", "exec", ".husky/scripts/commit-lint.csx", "--args", "${args}"]
      }
    ]
 }
