@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
+  HUSKY: 0
+
+jobs:
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+      - name: Test
+        run: dotnet test --no-build --configuration Release -- --filter-not-trait "Category=E2E"
+
+  e2e:
+    name: End-to-end tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+      - name: Build
+        run: dotnet build tests/Ambio.E2E.Tests --no-restore --configuration Release
+      - name: Install Chromium
+        run: pwsh tests/Ambio.E2E.Tests/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
+      - name: Test
+        run: dotnet test --project tests/Ambio.E2E.Tests --no-build --configuration Release
