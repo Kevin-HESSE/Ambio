@@ -66,7 +66,7 @@ Playwright drives a headless Chromium against the real app, hosted in the test p
 
 - `AmbioAppFactory` is a `WebApplicationFactory<Program>` that starts Kestrel on a free port (`UseKestrel(0)`) and overrides `ConnectionStrings:DefaultConnection`.
 - `AmbioAppFixture` creates a temporary SQLite file, applies the migrations, starts the browser, and deletes the file at the end. The development database is never touched.
-- Chromium is installed on the first run (`Microsoft.Playwright.Program.Main(["install", "chromium"])`), so no separate install step is needed locally. On a Linux CI runner, the browser's system dependencies must be installed too (`install --with-deps chromium`).
+- Chromium is installed on the first run (`Microsoft.Playwright.Program.Main(["install", "chromium"])`), so no separate install step is needed locally. On a Linux CI runner, the browser's system dependencies must be installed too (see [ci-cd.md](ci-cd.md)).
 - Every E2E test class carries `[Trait("Category", "E2E")]`, so the fast loop can exclude it.
 - Only **critical journeys** get an E2E test, as one test per journey. The current one is `Journeys/SingleAccountJourneyTests`: register, confirm the email, log in, log out, then check that registration is closed.
 - Select elements by role or label (`GetByRole`, `GetByLabel`), and add a `data-testid` only when nothing else is stable. Assert with Playwright's `Expect`, which waits for the page instead of failing at once.
