@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Ambio.Infrastructure.Service;
 
-internal class UserService: IUserService
+internal class UserService : IUserService
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IUserStore<ApplicationUser> _userStore;

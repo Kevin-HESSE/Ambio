@@ -59,6 +59,8 @@ Requires the [.NET 10 SDK](https://dotnet.microsoft.com/download).
 dotnet run --project src/Ambio.Web
 ```
 
+The first restore also installs the git hooks ([Husky.Net](https://alirezanet.github.io/Husky.Net/)), which check the formatting and the commit messages.
+
 ## Write your own CV template
 
 ```csharp
@@ -89,6 +91,7 @@ Publish it, drop the folder into `/plugins`, and restart. See the [plugin guide]
 - [Deployment](docs/deployment.md)
 - [Testing](docs/testing.md)
 - [Architecture Decision Records](docs/adr/README.md)
+- [Git hooks](docs/git-hooks.md)
 
 ## Tech stack
 
