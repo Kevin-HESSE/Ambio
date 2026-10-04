@@ -90,5 +90,6 @@ public class RegisterInputValidationTests
         "user@example-.com",
         "us(er@example.com",
         "user@example.c",
+        "user@example.com\n"
     ];
 }
