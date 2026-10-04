@@ -4,6 +4,7 @@
 
 *Ambio* comes from the Latin *ambire*: to go around canvassing, to seek an office.
 
+[![CI](https://github.com/Kevin-HESSE/Ambio/actions/workflows/ci.yml/badge.svg)](https://github.com/Kevin-HESSE/Ambio/actions/workflows/ci.yml)
 ![.NET 10](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet)
 ![Blazor](https://img.shields.io/badge/Blazor-Interactive%20Server-512BD4?logo=blazor)
 ![SQLite](https://img.shields.io/badge/SQLite-EF%20Core-003B57?logo=sqlite)
@@ -92,6 +93,7 @@ Publish it, drop the folder into `/plugins`, and restart. See the [plugin guide]
 - [Testing](docs/testing.md)
 - [Architecture Decision Records](docs/adr/README.md)
 - [Git hooks](docs/git-hooks.md)
+- [CI/CD](docs/ci-cd.md)
 
 ## Tech stack
 

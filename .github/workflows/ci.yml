@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
+  HUSKY: 0
+
+jobs:
+  conventions:
+    name: Conventions
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup
+      - name: Check commit messages
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          dotnet tool restore
+          dotnet husky install
+          status=0
+          for sha in $(git rev-list --no-merges --reverse "$BASE_SHA..$HEAD_SHA"); do
+            git log -1 --format=%B "$sha" > "$RUNNER_TEMP/commit-msg"
+            if ! dotnet husky run --name commit-message-linter --args "$RUNNER_TEMP/commit-msg"; then
+              echo "::error::Invalid commit message: $(git log -1 --format='%h %s' "$sha")"
+              status=1
+            fi
+          done
+          exit $status
+      - name: Check formatting
+        if: ${{ !cancelled() }}
+        run: dotnet format --verify-no-changes --no-restore
+
+  test:
+    name: Tests
+    needs: conventions
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+      - name: Test
+        run: dotnet test --no-build --configuration Release -- --filter-not-trait "Category=E2E"
+
+  e2e:
+    name: End-to-end tests
+    needs: conventions
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+      - name: Build
+        run: dotnet build tests/Ambio.E2E.Tests --no-restore --configuration Release
+      - name: Install Chromium
+        run: pwsh tests/Ambio.E2E.Tests/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
+      - name: Test
+        run: dotnet test --project tests/Ambio.E2E.Tests --no-build --configuration Release

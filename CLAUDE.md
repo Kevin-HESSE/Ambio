@@ -71,7 +71,14 @@ See `docs/architecture.md` for the full dependency rules.
 ## Documentation
 
 - Roadmap and phases: `docs/roadmap.md` (each phase = GitHub Milestone). Tick checkboxes as tasks land.
-- Target architecture: `docs/architecture.md`; data model: `docs/data-model.md`; design system (colors, typography, status badges): `docs/design-system.md`; screens, navigation and responsive layout: `docs/ui.md` (HTML mockups in `docs/mockups/`); plugins: `docs/plugins.md`; deployment: `docs/deployment.md`; tests and test conventions: `docs/testing.md`.
+- Target architecture: `docs/architecture.md`
+- Data model: `docs/data-model.md`
+- Design system (colors, typography, status badges): `docs/design-system.md`
+- Screens, navigation and responsive layout: `docs/ui.md` (HTML mockups in `docs/mockups/`)
+- Plugins: `docs/plugins.md`
+- Deployment: `docs/deployment.md`
+- Tests and test conventions: `docs/testing.md`
+- CI/CD: `docs/ci-cd.md`
 - Decisions: `docs/adr/` — add a new ADR for any significant decision, never rewrite an accepted one.
 - Docs are written in English.
 
@@ -83,3 +90,4 @@ See `docs/architecture.md` for the full dependency rules.
 - Implement multi-step plans one step at a time: build and test the step, then hand over for review (the user may edit the code). Once it is validated, re-read the touched files to pick up those edits and commit that step on its own before starting the next one.
 - Commit messages follow Conventional Commits (`type(scope): subject`, e.g. `feat(applications): add status history`), subject line only, no body, no trailing period. Types: `build`, `chore`, `ci`, `docs`, `feat`, `fix`, `perf`, `refactor`, `revert`, `style`, `test`. Required trailers such as `Co-Authored-By` are still appended. The `commit-msg` hook checks the subject; a body is accepted after a blank line, but only the user writes one.
 - Merges and reverts of a whole branch only go through pull requests, never locally.
+- `dev` and `main` are protected by a ruleset: changes only arrive through a pull request whose CI checks pass; no force push or deletion (see `docs/ci-cd.md`).
