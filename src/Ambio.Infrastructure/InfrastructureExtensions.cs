@@ -1,6 +1,7 @@
 using Ambio.Application.Users;
+using Ambio.Infrastructure.Common;
 using Ambio.Infrastructure.Persistence;
-using Ambio.Infrastructure.Service;
+using Ambio.Infrastructure.Users;
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;

@@ -20,7 +20,7 @@ partial class CreateIdentitySchema
 #pragma warning disable 612, 618
         modelBuilder.HasAnnotation("ProductVersion", "10.0.0");
 
-        modelBuilder.Entity("Ambio.Infrastructure.Persistence.ApplicationUser", b =>
+        modelBuilder.Entity("Ambio.Infrastructure.Users.ApplicationUser", b =>
         {
             b.Property<string>("Id")
                 .HasColumnType("TEXT");
@@ -245,7 +245,7 @@ partial class CreateIdentitySchema
 
         modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
         {
-            b.HasOne("Ambio.Infrastructure.Persistence.ApplicationUser", null)
+            b.HasOne("Ambio.Infrastructure.Users.ApplicationUser", null)
                 .WithMany()
                 .HasForeignKey("UserId")
                 .OnDelete(DeleteBehavior.Cascade)
@@ -254,7 +254,7 @@ partial class CreateIdentitySchema
 
         modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
         {
-            b.HasOne("Ambio.Infrastructure.Persistence.ApplicationUser", null)
+            b.HasOne("Ambio.Infrastructure.Users.ApplicationUser", null)
                 .WithMany()
                 .HasForeignKey("UserId")
                 .OnDelete(DeleteBehavior.Cascade)
@@ -263,7 +263,7 @@ partial class CreateIdentitySchema
 
         modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserPasskey<string>", b =>
         {
-            b.HasOne("Ambio.Infrastructure.Persistence.ApplicationUser", null)
+            b.HasOne("Ambio.Infrastructure.Users.ApplicationUser", null)
                 .WithMany()
                 .HasForeignKey("UserId")
                 .OnDelete(DeleteBehavior.Cascade)
@@ -329,7 +329,7 @@ partial class CreateIdentitySchema
                 .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();
 
-            b.HasOne("Ambio.Infrastructure.Persistence.ApplicationUser", null)
+            b.HasOne("Ambio.Infrastructure.Users.ApplicationUser", null)
                 .WithMany()
                 .HasForeignKey("UserId")
                 .OnDelete(DeleteBehavior.Cascade)
@@ -338,7 +338,7 @@ partial class CreateIdentitySchema
 
         modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
         {
-            b.HasOne("Ambio.Infrastructure.Persistence.ApplicationUser", null)
+            b.HasOne("Ambio.Infrastructure.Users.ApplicationUser", null)
                 .WithMany()
                 .HasForeignKey("UserId")
                 .OnDelete(DeleteBehavior.Cascade)

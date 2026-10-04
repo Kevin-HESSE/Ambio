@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using System.Text.Json;
 
-using Ambio.Infrastructure.Persistence;
+using Ambio.Infrastructure.Users;
 using Ambio.Web.Components.Account.Pages;
 using Ambio.Web.Components.Account.Pages.Manage;
 

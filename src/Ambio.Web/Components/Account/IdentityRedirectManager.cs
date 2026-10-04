@@ -1,4 +1,4 @@
-using Ambio.Infrastructure.Persistence;
+using Ambio.Infrastructure.Users;
 
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Identity;

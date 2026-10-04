@@ -1,8 +1,8 @@
 using Ambio.Application.Common;
 using Ambio.Application.Users;
 using Ambio.Application.Users.Dtos;
-using Ambio.Infrastructure.Persistence;
 using Ambio.Infrastructure.Tests.Fixtures;
+using Ambio.Infrastructure.Users;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
