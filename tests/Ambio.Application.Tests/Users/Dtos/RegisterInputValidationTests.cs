@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
+using Ambio.Application.Tests.Common.Attributes;
 using Ambio.Application.Users.Dtos;
 
 namespace Ambio.Application.Tests.Users.Dtos;
@@ -13,17 +14,25 @@ public class RegisterInputValidationTests
     }
 
     [Theory]
-    [MemberData(nameof(ValidEmails))]
+    [MemberData(nameof(EmailTestData.ValidEmails), MemberType = typeof(EmailTestData))]
     public void ValidEmail_HasNoErrors(string email)
     {
         Assert.Empty(Validate(ValidInput() with { Email = email }));
     }
 
     [Theory]
-    [MemberData(nameof(InvalidEmails))]
+    [MemberData(nameof(EmailTestData.InvalidEmails), MemberType = typeof(EmailTestData))]
     public void InvalidEmail_FailsOnEmail(string email)
     {
         var results = Validate(ValidInput() with { Email = email });
+
+        Assert.Contains(results, r => r.MemberNames.Contains(nameof(RegisterInput.Email)));
+    }
+
+    [Fact]
+    public void EmptyEmail_FailsOnEmail()
+    {
+        var results = Validate(ValidInput() with { Email = "" });
 
         Assert.Contains(results, r => r.MemberNames.Contains(nameof(RegisterInput.Email)));
     }
@@ -57,39 +66,4 @@ public class RegisterInputValidationTests
         Validator.TryValidateObject(input, new ValidationContext(input), results, validateAllProperties: true);
         return results;
     }
-
-    public static TheoryData<string> ValidEmails =>
-    [
-        "first.last@example.com",
-        "first+tag@example.com",
-        "user@sub.example.co.uk",
-        "user@my-domain.io",
-        "USER_42@EXAMPLE.COM",
-    ];
-
-    public static TheoryData<string> InvalidEmails =>
-    [
-        "",
-        "not-an-email",
-        "user.example.com",
-        "user@",
-        "@example.com",
-        "user@@example.com",
-        "user@exa@mple.com",
-        "user@example",
-        "user@example.",
-        "user@localhost",
-        "user @example.com",
-        "user@exam ple.com",
-        "user@.com",
-        "user@example..com",
-        ".user@example.com",
-        "user.@example.com",
-        "us..er@example.com",
-        "user@-example.com",
-        "user@example-.com",
-        "us(er@example.com",
-        "user@example.c",
-        "user@example.com\n"
-    ];
 }
