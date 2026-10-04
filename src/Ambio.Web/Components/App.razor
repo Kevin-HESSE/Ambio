@@ -6,6 +6,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
     <ResourcePreloader />
+    <script>
+        (() => {
+            // Follows the system theme. The observer puts the attribute back after Blazor's enhanced navigation removes it.
+            const media = matchMedia("(prefers-color-scheme: dark)");
+            const root = document.documentElement;
+            const apply = () => {
+                const theme = media.matches ? "dark" : "light";
+                if (root.dataset.bsTheme !== theme) {
+                    root.dataset.bsTheme = theme;
+                }
+            };
+            apply();
+            media.addEventListener("change", apply);
+            new MutationObserver(apply).observe(root, { attributes: true, attributeFilter: ["data-bs-theme"] });
+        })();
+    </script>
     <link rel="stylesheet" href="@Assets["lib/bootstrap/dist/css/bootstrap.min.css"]" />
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="stylesheet" href="@Assets["Ambio.Web.styles.css"]" />
