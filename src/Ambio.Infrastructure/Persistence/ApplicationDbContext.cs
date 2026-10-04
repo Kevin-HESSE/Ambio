@@ -1,3 +1,5 @@
+using Ambio.Infrastructure.Users;
+
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 

@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-using Ambio.Application.Dtos.Users;
+using Ambio.Application.Users.Dtos;
 
-namespace Ambio.Application.Tests.Dtos.Users;
+namespace Ambio.Application.Tests.Users.Dtos;
 
 public class RegisterInputValidationTests
 {

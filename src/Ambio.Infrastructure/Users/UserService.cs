@@ -2,16 +2,16 @@ using System.Text;
 using System.Text.Encodings.Web;
 
 using Ambio.Application.Common;
-using Ambio.Application.Dtos.Users;
-using Ambio.Application.Interfaces;
-using Ambio.Infrastructure.Persistence;
+using Ambio.Application.Users;
+using Ambio.Application.Users.Dtos;
+using Ambio.Infrastructure.Common;
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace Ambio.Infrastructure.Service;
+namespace Ambio.Infrastructure.Users;
 
 internal class UserService : IUserService
 {

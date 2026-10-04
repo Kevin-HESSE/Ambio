@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Ambio.Application.Dtos.Users;
+namespace Ambio.Application.Users.Dtos;
 
 public record RegisterInput
 {

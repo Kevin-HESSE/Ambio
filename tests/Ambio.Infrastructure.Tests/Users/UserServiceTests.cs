@@ -1,8 +1,8 @@
 using Ambio.Application.Common;
-using Ambio.Application.Dtos.Users;
-using Ambio.Application.Interfaces;
-using Ambio.Infrastructure.Persistence;
+using Ambio.Application.Users;
+using Ambio.Application.Users.Dtos;
 using Ambio.Infrastructure.Tests.Fixtures;
+using Ambio.Infrastructure.Users;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 
-namespace Ambio.Infrastructure.Tests.Service;
+namespace Ambio.Infrastructure.Tests.Users;
 
 public class UserServiceTests : IAsyncLifetime
 {

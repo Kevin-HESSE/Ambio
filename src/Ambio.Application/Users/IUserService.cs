@@ -1,7 +1,7 @@
 using Ambio.Application.Common;
-using Ambio.Application.Dtos.Users;
+using Ambio.Application.Users.Dtos;
 
-namespace Ambio.Application.Interfaces;
+namespace Ambio.Application.Users;
 
 public interface IUserService
 {

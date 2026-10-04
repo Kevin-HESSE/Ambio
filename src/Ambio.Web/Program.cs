@@ -1,5 +1,5 @@
 using Ambio.Infrastructure;
-using Ambio.Infrastructure.Persistence;
+using Ambio.Infrastructure.Users;
 using Ambio.Web.Components;
 using Ambio.Web.Components.Account;
 

@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-using Ambio.Infrastructure.Persistence;
+using Ambio.Infrastructure.Users;
 
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server;

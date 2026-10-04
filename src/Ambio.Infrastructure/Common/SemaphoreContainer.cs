@@ -1,4 +1,4 @@
-namespace Ambio.Infrastructure.Service;
+namespace Ambio.Infrastructure.Common;
 
 internal sealed class SemaphoreContainer
 {
