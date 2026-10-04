@@ -488,3 +488,5 @@ app.db
 *.db-wal
 *.db-shm
 *.db-journal
+src/Ambio.Web/Data/*
+!src/Ambio.Web/Data/.gitkeep
