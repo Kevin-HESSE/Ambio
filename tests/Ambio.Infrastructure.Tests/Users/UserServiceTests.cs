@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 
-namespace Ambio.Infrastructure.Tests.Service;
+namespace Ambio.Infrastructure.Tests.Users;
 
 public class UserServiceTests : IAsyncLifetime
 {
