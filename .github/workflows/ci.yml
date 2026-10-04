@@ -35,6 +35,7 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           dotnet tool restore
+          dotnet husky install
           status=0
           for sha in $(git rev-list --no-merges --reverse "$BASE_SHA..$HEAD_SHA"); do
             git log -1 --format=%B "$sha" > "$RUNNER_TEMP/commit-msg"

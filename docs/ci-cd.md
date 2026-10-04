@@ -33,7 +33,7 @@ Every job uses the composite action `.github/actions/setup`:
 
 | Variable | Value | Why |
 |---|---|---|
-| `HUSKY` | `0` | Skips the install of the git hooks on restore ([ADR 0019](adr/0019-git-hooks-with-husky-net.md)). The `commit-message-linter` task still runs: Husky.Net only reads `HUSKY` in the hooks. |
+| `HUSKY` | `0` | Skips the install of the git hooks on restore ([ADR 0019](adr/0019-git-hooks-with-husky-net.md)). The `Conventions` job installs them itself with `dotnet husky install` before checking the commit messages, since `husky run` needs them. |
 | `DOTNET_NOLOGO`, `DOTNET_CLI_TELEMETRY_OPTOUT` | `true` | Quieter logs, no telemetry. |
 
 ### Badge
