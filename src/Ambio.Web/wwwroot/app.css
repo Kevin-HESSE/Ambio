@@ -1,3 +1,13 @@
+/* ---------- Fonts ---------- */
+/* Source Sans 3 variable font (weights 200 to 900), self-hosted. SIL Open Font License: fonts/source-sans-3/LICENSE.md */
+@font-face {
+    font-family: "Source Sans 3";
+    src: url("fonts/source-sans-3/SourceSans3VF-Upright.otf.woff2") format("woff2");
+    font-weight: 200 900;
+    font-style: normal;
+    font-display: swap;
+}
+
 /* ---------- Design tokens: light (docs/design-system.md) ---------- */
 :root {
     --ambio-bg-canvas: #F8FAFC;

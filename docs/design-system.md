@@ -111,7 +111,7 @@ Every attribute that isn't a status is a **neutral tag**. The icon distinguishes
 ## Typography
 
 **[Source Sans 3](https://fonts.google.com/specimen/Source+Sans+3)**, under the SIL Open Font License.
-- It's self-hosted in `wwwroot` (woff2), so the app has no dependency on Google Fonts, which matters for self-hosted Docker installs.
+- It's self-hosted in `wwwroot/fonts/source-sans-3/` (one variable woff2 file covering weights 200 to 900, with its license), so the app has no dependency on Google Fonts, which matters for self-hosted Docker installs.
 - Fallback stack: `"Source Sans 3", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`.
 
 | Style | Size / line height (px) | Weight | Usage |
