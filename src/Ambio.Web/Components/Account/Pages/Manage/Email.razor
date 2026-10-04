@@ -3,6 +3,7 @@
 @using System.ComponentModel.DataAnnotations
 @using System.Text
 @using System.Text.Encodings.Web
+@using Ambio.Application.Common.Attributes
 @using Ambio.Infrastructure.Users
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
@@ -136,7 +137,7 @@
     private sealed class InputModel
     {
         [Required]
-        [EmailAddress]
+        [EmailExpression]
         [Display(Name = "New email")]
         public string? NewEmail { get; set; }
     }
