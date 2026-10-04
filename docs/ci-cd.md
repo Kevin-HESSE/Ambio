@@ -36,6 +36,16 @@ Every job uses the composite action `.github/actions/setup`:
 | `HUSKY` | `0` | Skips the install of the git hooks on restore ([ADR 0019](adr/0019-git-hooks-with-husky-net.md)). The `Conventions` job installs them itself with `dotnet husky install` before checking the commit messages, since `husky run` needs them. |
 | `DOTNET_NOLOGO`, `DOTNET_CLI_TELEMETRY_OPTOUT` | `true` | Quieter logs, no telemetry. |
 
+### Protected branches
+
+The repository ruleset "Protected branches" applies to `dev` and `main` ([ADR 0020](adr/0020-ci-and-protected-branches.md)), with no bypass:
+
+- changes only arrive through a pull request, with no approval required;
+- the `Conventions`, `Tests` and `End-to-end tests` checks must pass. The branch doesn't have to be up to date with its base;
+- force pushes and deletion are blocked.
+
+Renaming or adding a job that must block merges also means updating the required checks of the ruleset (Settings → Rules → Rulesets).
+
 ### Badge
 
 The README badge shows the status of the default branch.
