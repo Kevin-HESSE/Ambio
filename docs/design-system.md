@@ -182,14 +182,25 @@ Each token becomes a CSS custom property prefixed with `--ambio-`. The `/` in th
 | `--bs-body-bg` | `bg/canvas` |
 | `--bs-body-color` | `text/primary` |
 | `--bs-secondary-color` | `text/secondary` |
+| `--bs-tertiary-color` | `text/muted` |
 | `--bs-tertiary-bg` | `bg/subtle` |
-| `--bs-border-color` | `border/default` |
+| `--bs-border-color`, `--bs-border-color-translucent` | `border/default` |
 | `--bs-primary`, `--bs-primary-rgb` | `accent/default` |
-| `--bs-link-color`, `--bs-link-hover-color` | `accent/text`, `accent/hover` |
+| `--bs-link-color`, `--bs-link-hover-color` (and their `-rgb`) | `accent/text`, `accent/hover` |
 | `--bs-focus-ring-color` | `focus/ring` |
+| `--bs-success`, `--bs-warning`, `--bs-danger`, `--bs-info` (and their `-rgb`) | `feedback/*` |
+| `--bs-{color}-text-emphasis`, `-bg-subtle`, `-border-subtle` (alerts) | `fg`, `bg`, `border` of the status with the same hue: success = `Offer`, warning = `Interview`, danger = `Rejected`, info = `Applied` |
 | `--bs-card-bg`, `--bs-table-bg` | `bg/surface` |
-| `--bs-body-font-family` | Source Sans 3 stack |
-| `--bs-border-radius` | `radius/md` |
+| `--bs-body-font-family`, `--bs-font-monospace` | Source Sans 3 stack, monospace stack |
+| `--bs-border-radius`, `-sm`, `-lg`, `-pill` | `radius/md`, `radius/sm`, `radius/lg`, `radius/full` |
+| `--bs-box-shadow-sm`, `--bs-box-shadow` | `shadow/sm`, `shadow/md` |
+
+- Bootstrap reads some colors as `r, g, b` triplets (`--bs-primary-rgb`, link and contextual colors). A triplet can't be derived from a hex variable, so `app.css` repeats their light and dark values as literals.
+- Some components are compiled with fixed colors. `app.css` sets their component variables:
+  - `.btn-primary`: the `accent/*` tokens;
+  - `.btn-danger`: outlined, as in the mockups (`feedback/danger` text, `bg/surface`, `border/strong`);
+  - inputs, selects and checkboxes: `bg/surface` and `border/strong`; their focus: `focus/ring`;
+  - checked checkboxes: `accent/default`.
 
 ## Figma structure
 
