@@ -26,7 +26,6 @@ Each phase maps to a GitHub Milestone, and each checkbox maps to an issue.
 - [x] Remove the template samples (`Counter`, `Weather`, `Auth` pages, and their nav links)
 - [x] Remove passkey support (pages, endpoints, `PasskeySubmit` component)
 - [x] Single-user mode: close registration once an account exists ([ADR 0002](adr/0002-single-user-application.md))
-- [ ] Create the account at first start, before the app is usable, instead of leaving registration open to whoever comes first ([ADR 0017](adr/0017-account-creation-local-or-github.md))
 - [x] Add `.editorconfig` and enable `TreatWarningsAsErrors` for the new projects
 - [x] Git hooks with Husky.Net: `dotnet format` check on pre-commit, Conventional Commits check on commit-msg ([ADR 0019](adr/0019-git-hooks-with-husky-net.md))
 - [x] Create test projects (xUnit, bUnit, Playwright) — see [testing.md](testing.md)
@@ -61,6 +60,7 @@ Each phase maps to a GitHub Milestone, and each checkbox maps to an issue.
   - Download and in-browser preview
   - Keeps a record of every CV sent until generation lands in Phase 3
 - [ ] Unit + EF integration tests for the tracking feature, including the creation of `tests/Ambio.Domain.Tests` (status workflow, invariants)
+- [ ] Create the account at first start, before the app is usable, instead of leaving registration open to whoever comes first ([ADR 0017](adr/0017-account-creation-local-or-github.md))
 
 ## Phase 2 — Docker, deployment & demo
 
