@@ -7,7 +7,7 @@ namespace Ambio.Application.Users.Dtos;
 public record RegisterInput
 {
     [Required]
-    [EmailExpression(ErrorMessage = "The {0} field is not a valid e-mail address.")]
+    [EmailExpression]
     [Display(Name = "Email")]
     public string Email { get; set; } = "";
 
