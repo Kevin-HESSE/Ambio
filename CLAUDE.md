@@ -2,7 +2,12 @@
 
 ## Project state
 
-Ambio is at the "fresh template" stage: a .NET 10 Blazor Web App (`dotnet new blazor --auth Individual`) with ASP.NET Core Identity, split into layered projects (Domain, Application, Infrastructure, Web). The Domain project is still empty. Application holds `IUserService`, `ServiceResult`, `UserErrors` and the `RegisterInput` DTO; Infrastructure holds the Identity `ApplicationDbContext`, its migrations, and `UserService` with its singleton `SemaphoreContainer` (registered by `AddApplicationServices()`). Tests live in `tests/`: Application, Infrastructure, Web (bUnit) and E2E (Playwright); `Ambio.Domain.Tests` comes in Phase 1 (see `docs/testing.md`).
+Ambio is at the "fresh template" stage: a .NET 10 Blazor Web App (`dotnet new blazor --auth Individual`) with ASP.NET Core Identity, split into layered projects (Domain, Application, Infrastructure, Web).
+
+Every project is organised by feature folders ([ADR 0018](docs/adr/0018-feature-folders-in-every-project.md)).
+- Domain project is still empty.
+- Tests live in `tests/` and mirror the project under test: Application, Infrastructure, Web (bUnit) and E2E (Playwright)
+- `Ambio.Domain.Tests` comes in Phase 1 (see `docs/testing.md`).
 
 ## Stack
 
