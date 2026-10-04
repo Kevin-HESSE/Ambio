@@ -1,6 +1,6 @@
 using Ambio.Application.Common;
-using Ambio.Application.Dtos.Users;
-using Ambio.Application.Interfaces;
+using Ambio.Application.Users;
+using Ambio.Application.Users.Dtos;
 using Ambio.Infrastructure.Persistence;
 using Ambio.Infrastructure.Tests.Fixtures;
 

@@ -1,4 +1,4 @@
-using Ambio.Application.Interfaces;
+using Ambio.Application.Users;
 using Ambio.Infrastructure.Persistence;
 using Ambio.Infrastructure.Service;
 

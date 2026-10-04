@@ -2,8 +2,8 @@ using System.Text;
 using System.Text.Encodings.Web;
 
 using Ambio.Application.Common;
-using Ambio.Application.Dtos.Users;
-using Ambio.Application.Interfaces;
+using Ambio.Application.Users;
+using Ambio.Application.Users.Dtos;
 using Ambio.Infrastructure.Persistence;
 
 using Microsoft.AspNetCore.Identity;

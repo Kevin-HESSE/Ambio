@@ -9,4 +9,8 @@
     <ProjectReference Include="..\Ambio.Domain\Ambio.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Users\" />
+  </ItemGroup>
+
 </Project>

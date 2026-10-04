@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-using Ambio.Application.Dtos.Users;
+using Ambio.Application.Users.Dtos;
 
 namespace Ambio.Application.Tests.Dtos.Users;
 
