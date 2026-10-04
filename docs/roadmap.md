@@ -36,30 +36,32 @@ Each phase maps to a GitHub Milestone, and each checkbox maps to an issue.
 
 ## Phase 1 — Application tracking (MVP)
 
-- [ ] Domain (see [data-model.md](data-model.md), [ADR 0011](adr/0011-company-centric-model-with-job-offers.md)):
-  - `Company` profile (name, kind, website, industry, size, location)
-  - `JobOffer` with a plain-text copy of the ad, and `JobOfferPosting` (the same offer seen on several sites)
-  - Abstract `JobApplication` with `OfferApplication` and `SpontaneousApplication`, mapped as TPH with a check constraint
-  - `ApplicationStatus` and `StatusChange` (history), `Channel` (online form, email, referral…)
-- [ ] Status workflow: `Draft → Applied → Interview → Offer / Rejected / Withdrawn`, with every change timestamped
-- [ ] Archiving instead of deleting ([ADR 0012](adr/0012-archive-instead-of-delete.md)), with an "Archived" filter and a restore action
-- [ ] EF Core mapping classes and migration, `SaveChangesInterceptor` for `CreatedAt`/`UpdatedAt`
-- [ ] Application services returning DTOs, with the mapping written as extension methods
-- [ ] Pages (specified in [ui.md](ui.md), [ADR 0016](adr/0016-responsive-navigation-bottom-tabs-and-sidebar.md)):
-  - Applications: list (filters by status, company and kind, sort by date), detail with Overview, Cover letters and CV tabs, create/edit, status change
-  - Readable application URLs `/applications/482913-backend-developer-acme`: `ShortId` generated with NanoId (numeric for now) + slug, with a redirect to the canonical slug ([ADR 0014](adr/0014-short-id-and-slug-urls.md))
-  - Companies: list and detail with every offer and application for the company
-  - Offers: list, detail with their postings, create/edit with a duplicate suggestion (same company, similar title)
-  - Settings: follow-up delay (`UserSettings`), theme
-- [ ] Apply the design system ([design-system.md](design-system.md), [ADR 0015](adr/0015-neutral-visual-identity-with-status-colors.md)): `--ambio-*` variables and their Bootstrap mapping in `app.css`, light/dark theme, self-hosted Source Sans 3 and Bootstrap Icons, `StatusBadge` and `Tag` components
-- [ ] App shell: responsive layout (sidebar ≥ 992 px, bottom tab bar + "More" sheet below), logo and favicon, theme selector (System / Light / Dark), restyled Log in and Account pages
-- [ ] `Home` dashboard: counts by status, **Follow up** (applications still Applied after the configured delay), recent activity
+Each item is a vertical slice: domain, persistence, service, page and tests for one usable feature, delivered in its own pull request. Shared components are built by the first slice that needs them. The model is in [data-model.md](data-model.md) ([ADR 0011](adr/0011-company-centric-model-with-job-offers.md)) and the screens in [ui.md](ui.md) ([ADR 0016](adr/0016-responsive-navigation-bottom-tabs-and-sidebar.md)).
+
+- [ ] Design tokens and theme ([design-system.md](design-system.md), [ADR 0015](adr/0015-neutral-visual-identity-with-status-colors.md)): `--ambio-*` variables and their Bootstrap mapping in `app.css`, light/dark theme, self-hosted Source Sans 3 and Bootstrap Icons
+- [ ] Responsive app shell: sidebar ≥ 992 px, app bar + bottom tab bar + "More" sheet below, logo and favicon, theme selector (System / Light / Dark); each later slice adds its navigation entry
+- [ ] Companies: create and list
+  - `Company` profile (name, kind, website, industry, size, location), and the creation of `tests/Ambio.Domain.Tests`
+  - EF Core mapping class and migration, `SaveChangesInterceptor` for `CreatedAt`/`UpdatedAt`
+  - Application service returning DTOs, with the mapping written as extension methods
+- [ ] Companies: detail and edit
+- [ ] Offers: create and list, `JobOffer` with a plain-text copy of the ad and its first `JobOfferPosting`, offers shown on the company page
+- [ ] Offers: detail with their postings (the same offer seen on several sites), edit
+- [ ] Offers: duplicate suggestion when creating an offer (same company, similar title)
+- [ ] Applications from an offer: create and list, abstract `JobApplication` and `OfferApplication` mapped as TPH, `Channel` (online form, email, referral…), `ShortId` generated with NanoId (numeric for now), `StatusBadge` and `Tag` components
+- [ ] Spontaneous applications: `SpontaneousApplication`, TPH check constraint, "From an offer / Spontaneous" toggle
+- [ ] Application detail and edit, with readable URLs `/applications/482913-backend-developer-acme` (`ShortId` + slug) and a redirect to the canonical slug ([ADR 0014](adr/0014-short-id-and-slug-urls.md))
+- [ ] Status change and history: `Draft → Applied → Interview → Offer / Rejected / Withdrawn`, every change recorded as a timestamped `StatusChange`, and an end-to-end journey from a company to a status change
+- [ ] Applications list: filters by status, company and kind, search, sort by date
+- [ ] Archiving instead of deleting ([ADR 0012](adr/0012-archive-instead-of-delete.md)) for companies, offers and applications, with an "Archived" filter, an Undo toast and a restore action
 - [ ] **Cover letters**: plain text, 1..n per application, textarea editor, copy to clipboard
 - [ ] **CV upload**: attach the PDF that was actually sent (`CvDocument` with `Source = Uploaded`), stored through `IDocumentStorage` under `/data/documents`
   - PDF only, size limit configurable
   - Download and in-browser preview
   - Keeps a record of every CV sent until generation lands in Phase 3
-- [ ] Unit + EF integration tests for the tracking feature, including the creation of `tests/Ambio.Domain.Tests` (status workflow, invariants)
+- [ ] Settings: follow-up delay (`UserSettings`), theme
+- [ ] `Home` dashboard: counts by status, **Follow up** (applications still Applied after the configured delay), recent activity
+- [ ] Restyled Log in and Account pages
 - [ ] Create the account at first start, before the app is usable, instead of leaving registration open to whoever comes first ([ADR 0017](adr/0017-account-creation-local-or-github.md))
 
 ## Phase 2 — Docker, deployment & demo
