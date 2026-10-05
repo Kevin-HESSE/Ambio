@@ -5,6 +5,8 @@
 
 (function () {
   const ic = (n, cls = "") => `<svg class="bi ${cls}" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">${window.BI[n] || ""}</svg>`;
+  // The Orbit mark (design-system.md#logo), drawn in the logo-mark square.
+  const MARK = `<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M10.7 21.3A7.5 7.5 0 1 1 21.3 10.7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="21.3" cy="10.7" r="3" fill="currentColor"/><circle cx="16" cy="16" r="2.2" fill="currentColor"/></svg>`;
 
   const STATUS = {
     draft: { label: "Draft", icon: "pencil" },
@@ -67,7 +69,7 @@
       <a class="nav-item ${active === n.id ? "active" : ""}" href="#${n.go}">${ic(active === n.id ? n.iconOn : n.icon)}${n.label}${n.count ? `<span class="count">${n.count}</span>` : ""}</a>`).join("");
     return `
     <aside class="sidebar" aria-label="Main navigation">
-      <a class="logo" href="#dashboard"><span class="logo-mark">P</span>Ambio</a>
+      <a class="logo" href="#dashboard"><span class="logo-mark">${MARK}</span>Ambio</a>
       <div class="nav-label t-eyebrow">Tracking</div>
       ${items}
       <div class="sidebar-foot">
@@ -96,7 +98,7 @@
   function appbar({ title, back, actions = "" }) {
     const lead = back
       ? `<a class="btn btn-icon" href="#${back}" aria-label="Back">${ic("arrow-left")}</a>`
-      : `<span class="logo-mark" aria-hidden="true">P</span>`;
+      : `<span class="logo-mark" aria-hidden="true">${MARK}</span>`;
     return `<header class="appbar">${lead}<div class="appbar-title">${title}</div><div class="appbar-actions">${actions}</div></header>`;
   }
 
@@ -743,7 +745,7 @@ Hybrid: 2 days a week at the Nantes office.</p></div>
   function login() {
     return `
     <div class="app-scroll" style="height:100%"><div class="auth">
-      <span class="logo logo-lg"><span class="logo-mark">P</span>Ambio</span>
+      <span class="logo logo-lg"><span class="logo-mark">${MARK}</span>Ambio</span>
       <section class="card"><div class="card-body">
         <div><h1 class="t-h2">Log in</h1><p class="t-small secondary">Use the account created when Ambio was set up.</p></div>
         <div class="field"><label class="form-label" for="li-e">Email</label><input id="li-e" class="form-control" value="jane.doe@example.com" autocomplete="username"></div>
