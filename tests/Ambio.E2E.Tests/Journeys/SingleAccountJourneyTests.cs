@@ -40,8 +40,8 @@ public class SingleAccountJourneyTests(AmbioAppFixture app) : IClassFixture<Ambi
         await page.GetByRole(AriaRole.Button, new() { Name = "Log in" }).ClickAsync();
         await Expect(page.GetByRole(AriaRole.Link, new() { Name = UserEmail })).ToBeVisibleAsync();
 
-        await page.GetByRole(AriaRole.Button, new() { Name = "Logout" }).ClickAsync();
-        await Expect(page.GetByRole(AriaRole.Link, new() { Name = "Login" })).ToBeVisibleAsync();
+        await page.GetByRole(AriaRole.Button, new() { Name = "Log out" }).ClickAsync();
+        await Expect(page.GetByRole(AriaRole.Link, new() { Name = "Log in" })).ToBeVisibleAsync();
 
         await page.GotoAsync(RegisterPath);
         await Expect(page).ToHaveURLAsync(new Regex(LoginPath));

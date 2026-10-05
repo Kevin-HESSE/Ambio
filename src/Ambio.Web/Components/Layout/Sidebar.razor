@@ -1,0 +1,45 @@
+<nav class="sidebar" aria-label="Main navigation">
+    <a class="sidebar-logo" href="">
+        <Logo />
+    </a>
+
+    <div class="nav-label">Tracking</div>
+    @foreach (var entry in AppNavigation.Tracking)
+    {
+        <NavLink class="nav-item" href="@entry.Href" Match="entry.Match">
+            <i class="bi bi-@entry.Icon nav-icon" aria-hidden="true"></i>
+            <i class="bi bi-@entry.ActiveIcon nav-icon-active" aria-hidden="true"></i>
+            @entry.Label
+        </NavLink>
+    }
+
+    <div class="sidebar-foot">
+        <AuthorizeView>
+            <Authorized>
+                <div class="account">
+                    <span class="avatar" aria-hidden="true">@Initials(context.User.Identity?.Name)</span>
+                    <a class="account-email" href="Account/Manage">@context.User.Identity?.Name</a>
+                    <LogoutButton class="btn btn-icon btn-sm" title="Log out" aria-label="Log out">
+                        <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+                    </LogoutButton>
+                </div>
+            </Authorized>
+            <NotAuthorized>
+                <NavLink class="nav-item" href="Account/Login">
+                    <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>
+                    Log in
+                </NavLink>
+            </NotAuthorized>
+        </AuthorizeView>
+    </div>
+</nav>
+
+@code {
+    /// <summary>Up to two initials from the local part of the email: "jane.doe@…" gives "JD".</summary>
+    private static string Initials(string? email)
+    {
+        var localPart = (email ?? "").Split('@')[0];
+        var words = localPart.Split(['.', '_', '-'], StringSplitOptions.RemoveEmptyEntries);
+        return string.Concat(words.Take(2).Select(word => char.ToUpperInvariant(word[0])));
+    }
+}

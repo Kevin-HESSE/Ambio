@@ -1,0 +1,117 @@
+/* Desktop only (≥ 992 px): below, the app bar and the tab bar take over. */
+.sidebar {
+    display: none;
+}
+
+@media (min-width: 992px) {
+    .sidebar {
+        position: sticky;
+        top: 0;
+        flex: none;
+        display: flex;
+        flex-direction: column;
+        gap: var(--ambio-space-4);
+        width: 240px;
+        height: 100dvh;
+        overflow-y: auto;
+        padding: var(--ambio-space-16) var(--ambio-space-12);
+        background: var(--ambio-bg-surface);
+        border-right: 1px solid var(--ambio-border-default);
+    }
+}
+
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    height: 40px;
+    padding: 0 var(--ambio-space-8);
+    margin-bottom: var(--ambio-space-16);
+    border-radius: var(--ambio-radius-md);
+    text-decoration: none;
+}
+
+.nav-label {
+    padding: var(--ambio-space-8) var(--ambio-space-12) var(--ambio-space-4);
+    color: var(--ambio-text-muted);
+    font-size: 13px;
+    line-height: 16px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.sidebar ::deep .nav-item {
+    display: flex;
+    align-items: center;
+    gap: var(--ambio-space-12);
+    height: 40px;
+    padding: 0 var(--ambio-space-12);
+    border-radius: var(--ambio-radius-md);
+    color: var(--ambio-text-secondary);
+    text-decoration: none;
+}
+
+    .sidebar ::deep .nav-item:hover {
+        background: var(--ambio-bg-subtle);
+    }
+
+    .sidebar ::deep .nav-item.active {
+        background: var(--ambio-accent-subtle);
+        color: var(--ambio-accent-text);
+        font-weight: 600;
+    }
+
+    .sidebar ::deep .nav-item .bi {
+        font-size: 18px;
+    }
+
+    .sidebar ::deep .nav-item.active .nav-icon,
+    .sidebar ::deep .nav-item:not(.active) .nav-icon-active {
+        display: none;
+    }
+
+.sidebar-foot {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ambio-space-8);
+    padding-top: var(--ambio-space-12);
+    border-top: 1px solid var(--ambio-border-default);
+}
+
+.account {
+    display: flex;
+    align-items: center;
+    gap: var(--ambio-space-8);
+    padding: var(--ambio-space-4) var(--ambio-space-4) var(--ambio-space-4) var(--ambio-space-8);
+}
+
+.avatar {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--ambio-radius-full);
+    background: var(--ambio-bg-subtle);
+    color: var(--ambio-text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.account-email {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--ambio-text-secondary);
+    font-size: 14px;
+    line-height: 20px;
+    text-decoration: none;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+    .account-email:hover {
+        color: var(--ambio-text-primary);
+        text-decoration: underline;
+    }
