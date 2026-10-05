@@ -38,7 +38,7 @@ Each phase maps to a GitHub Milestone, and each checkbox maps to an issue.
 
 Each item is a vertical slice: domain, persistence, service, page and tests for one usable feature, delivered in its own pull request. Shared components are built by the first slice that needs them. The model is in [data-model.md](data-model.md) ([ADR 0011](adr/0011-company-centric-model-with-job-offers.md)) and the screens in [ui.md](ui.md) ([ADR 0016](adr/0016-responsive-navigation-bottom-tabs-and-sidebar.md)).
 
-- [ ] Design tokens and theme ([design-system.md](design-system.md), [ADR 0015](adr/0015-neutral-visual-identity-with-status-colors.md)): `--ambio-*` variables and their Bootstrap mapping in `app.css`, light/dark theme, self-hosted Source Sans 3 and Bootstrap Icons
+- [x] Design tokens and theme ([design-system.md](design-system.md), [ADR 0015](adr/0015-neutral-visual-identity-with-status-colors.md)): `--ambio-*` variables and their Bootstrap mapping in `app.css`, light/dark theme, self-hosted Source Sans 3 and Bootstrap Icons
 - [ ] Responsive app shell: sidebar ≥ 992 px, app bar + bottom tab bar + "More" sheet below, logo and favicon, theme selector (System / Light / Dark); each later slice adds its navigation entry
 - [ ] Companies: create and list
   - `Company` profile (name, kind, website, industry, size, location), and the creation of `tests/Ambio.Domain.Tests`

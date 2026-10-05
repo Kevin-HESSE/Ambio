@@ -2,7 +2,7 @@
 
 Ambio's visual identity: neutral grays with a single indigo accent. The only other hues mark application statuses. The reasons are in [ADR 0015](adr/0015-neutral-visual-identity-with-status-colors.md).
 
-> Status: the tokens exist in Figma. They are applied to the app in [Phase 1](roadmap.md#phase-1--application-tracking-mvp) (CSS variables mapped onto Bootstrap 5.3).
+> Status: the tokens exist in Figma and are applied to the app in `src/Ambio.Web/wwwroot/app.css` (CSS variables mapped onto Bootstrap 5.3). The theme follows the system until the theme selector arrives with the app shell.
 
 **Figma**: [Ambio](https://www.figma.com/design/3ys0FLvxXEynaZmFtUxAda/Ambio) has two pages:
 - `Foundations`: primitives, semantic colors, statuses, tags, typography, spacing and radius.
@@ -92,7 +92,7 @@ Each status of `ApplicationStatus` ([data model](data-model.md#application-hiera
 - The **indigo accent is never used for a status**, so a badge can't be mistaken for a button or a link.
 - The `feedback/*` tokens share these hues (success = Offer, warning = Interview, danger = Rejected, info = Applied), so each color means the same thing everywhere in the app.
 - The UI and the mockups use the English labels. The French labels come with localization ([Phase 5](roadmap.md#phase-5--identity--i18n)). The Figma components still show the French labels and will be switched to English.
-- Icons come from [Bootstrap Icons](https://icons.getbootstrap.com/) (MIT). Figma shows a dot instead of the icon.
+- Icons come from [Bootstrap Icons](https://icons.getbootstrap.com/) (MIT), self-hosted in `wwwroot/lib/bootstrap-icons/` as an icon font (`<i class="bi bi-send"></i>`). Figma shows a dot instead of the icon.
 
 ### Tags
 
@@ -111,7 +111,7 @@ Every attribute that isn't a status is a **neutral tag**. The icon distinguishes
 ## Typography
 
 **[Source Sans 3](https://fonts.google.com/specimen/Source+Sans+3)**, under the SIL Open Font License.
-- It's self-hosted in `wwwroot` (woff2), so the app has no dependency on Google Fonts, which matters for self-hosted Docker installs.
+- It's self-hosted in `wwwroot/fonts/source-sans-3/` (one variable woff2 file covering weights 200 to 900, with its license), so the app has no dependency on Google Fonts, which matters for self-hosted Docker installs.
 - Fallback stack: `"Source Sans 3", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`.
 
 | Style | Size / line height (px) | Weight | Usage |
@@ -182,14 +182,25 @@ Each token becomes a CSS custom property prefixed with `--ambio-`. The `/` in th
 | `--bs-body-bg` | `bg/canvas` |
 | `--bs-body-color` | `text/primary` |
 | `--bs-secondary-color` | `text/secondary` |
+| `--bs-tertiary-color` | `text/muted` |
 | `--bs-tertiary-bg` | `bg/subtle` |
-| `--bs-border-color` | `border/default` |
+| `--bs-border-color`, `--bs-border-color-translucent` | `border/default` |
 | `--bs-primary`, `--bs-primary-rgb` | `accent/default` |
-| `--bs-link-color`, `--bs-link-hover-color` | `accent/text`, `accent/hover` |
+| `--bs-link-color`, `--bs-link-hover-color` (and their `-rgb`) | `accent/text`, `accent/hover` |
 | `--bs-focus-ring-color` | `focus/ring` |
+| `--bs-success`, `--bs-warning`, `--bs-danger`, `--bs-info` (and their `-rgb`) | `feedback/*` |
+| `--bs-{color}-text-emphasis`, `-bg-subtle`, `-border-subtle` (alerts) | `fg`, `bg`, `border` of the status with the same hue: success = `Offer`, warning = `Interview`, danger = `Rejected`, info = `Applied` |
 | `--bs-card-bg`, `--bs-table-bg` | `bg/surface` |
-| `--bs-body-font-family` | Source Sans 3 stack |
-| `--bs-border-radius` | `radius/md` |
+| `--bs-body-font-family`, `--bs-font-monospace` | Source Sans 3 stack, monospace stack |
+| `--bs-border-radius`, `-sm`, `-lg`, `-pill` | `radius/md`, `radius/sm`, `radius/lg`, `radius/full` |
+| `--bs-box-shadow-sm`, `--bs-box-shadow` | `shadow/sm`, `shadow/md` |
+
+- Bootstrap reads some colors as `r, g, b` triplets (`--bs-primary-rgb`, link and contextual colors). A triplet can't be derived from a hex variable, so `app.css` repeats their light and dark values as literals.
+- Some components are compiled with fixed colors. `app.css` sets their component variables:
+  - `.btn-primary`: the `accent/*` tokens;
+  - `.btn-danger`: outlined, as in the mockups (`feedback/danger` text, `bg/surface`, `border/strong`);
+  - inputs, selects and checkboxes: `bg/surface` and `border/strong`; their focus: `focus/ring`;
+  - checked checkboxes: `accent/default`.
 
 ## Figma structure
 
