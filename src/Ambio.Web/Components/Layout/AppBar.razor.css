@@ -1,0 +1,29 @@
+.appbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: var(--ambio-space-12);
+    min-height: calc(56px + env(safe-area-inset-top, 0px));
+    padding: env(safe-area-inset-top, 0px) var(--ambio-space-16) 0;
+    background: var(--ambio-bg-surface);
+    border-bottom: 1px solid var(--ambio-border-default);
+}
+
+.appbar-title {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 18px;
+    line-height: 26px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (min-width: 992px) {
+    .appbar {
+        display: none;
+    }
+}

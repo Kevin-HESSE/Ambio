@@ -1,0 +1,34 @@
+@* The fifth tab of the mobile tab bar: what the sidebar shows at its bottom (docs/ui.md#navigation). *@
+<Sheet Id="@Id" Label="More">
+    <ul class="menu-list">
+        <AuthorizeView>
+            <Authorized>
+                <li>
+                    <a class="menu-item" href="Account/Manage">
+                        <i class="bi bi-person-circle" aria-hidden="true"></i>
+                        Account
+                    </a>
+                </li>
+                <li>
+                    <LogoutButton class="menu-item menu-item-danger">
+                        <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+                        Log out
+                    </LogoutButton>
+                </li>
+            </Authorized>
+            <NotAuthorized>
+                <li>
+                    <a class="menu-item" href="Account/Login">
+                        <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>
+                        Log in
+                    </a>
+                </li>
+            </NotAuthorized>
+        </AuthorizeView>
+    </ul>
+</Sheet>
+
+@code {
+    /// <summary>Id of the sheet's dialog, targeted by the "More" tab.</summary>
+    public const string Id = "more-sheet";
+}

@@ -1,0 +1,23 @@
+@* Overlay: a bottom sheet below 992 px, a centered modal above (docs/ui.md#patterns).
+   Opened by any element with data-sheet-open="<Id>", closed by Escape, the backdrop, a link
+   or an element with data-sheet-close (wwwroot/js/shell.js). *@
+<dialog id="@Id" class="sheet" aria-label="@Label" @attributes="AdditionalAttributes">
+    <div class="sheet-body">
+        @ChildContent
+    </div>
+</dialog>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Id { get; set; } = "";
+
+    /// <summary>Accessible name of the dialog.</summary>
+    [Parameter, EditorRequired]
+    public string Label { get; set; } = "";
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
+}

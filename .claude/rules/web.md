@@ -22,5 +22,6 @@ paths: src/Ambio.Web/**
 
 - Colors, typography and spacing come from the `--ambio-*` CSS variables mapped onto Bootstrap. No hard-coded colors in components ([docs/design-system.md](../../docs/design-system.md), [ADR 0015](../../docs/adr/0015-neutral-visual-identity-with-status-colors.md)).
 - Layout: bottom tab bar + "More" sheet below 992 px, sidebar above. Lists are tables on desktop and cards on mobile; detail pages put their tab in the URL (`?tab=`) ([docs/ui.md](../../docs/ui.md), mockups in `docs/mockups/`, [ADR 0016](../../docs/adr/0016-responsive-navigation-bottom-tabs-and-sidebar.md)).
+- The shell is rendered statically; its behaviors (sheets, theme) are in `wwwroot/js/shell.js` and the `<head>` script of `App.razor`. A new page adds its section to `Components/Layout/AppNavigation.cs` and sets its mobile title with `<AppBarTitle>`.
 - Application URLs are `/applications/{ShortId}-{slug}`: resolve by `ShortId`, redirect to the canonical slug ([ADR 0014](../../docs/adr/0014-short-id-and-slug-urls.md)).
 - Static assets are served by `MapStaticAssets()` and referenced through `@Assets["..."]` in `App.razor`; Bootstrap is vendored in `wwwroot/lib`.

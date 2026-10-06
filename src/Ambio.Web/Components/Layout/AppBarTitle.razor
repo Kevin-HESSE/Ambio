@@ -1,0 +1,10 @@
+@using Microsoft.AspNetCore.Components.Sections
+
+@* Sets the title of the mobile app bar. Only works from a page rendered in the same mode as the layout:
+   sections don't cross render-mode boundaries. *@
+<SectionContent SectionName="@AppBar.TitleSection">@ChildContent</SectionContent>
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

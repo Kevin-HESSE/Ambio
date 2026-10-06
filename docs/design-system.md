@@ -152,6 +152,8 @@ Shadows are drawn in `#0F172A`:
 - `shadow/sm` (cards): `0 1px 2px` at 6% and `0 1px 3px` at 8%.
 - `shadow/md` (dropdowns, modals): `0 4px 6px -1px` at 8% and `0 10px 15px -3px` at 10%.
 
+The **scrim** (`--ambio-scrim`) dims the page behind a sheet, a modal or the reconnect dialog: `#0F172A` at 45% in light, `#020617` at 70% in dark.
+
 ## Components
 
 | Component | Figma | App (Phase 1) |

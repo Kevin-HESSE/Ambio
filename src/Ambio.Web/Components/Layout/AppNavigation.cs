@@ -13,4 +13,10 @@ public static class AppNavigation
     [
         new("Dashboard", "Home", "", "house-door", "house-door-fill", NavLinkMatch.All),
     ];
+
+    /// <summary>Base-relative paths of the pages reached from the More sheet, where the "More" tab is active.</summary>
+    public static IReadOnlyList<string> MoreRoutes { get; } =
+    [
+        "Account/Manage",
+    ];
 }
