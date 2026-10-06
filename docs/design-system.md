@@ -2,7 +2,7 @@
 
 Ambio's visual identity: neutral grays with a single indigo accent. The only other hues mark application statuses. The reasons are in [ADR 0015](adr/0015-neutral-visual-identity-with-status-colors.md).
 
-> Status: the tokens exist in Figma and are applied to the app in `src/Ambio.Web/wwwroot/app.css` (CSS variables mapped onto Bootstrap 5.3). The theme follows the system until the theme selector arrives with the app shell.
+> Status: the tokens exist in Figma and are applied to the app in `src/Ambio.Web/wwwroot/app.css` (CSS variables mapped onto Bootstrap 5.3). The theme follows the system unless Light or Dark is chosen with the theme selector of the app shell (sidebar and More sheet), stored in the browser under `ambio-theme`.
 
 **Figma**: [Ambio](https://www.figma.com/design/3ys0FLvxXEynaZmFtUxAda/Ambio) has two pages:
 - `Foundations`: primitives, semantic colors, statuses, tags, typography, spacing and radius.

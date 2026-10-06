@@ -21,6 +21,27 @@
         }
     });
 
-    // Enhanced navigation patches the DOM without closing an open dialog.
-    window.Blazor?.addEventListener("enhancedload", closeSheets);
+    // The theme selectors are rendered unchecked: the choice is only known here (window.ambio.theme, set in App.razor).
+    const syncThemeSelectors = () => {
+        const choice = window.ambio.theme.choice();
+        for (const input of document.querySelectorAll("[data-theme-selector] input")) {
+            input.checked = input.value === choice;
+        }
+    };
+
+    document.addEventListener("change", (event) => {
+        if (event.target.matches("[data-theme-selector] input")) {
+            window.ambio.theme.set(event.target.value);
+            syncThemeSelectors();
+        }
+    });
+
+    syncThemeSelectors();
+    window.addEventListener("storage", syncThemeSelectors);
+
+    // Enhanced navigation patches the DOM: it leaves an open dialog open and unchecks the theme selectors.
+    window.Blazor?.addEventListener("enhancedload", () => {
+        closeSheets();
+        syncThemeSelectors();
+    });
 })();

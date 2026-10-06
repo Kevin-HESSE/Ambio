@@ -8,18 +8,43 @@
     <ResourcePreloader />
     <script>
         (() => {
-            // Follows the system theme. The observer puts the attribute back after Blazor's enhanced navigation removes it.
+            // Applies the theme before the first paint: "light" or "dark" when chosen with the theme selector, the system's otherwise.
+            // The observer puts the attribute back after Blazor's enhanced navigation removes it.
+            const key = "ambio-theme";
             const media = matchMedia("(prefers-color-scheme: dark)");
             const root = document.documentElement;
+            const choice = () => {
+                try {
+                    const value = localStorage.getItem(key);
+                    return value === "light" || value === "dark" ? value : "system";
+                } catch {
+                    return "system";
+                }
+            };
             const apply = () => {
-                const theme = media.matches ? "dark" : "light";
+                const selected = choice();
+                const theme = selected === "system" ? (media.matches ? "dark" : "light") : selected;
                 if (root.dataset.bsTheme !== theme) {
                     root.dataset.bsTheme = theme;
                 }
             };
+            const set = (value) => {
+                try {
+                    if (value === "light" || value === "dark") {
+                        localStorage.setItem(key, value);
+                    } else {
+                        localStorage.removeItem(key);
+                    }
+                } catch {
+                    // Storage blocked (private browsing settings): the theme keeps following the system.
+                }
+                apply();
+            };
             apply();
             media.addEventListener("change", apply);
+            addEventListener("storage", (event) => event.key === key && apply());
             new MutationObserver(apply).observe(root, { attributes: true, attributeFilter: ["data-bs-theme"] });
+            window.ambio = { theme: { choice, set } };
         })();
     </script>
     <link rel="stylesheet" href="@Assets["lib/bootstrap/dist/css/bootstrap.min.css"]" />

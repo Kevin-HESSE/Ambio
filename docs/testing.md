@@ -31,7 +31,7 @@ The content listed below is typical, not exhaustive: each project grows with its
 | `tests/Ambio.Domain.Tests` | Domain rules (status workflow, invariants) — created in Phase 1 | xUnit |
 | `tests/Ambio.Application.Tests` | DTO validation, `ServiceResult`, mapping extensions | xUnit |
 | `tests/Ambio.Infrastructure.Tests` | Service implementations (user management, email sending…), EF Core mappings and queries, file storage, plugin loader, PDF snapshots | xUnit, SQLite in-memory, NSubstitute |
-| `tests/Ambio.Web.Tests` | Interactive Blazor components | bUnit, NSubstitute |
+| `tests/Ambio.Web.Tests` | Blazor components: the app shell, then the interactive pages | bUnit, NSubstitute |
 | `tests/Ambio.E2E.Tests` | Critical user journeys in a real browser | xUnit, Playwright |
 
 Shared settings (target framework, xUnit package, global `using Xunit;`) live in `tests/Directory.Build.props`, and package versions in `Directory.Packages.props`.
@@ -68,7 +68,9 @@ Playwright drives a headless Chromium against the real app, hosted in the test p
 - `AmbioAppFixture` creates a temporary SQLite file, applies the migrations, starts the browser, and deletes the file at the end. The development database is never touched.
 - Chromium is installed on the first run (`Microsoft.Playwright.Program.Main(["install", "chromium"])`), so no separate install step is needed locally. On a Linux CI runner, the browser's system dependencies must be installed too (see [ci-cd.md](ci-cd.md)).
 - Every E2E test class carries `[Trait("Category", "E2E")]`, so the fast loop can exclude it.
-- Only **critical journeys** get an E2E test, as one test per journey. The current one is `Journeys/SingleAccountJourneyTests`: register, confirm the email, log in, log out, then check that registration is closed.
+- Only **critical journeys** get an E2E test, as one test per journey. The current ones are:
+  - `Journeys/SingleAccountJourneyTests`: register, confirm the email, log in, log out, then check that registration is closed;
+  - `Journeys/AppShellJourneyTests`: on a phone-sized viewport, open the More sheet, choose the Dark theme, check that it survives a reload, then log out from the sheet. It covers the shell script (`wwwroot/js/shell.js`), which bUnit doesn't run. Its account is created by `AmbioAppFixture.CreateConfirmedUserAsync`.
 - Select elements by role or label (`GetByRole`, `GetByLabel`), and add a `data-testid` only when nothing else is stable. Assert with Playwright's `Expect`, which waits for the page instead of failing at once.
 
 ## PDF snapshot tests

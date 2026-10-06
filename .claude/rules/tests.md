@@ -13,7 +13,7 @@ See [docs/testing.md](../../docs/testing.md) for the full approach.
 | `Ambio.Domain.Tests` | Domain rules (created in Phase 1) | xUnit |
 | `Ambio.Application.Tests` | DTO, validation, mapping extensions | xUnit |
 | `Ambio.Infrastructure.Tests` | Services, EF Core mappings and queries, storage, PDF snapshots | xUnit, SQLite in-memory, NSubstitute |
-| `Ambio.Web.Tests` | Interactive Blazor components | bUnit, NSubstitute |
+| `Ambio.Web.Tests` | Blazor components: the app shell, then the interactive pages | bUnit, NSubstitute |
 | `Ambio.E2E.Tests` | Critical user journeys | xUnit, Playwright |
 
 Shared settings live in `tests/Directory.Build.props`, package versions in `Directory.Packages.props`.

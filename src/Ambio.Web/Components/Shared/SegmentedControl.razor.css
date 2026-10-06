@@ -1,0 +1,52 @@
+.segmented {
+    display: flex;
+    gap: var(--ambio-space-4);
+    padding: var(--ambio-space-4);
+    border-radius: var(--ambio-radius-md);
+    background: var(--ambio-bg-subtle);
+}
+
+/* The radio stays focusable and in the accessibility tree; its label is the visible segment. */
+.segmented-input {
+    position: absolute;
+    clip: rect(0, 0, 0, 0);
+    pointer-events: none;
+}
+
+.segmented-option {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 36px;
+    margin: 0;
+    padding: 0 var(--ambio-space-12);
+    border-radius: var(--ambio-radius-sm);
+    color: var(--ambio-text-secondary);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+    .segmented-option:hover {
+        color: var(--ambio-text-primary);
+    }
+
+.segmented-input:checked + .segmented-option {
+    background: var(--ambio-bg-surface);
+    color: var(--ambio-text-primary);
+    box-shadow: var(--ambio-shadow-sm);
+}
+
+.segmented-input:focus-visible + .segmented-option {
+    outline: 2px solid var(--ambio-focus-ring);
+    outline-offset: 1px;
+}
+
+.segmented-icons .segmented-option {
+    min-height: 32px;
+    padding: 0 10px;
+}
