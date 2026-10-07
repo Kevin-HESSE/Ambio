@@ -2,7 +2,7 @@
 
 Ambio's visual identity: neutral grays with a single indigo accent. The only other hues mark application statuses. The reasons are in [ADR 0015](adr/0015-neutral-visual-identity-with-status-colors.md).
 
-> Status: the tokens exist in Figma and are applied to the app in `src/Ambio.Web/wwwroot/app.css` (CSS variables mapped onto Bootstrap 5.3). The theme follows the system until the theme selector arrives with the app shell.
+> Status: the tokens exist in Figma and are applied to the app in `src/Ambio.Web/wwwroot/app.css` (CSS variables mapped onto Bootstrap 5.3). The theme follows the system unless Light or Dark is chosen with the theme selector of the app shell (sidebar and More sheet), stored in the browser under `ambio-theme`.
 
 **Figma**: [Ambio](https://www.figma.com/design/3ys0FLvxXEynaZmFtUxAda/Ambio) has two pages:
 - `Foundations`: primitives, semantic colors, statuses, tags, typography, spacing and radius.
@@ -152,6 +152,8 @@ Shadows are drawn in `#0F172A`:
 - `shadow/sm` (cards): `0 1px 2px` at 6% and `0 1px 3px` at 8%.
 - `shadow/md` (dropdowns, modals): `0 4px 6px -1px` at 8% and `0 10px 15px -3px` at 10%.
 
+The **scrim** (`--ambio-scrim`) dims the page behind a sheet, a modal or the reconnect dialog: `#0F172A` at 45% in light, `#020617` at 70% in dark.
+
 ## Components
 
 | Component | Figma | App (Phase 1) |
@@ -163,11 +165,15 @@ The layout components (app shell, lists, tabs, sheets, toasts…) are listed in 
 
 ## Logo
 
-A monogram and a wordmark:
-- the **mark** is a white "P" (`accent/on`) in a rounded square (`radius/lg`) filled with `accent/default`, 28 px in the app bar and the sidebar, 40 px on the log-in page;
+A mark and a wordmark:
+- the **mark**, "Orbit", is a path that goes around a point and ends on a dot, drawn in `accent/on` in a rounded square filled with `accent/default`. *Ambio* is Latin for "I go around, I canvass", which is what a job search does. It is 28 px in the app bar and the sidebar, 40 px on the log-in page;
 - the **wordmark** "Ambio" is set in Source Sans 3 SemiBold, in `text/primary`, next to the mark.
 
-The mark alone is the favicon. It follows the theme like any other token: `#4F46E5` with a white "P" in light, `#818CF8` with a `#020617` "P" in dark.
+The mark is drawn on a 32 × 32 grid: a square with 9-unit corners, a 270° arc of radius 7.5 and stroke 3 with round caps, from (10.7, 21.3) clockwise to (21.3, 10.7), a dot of radius 3 at the end of the arc and a dot of radius 2.2 in the center.
+
+- In the app, `Logo.razor` draws it as inline SVG colored by the tokens, so it follows the theme like any other element.
+- The mark alone is the favicon (`wwwroot/favicon.svg`): `#4F46E5` with a white shape in light, `#818CF8` with a `#020617` shape in dark. A favicon can't read the page's CSS variables, so it holds the hex values and follows the system color scheme, not the theme chosen in the app. `favicon.png` (32 × 32, light) is the fallback for browsers without SVG favicons.
+- The mark isn't in Figma yet.
 
 ## From tokens to code
 

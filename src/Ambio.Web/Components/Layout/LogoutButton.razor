@@ -1,0 +1,17 @@
+@inject NavigationManager NavigationManager
+
+@* Posts to the Identity logout endpoint, then comes back to the current page. *@
+<form action="Account/Logout" method="post">
+    <AntiforgeryToken />
+    <input type="hidden" name="ReturnUrl" value="@NavigationManager.ToBaseRelativePath(NavigationManager.Uri)" />
+    <button type="submit" @attributes="AdditionalAttributes">@ChildContent</button>
+</form>
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>Attributes of the button (class, aria-label…).</summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
+}

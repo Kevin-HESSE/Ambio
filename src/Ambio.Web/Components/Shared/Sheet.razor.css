@@ -1,0 +1,103 @@
+/* The sheet slides up from the bottom while the scrim fades in, and the reverse when it closes.
+   The closed state carries the closing transition (accelerating), [open] the opening one (decelerating).
+   display and overlay are discrete: they keep the dialog in the top layer until the closing transition ends. */
+.sheet {
+    width: 100%;
+    max-width: 100%;
+    max-height: 92dvh;
+    margin: auto 0 0;
+    padding: 0;
+    overflow-y: auto;
+    border: 0;
+    border-radius: var(--ambio-radius-lg) var(--ambio-radius-lg) 0 0;
+    background: var(--ambio-bg-surface);
+    color: var(--ambio-text-primary);
+    box-shadow: var(--ambio-shadow-md);
+    transform: translateY(100%);
+    transition: transform 200ms cubic-bezier(0.3, 0, 1, 1), opacity 200ms cubic-bezier(0.3, 0, 1, 1), overlay 200ms allow-discrete, display 200ms allow-discrete;
+}
+
+    .sheet[open] {
+        transform: none;
+        transition-duration: 300ms;
+        transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    .sheet::backdrop {
+        background: var(--ambio-scrim);
+        opacity: 0;
+        transition: opacity 200ms, overlay 200ms allow-discrete, display 200ms allow-discrete;
+    }
+
+    .sheet[open]::backdrop {
+        opacity: 1;
+        transition-duration: 300ms;
+    }
+
+@starting-style {
+    .sheet[open] {
+        transform: translateY(100%);
+    }
+
+    .sheet[open]::backdrop {
+        opacity: 0;
+    }
+}
+
+.sheet-body {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+    /* Drag handle of the bottom sheet */
+    .sheet-body::before {
+        content: "";
+        align-self: center;
+        width: 36px;
+        height: 4px;
+        margin-top: var(--ambio-space-8);
+        border-radius: var(--ambio-radius-full);
+        background: var(--ambio-border-strong);
+    }
+
+/* Centered modal: a short rise with a fade. */
+@media (min-width: 992px) {
+    .sheet {
+        width: 520px;
+        max-height: 85dvh;
+        margin: auto;
+        border-radius: var(--ambio-radius-lg);
+        transform: translateY(var(--ambio-space-24));
+        opacity: 0;
+    }
+
+        .sheet[open] {
+            transform: none;
+            opacity: 1;
+        }
+
+    @starting-style {
+        .sheet[open] {
+            transform: translateY(var(--ambio-space-24));
+            opacity: 0;
+        }
+    }
+
+    .sheet-body {
+        padding-bottom: 0;
+    }
+
+        .sheet-body::before {
+            display: none;
+        }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sheet,
+    .sheet[open],
+    .sheet::backdrop,
+    .sheet[open]::backdrop {
+        transition: none;
+    }
+}

@@ -1,8 +1,12 @@
+using Ambio.Application.Users;
+using Ambio.Application.Users.Dtos;
 using Ambio.Infrastructure.Persistence;
+using Ambio.Infrastructure.Users;
 
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -48,6 +52,24 @@ public sealed class AmbioAppFixture : IAsyncLifetime
 
         _playwright = await Playwright.CreateAsync();
         Browser = await _playwright.Chromium.LaunchAsync();
+    }
+
+    /// <summary>Creates the account through <see cref="IUserService"/> and confirms its email, ready to log in.</summary>
+    public async Task CreateConfirmedUserAsync(string email, string password)
+    {
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+        var registration = await userService.RegisterUserAsync(new RegisterInput { Email = email, Password = password, ConfirmPassword = password });
+        if (!registration.TryGetValue(out var userId))
+        {
+            throw new InvalidOperationException($"The test account wasn't created: {registration.GetMessage}");
+        }
+
+        var user = await userManager.FindByIdAsync(userId) ?? throw new InvalidOperationException("The test account wasn't found.");
+        var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+        await userManager.ConfirmEmailAsync(user, token);
     }
 
     public async ValueTask DisposeAsync()

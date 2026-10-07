@@ -1,0 +1,19 @@
+@* System, Light or Dark. The choice lives in the browser: the server checks nothing, and
+   wwwroot/js/shell.js checks the stored choice and applies the change (docs/ui.md#patterns). *@
+<SegmentedControl Name="@Name" Label="Theme" Options="ThemeOptions" IconsOnly="IconsOnly" data-theme-selector="" />
+
+@code {
+    private static readonly IReadOnlyList<SegmentedOption> ThemeOptions =
+    [
+        new("system", "System", "circle-half"),
+        new("light", "Light", "sun"),
+        new("dark", "Dark", "moon-stars"),
+    ];
+
+    /// <summary>Name of the radio group: each selector of the page needs its own.</summary>
+    [Parameter, EditorRequired]
+    public string Name { get; set; } = "";
+
+    [Parameter]
+    public bool IconsOnly { get; set; }
+}

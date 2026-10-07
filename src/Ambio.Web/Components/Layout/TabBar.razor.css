@@ -1,0 +1,58 @@
+.tabbar {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 10;
+    display: grid;
+    grid-auto-columns: 1fr;
+    grid-auto-flow: column;
+    height: calc(64px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: var(--ambio-bg-surface);
+    border-top: 1px solid var(--ambio-border-default);
+}
+
+    .tabbar ::deep .tab {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        padding: 0;
+        border: 0;
+        background: none;
+        color: var(--ambio-text-secondary);
+        font-size: 13px;
+        line-height: 16px;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .tabbar ::deep .tab.active {
+        color: var(--ambio-accent-text);
+    }
+
+    .tabbar ::deep .tab-indicator {
+        display: grid;
+        place-items: center;
+        width: 56px;
+        height: 28px;
+        border-radius: var(--ambio-radius-full);
+        font-size: 20px;
+    }
+
+    .tabbar ::deep .tab.active .tab-indicator {
+        background: var(--ambio-accent-subtle);
+    }
+
+    .tabbar ::deep .tab.active .nav-icon,
+    .tabbar ::deep .tab:not(.active) .nav-icon-active {
+        display: none;
+    }
+
+@media (min-width: 992px) {
+    .tabbar {
+        display: none;
+    }
+}
