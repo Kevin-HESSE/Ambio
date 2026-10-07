@@ -1,5 +1,5 @@
 @* A group of native radio buttons styled as segments (docs/ui.md#components). *@
-<div class="segmented @(IconsOnly ? "segmented-icons" : null)" role="radiogroup" aria-label="@Label" @attributes="AdditionalAttributes">
+<div class="@ComponentClass" role="radiogroup" aria-label="@Label" @attributes="AdditionalAttributes">
     @foreach (var option in Options)
     {
         var id = $"{Name}-{option.Value}";
@@ -36,4 +36,8 @@
 
     [Parameter(CaptureUnmatchedValues = true)]
     public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string ComponentClass => CssClassHelper.Serialize(
+        ["segmented"],
+        new Dictionary<string, bool> { ["segmented-icons"] = IconsOnly });
 }

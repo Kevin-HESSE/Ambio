@@ -1,5 +1,5 @@
 @* The Orbit mark (a path around a point, ending on a dot) and the "Ambio" wordmark. See docs/design-system.md#logo. *@
-<span class="logo @(Large ? "logo-lg" : null)">
+<span class="@ComponentClass">
     <svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
         <rect class="logo-mark-bg" width="32" height="32" rx="9" />
         <path class="logo-mark-orbit" d="M10.7 21.3A7.5 7.5 0 1 1 21.3 10.7" />
@@ -20,4 +20,8 @@
     /// <summary>Hides the wordmark.</summary>
     [Parameter]
     public bool MarkOnly { get; set; }
+
+    private string ComponentClass => CssClassHelper.Serialize(
+        ["logo"],
+        new Dictionary<string, bool> { ["logo-lg"] = Large });
 }

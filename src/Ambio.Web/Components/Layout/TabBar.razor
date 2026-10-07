@@ -12,7 +12,7 @@
             @entry.TabLabel
         </NavLink>
     }
-    <button type="button" class="tab @(IsMoreActive ? "active" : null)"
+    <button type="button" class="@ComponentClass"
             data-sheet-open="@MoreSheet.Id" aria-haspopup="dialog" aria-controls="@MoreSheet.Id">
         <span class="tab-indicator"><i class="bi bi-three-dots" aria-hidden="true"></i></span>
         More
@@ -28,4 +28,8 @@
             return AppNavigation.MoreRoutes.Any(route => path.StartsWith(route, StringComparison.OrdinalIgnoreCase));
         }
     }
+
+    private string ComponentClass => CssClassHelper.Serialize(
+        ["tab"],
+        new Dictionary<string, bool> { ["active"] = IsMoreActive });
 }
