@@ -33,9 +33,6 @@
 .nav-label {
     padding: var(--ambio-space-8) var(--ambio-space-12) var(--ambio-space-4);
     color: var(--ambio-text-muted);
-    font-size: 13px;
-    line-height: 16px;
-    font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
 }
@@ -51,24 +48,24 @@
     text-decoration: none;
 }
 
-    .sidebar ::deep .nav-item:hover {
-        background: var(--ambio-bg-subtle);
-    }
+.sidebar ::deep .nav-item:hover {
+    background: var(--ambio-bg-subtle);
+}
 
-    .sidebar ::deep .nav-item.active {
-        background: var(--ambio-accent-subtle);
-        color: var(--ambio-accent-text);
-        font-weight: 600;
-    }
+.sidebar ::deep .nav-item.active {
+    background: var(--ambio-accent-subtle);
+    color: var(--ambio-accent-text);
+    font-weight: 600;
+}
 
-    .sidebar ::deep .nav-item .bi {
-        font-size: 18px;
-    }
+.sidebar ::deep .nav-item .bi {
+    font-size: 18px;
+}
 
-    .sidebar ::deep .nav-item.active .nav-icon,
-    .sidebar ::deep .nav-item:not(.active) .nav-icon-active {
-        display: none;
-    }
+.sidebar ::deep .nav-item.active .nav-icon,
+.sidebar ::deep .nav-item:not(.active) .nav-icon-active {
+    display: none;
+}
 
 .sidebar-foot {
     margin-top: auto;
@@ -95,8 +92,6 @@
     border-radius: var(--ambio-radius-full);
     background: var(--ambio-bg-subtle);
     color: var(--ambio-text-secondary);
-    font-size: 13px;
-    font-weight: 600;
 }
 
 .account-email {
@@ -104,14 +99,12 @@
     min-width: 0;
     overflow: hidden;
     color: var(--ambio-text-secondary);
-    font-size: 14px;
-    line-height: 20px;
     text-decoration: none;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-    .account-email:hover {
-        color: var(--ambio-text-primary);
-        text-decoration: underline;
-    }
+.account-email:hover {
+    color: var(--ambio-text-primary);
+    text-decoration: underline;
+}

@@ -125,6 +125,7 @@ Every attribute that isn't a status is a **neutral tag**. The icon distinguishes
 | `text/small` | 14 / 20 | Regular 400 | Metadata, help text |
 | `text/badge` | 13 / 16 | SemiBold 600 | Badges and tags |
 
+- In the app, each style is a CSS class in `wwwroot/css/typography.css`: `t-h1`, `t-h3`, `t-body-strong`, `t-small`, `t-badge`. Components use these classes instead of repeating the size, line height and weight. `text/body` is Bootstrap's default and has no class. The other styles get their class with their first use.
 - Source Sans reads smaller than most sans-serifs, so body text stays at 16 px (Bootstrap's `1rem`).
 - Tabular figures (`font-variant-numeric: tabular-nums`) are used for dates and counts in tables.
 - The `ShortId` uses the system monospace stack (`ui-monospace, SFMono-Regular, Menlo, monospace`).

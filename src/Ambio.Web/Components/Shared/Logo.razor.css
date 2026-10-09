@@ -3,9 +3,6 @@
     align-items: center;
     gap: var(--ambio-space-8);
     color: var(--ambio-text-primary);
-    font-size: 18px;
-    line-height: 26px;
-    font-weight: 600;
 }
 
 .logo-mark {

@@ -23,9 +23,6 @@
     border: 0;
     background: none;
     color: var(--ambio-text-secondary);
-    font-size: 13px;
-    line-height: 16px;
-    font-weight: 600;
     text-decoration: none;
 }
 

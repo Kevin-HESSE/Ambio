@@ -8,9 +8,6 @@
     border-radius: var(--ambio-radius-full);
     background: var(--ambio-tag-neutral-bg);
     color: var(--ambio-tag-neutral-fg);
-    font-size: 13px;
-    line-height: 16px;
-    font-weight: 600;
     white-space: nowrap;
 }
 

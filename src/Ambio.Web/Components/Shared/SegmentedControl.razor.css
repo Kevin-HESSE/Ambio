@@ -24,16 +24,14 @@
     padding: 0 var(--ambio-space-12);
     border-radius: var(--ambio-radius-sm);
     color: var(--ambio-text-secondary);
-    font-size: 14px;
-    line-height: 20px;
     font-weight: 600;
     white-space: nowrap;
     cursor: pointer;
 }
 
-    .segmented-option:hover {
-        color: var(--ambio-text-primary);
-    }
+.segmented-option:hover {
+    color: var(--ambio-text-primary);
+}
 
 .segmented-input:checked + .segmented-option {
     background: var(--ambio-bg-surface);

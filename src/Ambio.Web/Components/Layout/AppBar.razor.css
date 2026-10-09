@@ -15,9 +15,6 @@
     flex: 1;
     min-width: 0;
     overflow: hidden;
-    font-size: 18px;
-    line-height: 26px;
-    font-weight: 600;
     text-overflow: ellipsis;
     white-space: nowrap;
 }

@@ -5,12 +5,6 @@
     padding: var(--ambio-space-12) var(--ambio-space-16);
 }
 
-.company-name {
-    font-weight: 600;
-}
-
 .company-details {
     color: var(--ambio-text-secondary);
-    font-size: 14px;
-    line-height: 20px;
 }

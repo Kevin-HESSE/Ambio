@@ -2,7 +2,7 @@
     margin: 0;
 }
 
-.company-table th {
+.company-table thead th {
     padding: var(--ambio-space-8) var(--ambio-space-16);
     border-bottom: 0;
     background: var(--ambio-bg-subtle);
@@ -11,27 +11,23 @@
     white-space: nowrap;
 }
 
-.company-table th:first-child {
+.company-table thead th:first-child {
     border-top-left-radius: var(--ambio-radius-lg);
 }
 
-.company-table th:last-child {
+.company-table thead th:last-child {
     border-top-right-radius: var(--ambio-radius-lg);
 }
 
+.company-table tbody th,
 .company-table td {
     padding: var(--ambio-space-12) var(--ambio-space-16);
     border-top: 1px solid var(--ambio-border-default);
     border-bottom: 0;
+    font-weight: 400;
     vertical-align: middle;
-}
-
-.company-name {
-    font-weight: 600;
 }
 
 .company-industry {
     color: var(--ambio-text-secondary);
-    font-size: 14px;
-    line-height: 20px;
 }

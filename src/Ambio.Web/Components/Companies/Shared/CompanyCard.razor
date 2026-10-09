@@ -1,9 +1,9 @@
 @* A company in the mobile list (< 992 px). *@
 <div class="company-card">
-    <span class="company-name">@Company.Name</span>
+    <span class="company-name t-body-strong">@Company.Name</span>
     @if (Details.Length > 0)
     {
-        <div class="company-details">@Details</div>
+        <div class="company-details t-small">@Details</div>
     }
     <div><Tag Icon="building">@Company.Kind.ToLabel()</Tag></div>
 </div>

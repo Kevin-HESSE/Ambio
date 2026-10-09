@@ -1,0 +1,45 @@
+@* A link styled as a button, with an optional leading icon. The button classes come from Variant
+   and IconOnly; a class passed by the caller is added to them, and other attributes (aria-label…) pass through. *@
+<a href="@Href" class="@ComponentClass" @attributes="OtherAttributes">
+    @if (Icon is not null)
+    {
+        <i class="bi bi-@Icon" aria-hidden="true"></i>
+    }
+    @ChildContent
+</a>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Href { get; set; } = "";
+
+    [Parameter]
+    public ButtonVariant Variant { get; set; }
+
+    /// <summary>Bootstrap Icons name, without the <c>bi-</c> prefix.</summary>
+    [Parameter]
+    public string? Icon { get; set; }
+
+    /// <summary>Square button showing the icon only (<c>btn-icon</c>). Name it with aria-label.</summary>
+    [Parameter]
+    public bool IconOnly { get; set; }
+
+    /// <summary>The label, left empty for an icon-only button.</summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string ComponentClass => CssClassHelper.Serialize(
+        ["btn"],
+        new Dictionary<string, bool>
+        {
+            ["btn-primary"] = Variant == ButtonVariant.Primary,
+            ["btn-danger"] = Variant == ButtonVariant.Danger,
+            ["btn-icon"] = IconOnly,
+        },
+        AdditionalAttributes);
+
+    private IEnumerable<KeyValuePair<string, object>>? OtherAttributes =>
+        AdditionalAttributes?.Where(attribute => attribute.Key != "class");
+}
