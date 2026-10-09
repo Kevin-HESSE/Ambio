@@ -64,6 +64,7 @@ public class ButtonLinkTests : BunitContext
     {
         { ButtonVariant.Default, "btn" },
         { ButtonVariant.Primary, "btn btn-primary" },
+        { ButtonVariant.Secondary, "btn btn-secondary" },
         { ButtonVariant.Danger, "btn btn-danger" },
     };
 }

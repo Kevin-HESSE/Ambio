@@ -16,6 +16,21 @@
     --bs-btn-disabled-border-color: var(--ambio-accent-default);
 }
 
+.btn-secondary {
+    --bs-btn-color: var(--ambio-text-primary);
+    --bs-btn-bg: var(--ambio-bg-surface);
+    --bs-btn-border-color: var(--ambio-border-strong);
+    --bs-btn-hover-color: var(--ambio-text-primary);
+    --bs-btn-hover-bg: var(--ambio-bg-subtle);
+    --bs-btn-hover-border-color: var(--ambio-border-strong);
+    --bs-btn-active-color: var(--ambio-text-primary);
+    --bs-btn-active-bg: var(--ambio-bg-subtle);
+    --bs-btn-active-border-color: var(--ambio-border-strong);
+    --bs-btn-disabled-color: var(--ambio-text-primary);
+    --bs-btn-disabled-bg: var(--ambio-bg-surface);
+    --bs-btn-disabled-border-color: var(--ambio-border-strong);
+}
+
 .btn-danger {
     --bs-btn-color: var(--ambio-feedback-danger);
     --bs-btn-bg: var(--ambio-bg-surface);

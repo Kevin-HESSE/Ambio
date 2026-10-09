@@ -12,4 +12,12 @@ public class CompanyLabelsTests
 
         Assert.Equal(labels.Count, labels.Distinct().Count());
     }
+
+    [Fact]
+    public void ToLabel_EverySize_ReturnsDistinctLabels()
+    {
+        var labels = Enum.GetValues<CompanySize>().Select(size => size.ToLabel()).ToList();
+
+        Assert.Equal(labels.Count, labels.Distinct().Count());
+    }
 }

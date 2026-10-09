@@ -11,6 +11,9 @@ public enum ButtonVariant
     /// <summary>The page's main action (<c>btn-primary</c>).</summary>
     Primary,
 
+    /// <summary>A side action next to the main one, such as Cancel (<c>btn-secondary</c>).</summary>
+    Secondary,
+
     /// <summary>A destructive action (<c>btn-danger</c>).</summary>
     Danger,
 }

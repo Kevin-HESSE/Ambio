@@ -1,0 +1,168 @@
+/* Forms (docs/ui.md#patterns): titled sections, one column on mobile and two on desktop,
+   errors under the field, actions pinned to the bottom on mobile. */
+
+/* ---------- Controls whose Bootstrap colors are compiled ---------- */
+/* The focus shadow is shared with the buttons, in app.css. */
+.form-control, .form-select, .form-check-input {
+    --bs-body-bg: var(--ambio-bg-surface);
+    --bs-border-color: var(--ambio-border-strong);
+}
+
+.form-control:focus, .form-select:focus, .form-check-input:focus {
+    border-color: var(--ambio-focus-ring);
+}
+
+.form-check-input:checked, .form-check-input[type=checkbox]:indeterminate {
+    background-color: var(--ambio-accent-default);
+    border-color: var(--ambio-accent-default);
+}
+
+/* ---------- Validation ---------- */
+/* Classes added by Blazor's input components and ValidationMessage. */
+.valid.modified:not([type=checkbox]) {
+    outline: 1px solid var(--ambio-feedback-success);
+}
+
+.invalid {
+    outline: 1px solid var(--ambio-feedback-danger);
+}
+
+.validation-message {
+    color: var(--ambio-feedback-danger);
+}
+
+/* ---------- Floating labels (Identity pages) ---------- */
+.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
+    color: var(--bs-secondary-color);
+    text-align: end;
+}
+
+.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
+    text-align: start;
+}
+
+/* ---------- Layout ---------- */
+.form-sections {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ambio-space-24);
+}
+
+.form-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ambio-space-16);
+}
+
+.form-section + .form-section {
+    padding-top: var(--ambio-space-24);
+    border-top: 1px solid var(--ambio-border-default);
+}
+
+.form-section > h2 {
+    margin: 0;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--ambio-space-16);
+}
+
+/* ---------- Fields ---------- */
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.field .form-label {
+    margin: 0;
+    font-weight: 600;
+}
+
+.field .form-label .opt {
+    font-weight: 400;
+    color: var(--ambio-text-muted);
+}
+
+/* 44 px touch target below 992 px, 40 px above (docs/ui.md#layout). */
+.field .form-control,
+.field .form-select {
+    min-height: 44px;
+}
+
+.field textarea.form-control {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.field .form-control.invalid,
+.field .form-select.invalid {
+    border-color: var(--ambio-feedback-danger);
+    outline: none;
+}
+
+/* The message says how to fix the value; the icon is the Bootstrap Icons exclamation-triangle. */
+.field .validation-message {
+    display: flex;
+    gap: 6px;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+}
+
+.field .validation-message::before {
+    content: "\f33b";
+    font-family: "bootstrap-icons";
+}
+
+/* ---------- Actions ---------- */
+/* Pinned above the tab bar on mobile, across the whole card. */
+.action-bar {
+    position: sticky;
+    bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+    display: flex;
+    gap: var(--ambio-space-8);
+    margin: 0 calc(-1 * var(--ambio-space-16)) calc(-1 * var(--ambio-space-16));
+    padding: var(--ambio-space-12) var(--ambio-space-16);
+    background: var(--ambio-bg-surface);
+    border-top: 1px solid var(--ambio-border-default);
+}
+
+.action-bar .btn {
+    flex: 1;
+}
+
+@media (min-width: 992px) {
+    .form-page {
+        max-width: 880px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: var(--ambio-space-16) var(--ambio-space-24);
+    }
+
+    .form-grid .full-width {
+        grid-column: 1 / -1;
+    }
+
+    .field .form-control,
+    .field .form-select {
+        min-height: 40px;
+    }
+
+    .action-bar {
+        position: static;
+        justify-content: flex-end;
+        margin: 0;
+        padding: 0;
+        background: none;
+        border: 0;
+    }
+
+    .action-bar .btn {
+        flex: none;
+    }
+}
