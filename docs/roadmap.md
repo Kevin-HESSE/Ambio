@@ -40,7 +40,7 @@ Each item is a vertical slice: domain, persistence, service, page and tests for 
 
 - [x] Design tokens and theme ([design-system.md](design-system.md), [ADR 0015](adr/0015-neutral-visual-identity-with-status-colors.md)): `--ambio-*` variables and their Bootstrap mapping in `app.css`, light/dark theme, self-hosted Source Sans 3 and Bootstrap Icons
 - [x] Responsive app shell: sidebar ≥ 992 px, app bar + bottom tab bar + "More" sheet below, logo and favicon, theme selector (System / Light / Dark); each later slice adds its navigation entry
-- [ ] Companies: create and list
+- [x] Companies: create and list
   - `Company` profile (name, kind, website, industry, size, location), and the creation of `tests/Ambio.Domain.Tests`
   - EF Core mapping class and migration, `SaveChangesInterceptor` for `CreatedAt`/`UpdatedAt`
   - Application service returning DTOs, with the mapping written as extension methods

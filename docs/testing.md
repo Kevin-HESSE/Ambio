@@ -1,7 +1,5 @@
 # Testing
 
-> Status: the test projects exist since [Phase 0](roadmap.md#phase-0--foundations), except `Ambio.Domain.Tests`, created in [Phase 1](roadmap.md#phase-1--application-tracking-mvp) with the first domain rule.
-
 ```bash
 # every test, end-to-end included
 dotnet test
