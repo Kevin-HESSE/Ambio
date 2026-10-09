@@ -1,5 +1,7 @@
+using Ambio.Application.Companies;
 using Ambio.Application.Users;
 using Ambio.Infrastructure.Common;
+using Ambio.Infrastructure.Companies;
 using Ambio.Infrastructure.Persistence;
 using Ambio.Infrastructure.Users;
 
@@ -45,6 +47,7 @@ public static class InfrastructureExtensions
     {
         services.AddSingleton<SemaphoreContainer>();
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<ICompanyService, CompanyService>();
 
         return services;
     }

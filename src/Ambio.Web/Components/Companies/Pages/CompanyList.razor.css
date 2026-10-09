@@ -1,0 +1,24 @@
+/* Cards below 992 px, a table above (docs/ui.md#patterns). */
+.company-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.company-list > li + li {
+    border-top: 1px solid var(--ambio-border-default);
+}
+
+.company-table-card {
+    display: none;
+}
+
+@media (min-width: 992px) {
+    .company-cards {
+        display: none;
+    }
+
+    .company-table-card {
+        display: block;
+    }
+}

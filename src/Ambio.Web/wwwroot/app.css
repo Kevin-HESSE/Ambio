@@ -269,6 +269,14 @@
 }
 
 /* ---------- App styles ---------- */
+/* A button with an icon and a label: the icon sits before the label, 8 px apart. */
+.btn:has(> .bi) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ambio-space-8);
+}
+
 /* Square icon button: 44 px touch target below 992 px, 40 px above (docs/ui.md#layout). Name it with aria-label. */
 .btn-icon {
     --bs-btn-padding-x: 0;
@@ -286,11 +294,11 @@
     height: 44px;
 }
 
-    .btn-icon.btn-sm {
-        --bs-btn-font-size: 16px;
-        width: 32px;
-        height: 32px;
-    }
+.btn-icon.btn-sm {
+    --bs-btn-font-size: 16px;
+    width: 32px;
+    height: 32px;
+}
 
 @media (min-width: 992px) {
     .btn-icon:not(.btn-sm) {
@@ -321,9 +329,9 @@ h1:focus {
     color: var(--ambio-bg-surface);
 }
 
-    .blazor-error-boundary::after {
-        content: "An error has occurred."
-    }
+.blazor-error-boundary::after {
+    content: "An error has occurred."
+}
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
     color: var(--bs-secondary-color);

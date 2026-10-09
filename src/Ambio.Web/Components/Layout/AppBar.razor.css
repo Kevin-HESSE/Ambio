@@ -22,6 +22,16 @@
     white-space: nowrap;
 }
 
+.appbar-actions {
+    display: flex;
+    gap: var(--ambio-space-4);
+    margin-right: calc(-1 * var(--ambio-space-8));
+}
+
+.appbar-actions:empty {
+    display: none;
+}
+
 @media (min-width: 992px) {
     .appbar {
         display: none;

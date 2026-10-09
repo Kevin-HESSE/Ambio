@@ -12,6 +12,7 @@ public static class AppNavigation
     public static IReadOnlyList<NavigationEntry> Tracking { get; } =
     [
         new("Dashboard", "Home", "", "house-door", "house-door-fill", NavLinkMatch.All),
+        new("Companies", "Companies", "companies", "building", "building-fill"),
     ];
 
     /// <summary>Base-relative paths of the pages reached from the More sheet, where the "More" tab is active.</summary>

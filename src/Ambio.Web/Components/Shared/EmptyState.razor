@@ -1,0 +1,26 @@
+@* Shown instead of an empty list: what the page is for and the next action (docs/ui.md#patterns). *@
+<div class="empty">
+    <div class="empty-icon" aria-hidden="true"><i class="bi bi-@Icon"></i></div>
+    <h2 class="empty-title">@Title</h2>
+    <p class="empty-text">@ChildContent</p>
+    @if (Actions is not null)
+    {
+        <div class="empty-actions">@Actions</div>
+    }
+</div>
+
+@code {
+    /// <summary>Bootstrap Icons name, without the <c>bi-</c> prefix.</summary>
+    [Parameter, EditorRequired]
+    public string Icon { get; set; } = "";
+
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = "";
+
+    /// <summary>The explanation, a sentence or two.</summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public RenderFragment? Actions { get; set; }
+}
