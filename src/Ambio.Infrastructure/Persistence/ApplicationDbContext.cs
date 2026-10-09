@@ -1,3 +1,4 @@
+using Ambio.Domain.Companies;
 using Ambio.Infrastructure.Users;
 
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -7,6 +8,8 @@ namespace Ambio.Infrastructure.Persistence;
 
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<ApplicationUser>(options)
 {
+    public DbSet<Company> Companies => Set<Company>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
