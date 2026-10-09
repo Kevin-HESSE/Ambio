@@ -7,8 +7,15 @@ using static Microsoft.Playwright.Assertions;
 namespace Ambio.E2E.Tests.Journeys;
 
 [Trait("Category", "E2E")]
-public class AppShellJourneyTests(AmbioAppFixture app) : IClassFixture<AmbioAppFixture>
+public class AppShellJourneyTests : IClassFixture<AmbioAppFixture>
 {
+    private readonly AmbioAppFixture _app;
+
+    public AppShellJourneyTests(AmbioAppFixture app)
+    {
+        _app = app;
+    }
+
     private const string UserEmail = "user@example.com";
     private const string UserPassword = "Passw0rd!";
     private const string LoginPath = "Account/Login";
@@ -17,10 +24,10 @@ public class AppShellJourneyTests(AmbioAppFixture app) : IClassFixture<AmbioAppF
     [Fact]
     public async Task MobileUser_ChoosesDarkThemeAndLogsOutFromMoreSheet()
     {
-        await app.CreateConfirmedUserAsync(UserEmail, UserPassword);
-        await using var context = await app.Browser.NewContextAsync(new()
+        await _app.CreateConfirmedUserAsync(UserEmail, UserPassword);
+        await using var context = await _app.Browser.NewContextAsync(new()
         {
-            BaseURL = app.BaseUrl,
+            BaseURL = _app.BaseUrl,
             ViewportSize = new() { Width = 390, Height = 844 },
             ColorScheme = ColorScheme.Light,
         });

@@ -6,8 +6,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Ambio.Infrastructure.Persistence;
 
-public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<ApplicationUser>(options)
+public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 {
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
+    {
+    }
+
     public DbSet<Company> Companies => Set<Company>();
 
     protected override void OnModelCreating(ModelBuilder builder)
