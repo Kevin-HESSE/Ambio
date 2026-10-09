@@ -8,8 +8,15 @@ namespace Ambio.Infrastructure.Persistence;
 /// <summary>
 /// Sets <see cref="ITimeStampable.CreatedAt"/> and <see cref="ITimeStampable.UpdatedAt"/> (UTC) before every save.
 /// </summary>
-internal sealed class TimestampInterceptor(TimeProvider timeProvider) : SaveChangesInterceptor
+internal sealed class TimestampInterceptor : SaveChangesInterceptor
 {
+    private readonly TimeProvider _timeProvider;
+
+    public TimestampInterceptor(TimeProvider timeProvider)
+    {
+        _timeProvider = timeProvider;
+    }
+
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
         SetTimestamps(eventData.Context);
@@ -32,7 +39,7 @@ internal sealed class TimestampInterceptor(TimeProvider timeProvider) : SaveChan
             return;
         }
 
-        var now = timeProvider.GetUtcNow().UtcDateTime;
+        var now = _timeProvider.GetUtcNow().UtcDateTime;
 
         foreach (var entry in context.ChangeTracker.Entries<ITimeStampable>())
         {
