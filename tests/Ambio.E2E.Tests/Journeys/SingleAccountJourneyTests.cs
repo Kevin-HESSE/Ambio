@@ -9,8 +9,15 @@ using static Microsoft.Playwright.Assertions;
 namespace Ambio.E2E.Tests.Journeys;
 
 [Trait("Category", "E2E")]
-public class SingleAccountJourneyTests(AmbioAppFixture app) : IClassFixture<AmbioAppFixture>
+public class SingleAccountJourneyTests : IClassFixture<AmbioAppFixture>
 {
+    private readonly AmbioAppFixture _app;
+
+    public SingleAccountJourneyTests(AmbioAppFixture app)
+    {
+        _app = app;
+    }
+
     private const string UserEmail = "user@example.com";
     private const string UserPassword = "Passw0rd!";
     private const string RegisterPath = "Account/Register";
@@ -22,7 +29,7 @@ public class SingleAccountJourneyTests(AmbioAppFixture app) : IClassFixture<Ambi
     [Fact]
     public async Task FirstUser_RegistersConfirmsLogsInAndClosesRegistration()
     {
-        await using var context = await app.Browser.NewContextAsync(new() { BaseURL = app.BaseUrl });
+        await using var context = await _app.Browser.NewContextAsync(new() { BaseURL = _app.BaseUrl });
         var page = await context.NewPageAsync();
 
         await page.GotoAsync(RegisterPath);

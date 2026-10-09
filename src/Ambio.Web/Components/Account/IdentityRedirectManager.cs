@@ -5,8 +5,15 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Ambio.Web.Components.Account;
 
-internal sealed class IdentityRedirectManager(NavigationManager navigationManager)
+internal sealed class IdentityRedirectManager
 {
+    private readonly NavigationManager _navigationManager;
+
+    public IdentityRedirectManager(NavigationManager navigationManager)
+    {
+        _navigationManager = navigationManager;
+    }
+
     public const string StatusCookieName = "Identity.StatusMessage";
 
     private static readonly CookieBuilder StatusCookieBuilder = new()
@@ -25,16 +32,16 @@ internal sealed class IdentityRedirectManager(NavigationManager navigationManage
         if (!Uri.IsWellFormedUriString(uri, UriKind.Relative)
             || uri.StartsWith("//", StringComparison.Ordinal))
         {
-            uri = navigationManager.ToBaseRelativePath(uri);
+            uri = _navigationManager.ToBaseRelativePath(uri);
         }
 
-        navigationManager.NavigateTo(uri);
+        _navigationManager.NavigateTo(uri);
     }
 
     public void RedirectTo(string uri, Dictionary<string, object?> queryParameters)
     {
-        var uriWithoutQuery = navigationManager.ToAbsoluteUri(uri).GetLeftPart(UriPartial.Path);
-        var newUri = navigationManager.GetUriWithQueryParameters(uriWithoutQuery, queryParameters);
+        var uriWithoutQuery = _navigationManager.ToAbsoluteUri(uri).GetLeftPart(UriPartial.Path);
+        var newUri = _navigationManager.GetUriWithQueryParameters(uriWithoutQuery, queryParameters);
         RedirectTo(newUri);
     }
 
@@ -44,7 +51,7 @@ internal sealed class IdentityRedirectManager(NavigationManager navigationManage
         RedirectTo(uri);
     }
 
-    private string CurrentPath => navigationManager.ToAbsoluteUri(navigationManager.Uri).GetLeftPart(UriPartial.Path);
+    private string CurrentPath => _navigationManager.ToAbsoluteUri(_navigationManager.Uri).GetLeftPart(UriPartial.Path);
 
     public void RedirectToCurrentPage() => RedirectTo(CurrentPath);
 

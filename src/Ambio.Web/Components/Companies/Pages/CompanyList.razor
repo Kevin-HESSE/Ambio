@@ -1,0 +1,49 @@
+@page "/companies"
+@attribute [Authorize]
+@inject ICompanyService CompanyService
+
+<PageTitle>Companies</PageTitle>
+<AppBarTitle>Companies</AppBarTitle>
+<AppBarActions>
+    <ButtonLink Href="@NewCompanyPath" Icon="plus-lg" IconOnly aria-label="New company" />
+</AppBarActions>
+
+<PageHeader Title="Companies" Subtitle="Employers, agencies and IT services companies">
+    <Actions>
+        <ButtonLink Href="@NewCompanyPath" Variant="ButtonVariant.Primary" Icon="plus-lg">New company</ButtonLink>
+    </Actions>
+</PageHeader>
+
+@if (_companies is { Count: 0 })
+{
+    <section class="card">
+        <EmptyState Icon="building" Title="No companies yet">
+            <ChildContent>Keep a profile of each employer, recruitment agency or IT services company you apply to, and find it again with every offer.</ChildContent>
+            <Actions>
+                <ButtonLink Href="@NewCompanyPath" Variant="ButtonVariant.Primary" Icon="plus-lg">New company</ButtonLink>
+            </Actions>
+        </EmptyState>
+    </section>
+}
+else if (_companies is not null)
+{
+    <section class="card company-cards">
+        <ul class="company-list">
+            @foreach (var company in _companies)
+            {
+                <li><CompanyCard Company="company" /></li>
+            }
+        </ul>
+    </section>
+    <section class="card company-table-card">
+        <CompanyTable Companies="_companies" />
+    </section>
+}
+
+@code {
+    private const string NewCompanyPath = "companies/new";
+
+    private IReadOnlyList<CompanySummaryDto>? _companies;
+
+    protected override async Task OnInitializedAsync() => _companies = await CompanyService.ListAsync();
+}

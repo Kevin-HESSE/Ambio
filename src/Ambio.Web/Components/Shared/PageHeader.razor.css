@@ -1,0 +1,27 @@
+.page-header {
+    display: none;
+}
+
+.page-title {
+    margin: 0;
+    text-wrap: balance;
+}
+
+.page-subtitle {
+    margin: 0;
+    color: var(--ambio-text-secondary);
+}
+
+@media (min-width: 992px) {
+    .page-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: var(--ambio-space-16);
+    }
+
+    .page-actions {
+        display: flex;
+        gap: var(--ambio-space-8);
+    }
+}

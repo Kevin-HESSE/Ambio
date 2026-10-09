@@ -1,0 +1,17 @@
+@* A neutral label, such as the kind of a company (docs/ui.md#components). *@
+<span class="tag t-badge">
+    @if (Icon is not null)
+    {
+        <i class="bi bi-@Icon" aria-hidden="true"></i>
+    }
+    @ChildContent
+</span>
+
+@code {
+    /// <summary>Bootstrap Icons name, without the <c>bi-</c> prefix.</summary>
+    [Parameter]
+    public string? Icon { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

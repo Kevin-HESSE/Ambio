@@ -1,0 +1,31 @@
+@* The companies list on desktop (≥ 992 px). *@
+<table class="table company-table">
+    <thead>
+        <tr>
+            <th scope="col">Company</th>
+            <th scope="col">Kind</th>
+            <th scope="col">Location</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var company in Companies)
+        {
+            <tr>
+                <th scope="row">
+                    <div class="t-body-strong">@company.Name</div>
+                    @if (!string.IsNullOrWhiteSpace(company.Industry))
+                    {
+                        <div class="company-industry t-small">@company.Industry</div>
+                    }
+                </th>
+                <td><Tag Icon="building">@company.Kind.ToLabel()</Tag></td>
+                <td>@company.Location</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    [Parameter, EditorRequired]
+    public IReadOnlyList<CompanySummaryDto> Companies { get; set; } = [];
+}

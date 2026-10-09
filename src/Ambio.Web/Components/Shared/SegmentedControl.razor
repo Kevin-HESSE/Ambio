@@ -4,7 +4,7 @@
     {
         var id = $"{Name}-{option.Value}";
         <input type="radio" class="segmented-input" id="@id" name="@Name" value="@option.Value" checked="@(option.Value == Value)" />
-        <label class="segmented-option" for="@id" title="@(IconsOnly ? option.Label : null)">
+        <label class="segmented-option t-small" for="@id" title="@(IconsOnly ? option.Label : null)">
             @if (option.Icon is not null)
             {
                 <i class="bi bi-@option.Icon" aria-hidden="true"></i>

@@ -22,6 +22,6 @@
     public bool MarkOnly { get; set; }
 
     private string ComponentClass => CssClassHelper.Serialize(
-        ["logo"],
+        ["logo", "t-h3"],
         new Dictionary<string, bool> { ["logo-lg"] = Large });
 }

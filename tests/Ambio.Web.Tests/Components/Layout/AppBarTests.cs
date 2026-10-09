@@ -10,6 +10,7 @@ namespace Ambio.Web.Tests.Components.Layout;
 public class AppBarTests : BunitContext
 {
     private const string PageTitle = "Dashboard";
+    private const string ActionLabel = "New company";
 
     public AppBarTests()
     {
@@ -30,6 +31,26 @@ public class AppBarTests : BunitContext
         var cut = Render<MainLayout>(parameters => parameters.Add(layout => layout.Body, page));
 
         Assert.Equal(PageTitle, cut.Find(".appbar-title").TextContent);
+    }
+
+    [Fact]
+    public void Render_WhenPageSetsActions_ShowsThemInAppBar()
+    {
+        RenderFragment page = builder =>
+        {
+            builder.OpenComponent<AppBarActions>(0);
+            builder.AddComponentParameter(1, nameof(AppBarActions.ChildContent), (RenderFragment)(actions =>
+            {
+                actions.OpenElement(0, "button");
+                actions.AddAttribute(1, "aria-label", ActionLabel);
+                actions.CloseElement();
+            }));
+            builder.CloseComponent();
+        };
+
+        var cut = Render<MainLayout>(parameters => parameters.Add(layout => layout.Body, page));
+
+        Assert.NotNull(cut.Find($".appbar-actions button[aria-label='{ActionLabel}']"));
     }
 
     [Fact]

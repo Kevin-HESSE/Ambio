@@ -1,0 +1,88 @@
+@page "/companies/new"
+@attribute [Authorize]
+@inject ICompanyService CompanyService
+@inject NavigationManager NavigationManager
+
+<PageTitle>New company</PageTitle>
+<AppBarTitle>New company</AppBarTitle>
+
+<PageHeader Title="New company" />
+
+<section class="card form-page">
+    <EditForm Model="Input" method="post" OnValidSubmit="CreateCompany" FormName="new-company" novalidate class="card-body form-sections">
+        <DataAnnotationsValidator />
+
+        <FormSection Title="Company">
+            <FormField Id="company-name" Label="Name" For="() => Input.Name">
+                <InputText id="company-name" @bind-Value="Input.Name" class="form-control" aria-required="true" />
+            </FormField>
+            <FormField Id="company-kind" Label="Type" For="() => Input.Kind">
+                <InputSelect id="company-kind" @bind-Value="Input.Kind" class="form-select">
+                    @foreach (var kind in Enum.GetValues<CompanyKind>())
+                    {
+                        <option value="@kind">@kind.ToLabel()</option>
+                    }
+                </InputSelect>
+            </FormField>
+            <FormField Id="company-industry" Label="Industry" For="() => Input.Industry" Optional>
+                <InputText id="company-industry" @bind-Value="Input.Industry" class="form-control" placeholder="e.g. Software, Healthcare" />
+            </FormField>
+            <FormField Id="company-size" Label="Size" For="() => Input.Size" Optional>
+                <InputSelect id="company-size" @bind-Value="Input.Size" class="form-select">
+                    <option value="">Not specified</option>
+                    @foreach (var size in Enum.GetValues<CompanySize>())
+                    {
+                        <option value="@size">@size.ToLabel()</option>
+                    }
+                </InputSelect>
+            </FormField>
+            <FormField Id="company-location" Label="Location" For="() => Input.Location" Optional>
+                <InputText id="company-location" @bind-Value="Input.Location" class="form-control" placeholder="e.g. Lyon" />
+            </FormField>
+        </FormSection>
+
+        <FormSection Title="Links">
+            <FormField Id="company-website" Label="Website" For="() => Input.Website" Optional>
+                <InputText id="company-website" type="url" @bind-Value="Input.Website" class="form-control" placeholder="https://" />
+            </FormField>
+            <FormField Id="company-linkedin" Label="LinkedIn page" For="() => Input.LinkedInUrl" Optional>
+                <InputText id="company-linkedin" type="url" @bind-Value="Input.LinkedInUrl" class="form-control" placeholder="https://www.linkedin.com/company/…" />
+            </FormField>
+        </FormSection>
+
+        <FormSection Title="About">
+            <FormField Id="company-description" Label="Description" For="() => Input.Description" Optional FullWidth>
+                <InputTextArea id="company-description" @bind-Value="Input.Description" class="form-control" placeholder="What the company does, its products, its culture…" />
+            </FormField>
+        </FormSection>
+
+        <div class="action-bar">
+            <ButtonLink Href="@CompaniesPath" Variant="ButtonVariant.Secondary">Cancel</ButtonLink>
+            <button type="submit" class="btn btn-primary">Create company</button>
+        </div>
+    </EditForm>
+</section>
+
+@code {
+    private const string CompaniesPath = "companies";
+
+    [SupplyParameterFromForm]
+    private CreateCompanyInput Input { get; set; } = default!;
+
+    protected override void OnInitialized() => Input ??= new();
+
+    private async Task CreateCompany(EditContext editContext)
+    {
+        var result = await CompanyService.CreateAsync(Input);
+
+        if (!result.IsSuccess)
+        {
+            // The only failure is a duplicate name: the message goes under the Name field.
+            new ValidationMessageStore(editContext).Add(() => Input.Name, result.GetMessage);
+            editContext.NotifyValidationStateChanged();
+            return;
+        }
+
+        NavigationManager.NavigateTo(CompaniesPath);
+    }
+}

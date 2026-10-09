@@ -1,0 +1,10 @@
+.company-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ambio-space-8);
+    padding: var(--ambio-space-12) var(--ambio-space-16);
+}
+
+.company-details {
+    color: var(--ambio-text-secondary);
+}

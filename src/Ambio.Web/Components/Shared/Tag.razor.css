@@ -1,0 +1,16 @@
+.tag {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ambio-space-4);
+    height: 24px;
+    padding: 0 var(--ambio-space-8);
+    border: 1px solid var(--ambio-tag-neutral-border);
+    border-radius: var(--ambio-radius-full);
+    background: var(--ambio-tag-neutral-bg);
+    color: var(--ambio-tag-neutral-fg);
+    white-space: nowrap;
+}
+
+.tag .bi {
+    font-size: 12px;
+}

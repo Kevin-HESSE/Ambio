@@ -1,0 +1,86 @@
+/* Buttons: the Bootstrap variants mapped onto the design tokens (docs/design-system.md), then the app's own. */
+
+/* ---------- Variants whose Bootstrap colors are compiled ---------- */
+.btn-primary {
+    --bs-btn-color: var(--ambio-accent-on);
+    --bs-btn-bg: var(--ambio-accent-default);
+    --bs-btn-border-color: var(--ambio-accent-default);
+    --bs-btn-hover-color: var(--ambio-accent-on);
+    --bs-btn-hover-bg: var(--ambio-accent-hover);
+    --bs-btn-hover-border-color: var(--ambio-accent-hover);
+    --bs-btn-active-color: var(--ambio-accent-on);
+    --bs-btn-active-bg: var(--ambio-accent-hover);
+    --bs-btn-active-border-color: var(--ambio-accent-hover);
+    --bs-btn-disabled-color: var(--ambio-accent-on);
+    --bs-btn-disabled-bg: var(--ambio-accent-default);
+    --bs-btn-disabled-border-color: var(--ambio-accent-default);
+}
+
+.btn-secondary {
+    --bs-btn-color: var(--ambio-text-primary);
+    --bs-btn-bg: var(--ambio-bg-surface);
+    --bs-btn-border-color: var(--ambio-border-strong);
+    --bs-btn-hover-color: var(--ambio-text-primary);
+    --bs-btn-hover-bg: var(--ambio-bg-subtle);
+    --bs-btn-hover-border-color: var(--ambio-border-strong);
+    --bs-btn-active-color: var(--ambio-text-primary);
+    --bs-btn-active-bg: var(--ambio-bg-subtle);
+    --bs-btn-active-border-color: var(--ambio-border-strong);
+    --bs-btn-disabled-color: var(--ambio-text-primary);
+    --bs-btn-disabled-bg: var(--ambio-bg-surface);
+    --bs-btn-disabled-border-color: var(--ambio-border-strong);
+}
+
+.btn-danger {
+    --bs-btn-color: var(--ambio-feedback-danger);
+    --bs-btn-bg: var(--ambio-bg-surface);
+    --bs-btn-border-color: var(--ambio-border-strong);
+    --bs-btn-hover-color: var(--ambio-feedback-danger);
+    --bs-btn-hover-bg: var(--ambio-bg-subtle);
+    --bs-btn-hover-border-color: var(--ambio-border-strong);
+    --bs-btn-active-color: var(--ambio-feedback-danger);
+    --bs-btn-active-bg: var(--ambio-bg-subtle);
+    --bs-btn-active-border-color: var(--ambio-border-strong);
+    --bs-btn-disabled-color: var(--ambio-feedback-danger);
+    --bs-btn-disabled-bg: var(--ambio-bg-surface);
+    --bs-btn-disabled-border-color: var(--ambio-border-strong);
+}
+
+/* ---------- App buttons ---------- */
+/* A button with an icon and a label: the icon sits before the label, 8 px apart. */
+.btn:has(> .bi) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ambio-space-8);
+}
+
+/* Square icon button: 44 px touch target below 992 px, 40 px above (docs/ui.md#layout). Name it with aria-label. */
+.btn-icon {
+    --bs-btn-padding-x: 0;
+    --bs-btn-padding-y: 0;
+    --bs-btn-font-size: 20px;
+    --bs-btn-color: var(--ambio-text-secondary);
+    --bs-btn-hover-color: var(--ambio-text-primary);
+    --bs-btn-hover-bg: var(--ambio-bg-subtle);
+    --bs-btn-active-color: var(--ambio-text-primary);
+    --bs-btn-active-bg: var(--ambio-bg-subtle);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+}
+
+.btn-icon.btn-sm {
+    --bs-btn-font-size: 16px;
+    width: 32px;
+    height: 32px;
+}
+
+@media (min-width: 992px) {
+    .btn-icon:not(.btn-sm) {
+        width: 40px;
+        height: 40px;
+    }
+}

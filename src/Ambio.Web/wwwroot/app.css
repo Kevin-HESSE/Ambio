@@ -212,52 +212,8 @@
 }
 
 /* ---------- Components whose Bootstrap colors are compiled ---------- */
-.btn-primary {
-    --bs-btn-color: var(--ambio-accent-on);
-    --bs-btn-bg: var(--ambio-accent-default);
-    --bs-btn-border-color: var(--ambio-accent-default);
-    --bs-btn-hover-color: var(--ambio-accent-on);
-    --bs-btn-hover-bg: var(--ambio-accent-hover);
-    --bs-btn-hover-border-color: var(--ambio-accent-hover);
-    --bs-btn-active-color: var(--ambio-accent-on);
-    --bs-btn-active-bg: var(--ambio-accent-hover);
-    --bs-btn-active-border-color: var(--ambio-accent-hover);
-    --bs-btn-disabled-color: var(--ambio-accent-on);
-    --bs-btn-disabled-bg: var(--ambio-accent-default);
-    --bs-btn-disabled-border-color: var(--ambio-accent-default);
-}
-
-.btn-danger {
-    --bs-btn-color: var(--ambio-feedback-danger);
-    --bs-btn-bg: var(--ambio-bg-surface);
-    --bs-btn-border-color: var(--ambio-border-strong);
-    --bs-btn-hover-color: var(--ambio-feedback-danger);
-    --bs-btn-hover-bg: var(--ambio-bg-subtle);
-    --bs-btn-hover-border-color: var(--ambio-border-strong);
-    --bs-btn-active-color: var(--ambio-feedback-danger);
-    --bs-btn-active-bg: var(--ambio-bg-subtle);
-    --bs-btn-active-border-color: var(--ambio-border-strong);
-    --bs-btn-disabled-color: var(--ambio-feedback-danger);
-    --bs-btn-disabled-bg: var(--ambio-bg-surface);
-    --bs-btn-disabled-border-color: var(--ambio-border-strong);
-}
-
-.form-control, .form-select, .form-check-input {
-    --bs-body-bg: var(--ambio-bg-surface);
-    --bs-border-color: var(--ambio-border-strong);
-}
-
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-select:focus, .form-check-input:focus {
     box-shadow: 0 0 0 0.1rem var(--ambio-bg-surface), 0 0 0 0.25rem var(--ambio-focus-ring);
-}
-
-.form-control:focus, .form-select:focus, .form-check-input:focus {
-    border-color: var(--ambio-focus-ring);
-}
-
-.form-check-input:checked, .form-check-input[type=checkbox]:indeterminate {
-    background-color: var(--ambio-accent-default);
-    border-color: var(--ambio-accent-default);
 }
 
 .card {
@@ -269,50 +225,8 @@
 }
 
 /* ---------- App styles ---------- */
-/* Square icon button: 44 px touch target below 992 px, 40 px above (docs/ui.md#layout). Name it with aria-label. */
-.btn-icon {
-    --bs-btn-padding-x: 0;
-    --bs-btn-padding-y: 0;
-    --bs-btn-font-size: 20px;
-    --bs-btn-color: var(--ambio-text-secondary);
-    --bs-btn-hover-color: var(--ambio-text-primary);
-    --bs-btn-hover-bg: var(--ambio-bg-subtle);
-    --bs-btn-active-color: var(--ambio-text-primary);
-    --bs-btn-active-bg: var(--ambio-bg-subtle);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-}
-
-    .btn-icon.btn-sm {
-        --bs-btn-font-size: 16px;
-        width: 32px;
-        height: 32px;
-    }
-
-@media (min-width: 992px) {
-    .btn-icon:not(.btn-sm) {
-        width: 40px;
-        height: 40px;
-    }
-}
-
 h1:focus {
     outline: none;
-}
-
-.valid.modified:not([type=checkbox]) {
-    outline: 1px solid var(--ambio-feedback-success);
-}
-
-.invalid {
-    outline: 1px solid var(--ambio-feedback-danger);
-}
-
-.validation-message {
-    color: var(--ambio-feedback-danger);
 }
 
 .blazor-error-boundary {
@@ -321,15 +235,6 @@ h1:focus {
     color: var(--ambio-bg-surface);
 }
 
-    .blazor-error-boundary::after {
-        content: "An error has occurred."
-    }
-
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-    color: var(--bs-secondary-color);
-    text-align: end;
-}
-
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-    text-align: start;
+.blazor-error-boundary::after {
+    content: "An error has occurred."
 }

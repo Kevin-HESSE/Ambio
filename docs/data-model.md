@@ -134,7 +134,7 @@ A company profile that is kept across applications.
   - `RecruitmentAgency`: a recruitment firm hiring on behalf of a client.
   - `ServiceCompany`: an IT services company (ESN) that places consultants with clients.
 - `Name` is unique, compared case-insensitively (`COLLATE NOCASE`).
-- `Size` is a range (`1-10`, `11-50`, `51-250`, `251-1000`, `1000+`).
+- `Size` is a range (`1-10`, `11-50`, `51-250`, `251-1000`, `1001+`).
 
 ### CompanyNote
 

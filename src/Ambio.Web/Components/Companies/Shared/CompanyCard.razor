@@ -1,0 +1,16 @@
+@* A company in the mobile list (< 992 px). *@
+<div class="company-card">
+    <span class="company-name t-body-strong">@Company.Name</span>
+    @if (Details.Length > 0)
+    {
+        <div class="company-details t-small">@Details</div>
+    }
+    <div><Tag Icon="building">@Company.Kind.ToLabel()</Tag></div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public CompanySummaryDto Company { get; set; } = null!;
+
+    private string Details => string.Join(" · ", new[] { Company.Industry, Company.Location }.Where(value => !string.IsNullOrWhiteSpace(value)));
+}

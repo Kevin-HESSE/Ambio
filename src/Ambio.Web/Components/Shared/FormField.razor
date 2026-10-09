@@ -1,0 +1,42 @@
+@using System.Linq.Expressions
+@typeparam TValue
+
+@* A form field (docs/ui.md#patterns): label, "(optional)" marker, the input given as child content
+   and its validation message. The input takes the same id as the field. *@
+<div class="@FieldClass">
+    <label class="form-label t-small" for="@Id">
+        @Label
+        @if (Optional)
+        {
+            @* Razor trims the whitespace around elements: the space before the marker is written explicitly. *@
+            @(" ")<span class="opt">(optional)</span>
+        }
+    </label>
+    @ChildContent
+    <ValidationMessage For="For" />
+</div>
+
+@code {
+    /// <summary>The id of the input, used by the label.</summary>
+    [Parameter, EditorRequired]
+    public string Id { get; set; } = "";
+
+    [Parameter, EditorRequired]
+    public string Label { get; set; } = "";
+
+    /// <summary>The model property whose validation messages are shown under the input.</summary>
+    [Parameter, EditorRequired]
+    public Expression<Func<TValue>> For { get; set; } = default!;
+
+    [Parameter]
+    public bool Optional { get; set; }
+
+    /// <summary>Spans both columns of the form grid on desktop.</summary>
+    [Parameter]
+    public bool FullWidth { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private string FieldClass => CssClassHelper.Serialize(["field"], new Dictionary<string, bool> { ["full-width"] = FullWidth });
+}

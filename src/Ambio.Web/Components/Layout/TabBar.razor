@@ -4,7 +4,7 @@
 <nav class="tabbar" aria-label="Main navigation">
     @foreach (var entry in AppNavigation.Tracking)
     {
-        <NavLink class="tab" href="@entry.Href" Match="entry.Match">
+        <NavLink class="tab t-badge" href="@entry.Href" Match="entry.Match">
             <span class="tab-indicator">
                 <i class="bi bi-@entry.Icon nav-icon" aria-hidden="true"></i>
                 <i class="bi bi-@entry.ActiveIcon nav-icon-active" aria-hidden="true"></i>
@@ -30,6 +30,6 @@
     }
 
     private string ComponentClass => CssClassHelper.Serialize(
-        ["tab"],
+        ["tab", "t-badge"],
         new Dictionary<string, bool> { ["active"] = IsMoreActive });
 }

@@ -9,6 +9,9 @@
 
 /* The bottom padding keeps the end of the page above the fixed tab bar. */
 .page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ambio-space-16);
     padding: var(--ambio-space-16) var(--ambio-space-16) calc(64px + env(safe-area-inset-bottom, 0px) + var(--ambio-space-16));
 }
 
@@ -24,6 +27,7 @@
     .page {
         max-width: 1200px;
         margin: 0 auto;
+        gap: var(--ambio-space-24);
         padding: var(--ambio-space-32) var(--ambio-space-48) var(--ambio-space-48);
     }
 }
@@ -42,9 +46,9 @@
     box-shadow: var(--ambio-shadow-md);
 }
 
-    #blazor-error-ui .dismiss {
-        cursor: pointer;
-        position: absolute;
-        right: 0.75rem;
-        top: 0.5rem;
-    }
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: 0.75rem;
+    top: 0.5rem;
+}
