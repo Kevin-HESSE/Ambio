@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Ambio.Infrastructure;
 
@@ -19,8 +20,14 @@ public static class InfrastructureExtensions
         var connectionString = configurationManager.GetConnectionString(DefaultConnection)
                                ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-        services.AddDbContextFactory<ApplicationDbContext>(options =>
-            options.UseSqlite(connectionString));
+        services.TryAddSingleton(TimeProvider.System);
+        services.AddSingleton<TimestampInterceptor>();
+
+        services.AddDbContextFactory<ApplicationDbContext>((provider, options) =>
+        {
+            options.UseSqlite(connectionString);
+            options.AddInterceptors(provider.GetRequiredService<TimestampInterceptor>());
+        });
 
         services.AddIdentityCore<ApplicationUser>(options =>
             {
@@ -41,5 +48,4 @@ public static class InfrastructureExtensions
 
         return services;
     }
-
 }

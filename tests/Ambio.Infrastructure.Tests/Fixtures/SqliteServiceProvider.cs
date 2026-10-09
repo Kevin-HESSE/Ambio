@@ -22,6 +22,8 @@ public sealed class SqliteServiceProvider : IAsyncDisposable
 
     public IEmailSender<ApplicationUser> EmailSender { get; } = Substitute.For<IEmailSender<ApplicationUser>>();
 
+    public TimeProvider TimeProvider { get; } = Substitute.For<TimeProvider>();
+
     private SqliteServiceProvider(string connectionString)
     {
         _keeperConnection = new SqliteConnection(connectionString);
@@ -33,6 +35,7 @@ public sealed class SqliteServiceProvider : IAsyncDisposable
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddDataProtection();
+        services.AddSingleton(TimeProvider);
         services.AddDatabase(configuration);
         services.AddApplicationServices();
         services.AddSingleton<IEmailSender<ApplicationUser>>(EmailSender);
