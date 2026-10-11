@@ -13,6 +13,10 @@
         }
     </label>
     @ChildContent
+    @if (Hint is not null)
+    {
+        <div class="form-text t-small" id="@HintId">@Hint</div>
+    }
     <ValidationMessage For="For" />
 </div>
 
@@ -31,12 +35,19 @@
     [Parameter]
     public bool Optional { get; set; }
 
+    /// <summary>A short help under the input, whose id is the field's id followed by <c>-hint</c>: give it to
+    /// the input's <c>aria-describedby</c>.</summary>
+    [Parameter]
+    public string? Hint { get; set; }
+
     /// <summary>Spans both columns of the form grid on desktop.</summary>
     [Parameter]
     public bool FullWidth { get; set; }
 
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
+
+    private string HintId => $"{Id}-hint";
 
     private string FieldClass => CssClassHelper.Serialize(["field"], new Dictionary<string, bool> { ["full-width"] = FullWidth });
 }

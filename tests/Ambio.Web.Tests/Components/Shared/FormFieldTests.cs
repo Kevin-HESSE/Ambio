@@ -12,6 +12,7 @@ public class FormFieldTests : BunitContext
     private const string Id = "company-name";
     private const string Label = "Name";
     private const string ErrorMessage = "Enter the name of the company.";
+    private const string Hint = "As written on the company's website.";
 
     private readonly Model _model = new();
     private readonly EditContext _editContext;
@@ -47,6 +48,24 @@ public class FormFieldTests : BunitContext
         var cut = RenderField(parameters => parameters.Add(field => field.FullWidth, true));
 
         Assert.Equal("field full-width", cut.Find("div").GetAttribute("class"));
+    }
+
+    [Fact]
+    public void Render_WithHint_ShowsItAfterInputWithItsId()
+    {
+        var cut = RenderField(parameters => parameters.Add(field => field.Hint, Hint));
+
+        var hint = cut.Find($"input#{Id} + .form-text");
+        Assert.Equal(Hint, hint.TextContent);
+        Assert.Equal($"{Id}-hint", hint.Id);
+    }
+
+    [Fact]
+    public void Render_WithoutHint_HasNoHint()
+    {
+        var cut = RenderField();
+
+        Assert.Empty(cut.FindAll(".form-text"));
     }
 
     [Fact]
