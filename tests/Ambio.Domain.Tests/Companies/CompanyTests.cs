@@ -5,6 +5,7 @@ namespace Ambio.Domain.Tests.Companies;
 public class CompanyTests
 {
     private const string CompanyName = "Acme";
+    private const string CompanySlug = "acme";
 
     [Fact]
     public void New_GeneratesVersion7Id()
@@ -52,6 +53,7 @@ public class CompanyTests
     private static Company NewCompany(string name = CompanyName) => new()
     {
         Name = name,
+        Slug = CompanySlug,
         Kind = CompanyKind.Employer,
     };
 

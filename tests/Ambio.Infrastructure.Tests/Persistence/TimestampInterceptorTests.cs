@@ -35,7 +35,7 @@ public class TimestampInterceptorTests : IAsyncLifetime
     public async Task SaveChanges_NewEntity_SetsCreatedAtAndUpdatedAt()
     {
         SetNow(CreationTime);
-        var company = NewCompany();
+        var company = CompanyFactory.New(CompanyName);
 
         await using (var context = await _services.CreateDbContextAsync())
         {
@@ -85,16 +85,10 @@ public class TimestampInterceptorTests : IAsyncLifetime
 
     private void SetNow(DateTimeOffset now) => _services.TimeProvider.GetUtcNow().Returns(now);
 
-    private static Company NewCompany() => new()
-    {
-        Name = CompanyName,
-        Kind = CompanyKind.Employer,
-    };
-
     private async Task<Guid> AddCompanyAsync()
     {
         SetNow(CreationTime);
-        var company = NewCompany();
+        var company = CompanyFactory.New(CompanyName);
 
         await using var context = await _services.CreateDbContextAsync();
         context.Companies.Add(company);

@@ -21,6 +21,12 @@ public class CompanyConfiguration : IEntityTypeConfiguration<Company>
         builder.HasIndex(c => c.Name)
             .IsUnique();
 
+        builder.Property(c => c.Slug)
+            .IsRequired();
+
+        builder.HasIndex(c => c.Slug)
+            .IsUnique();
+
         builder.Property(c => c.Kind)
             .HasConversion<string>();
 

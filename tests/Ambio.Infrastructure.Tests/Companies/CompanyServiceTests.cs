@@ -12,6 +12,7 @@ namespace Ambio.Infrastructure.Tests.Companies;
 public class CompanyServiceTests : IAsyncLifetime
 {
     private const string CompanyName = "Brightwave";
+    private const string CompanySlug = "brightwave";
     private const string OtherCompanyName = "Kelvio";
     private const string Industry = "Software";
     private const string Location = "Lyon";
@@ -34,7 +35,7 @@ public class CompanyServiceTests : IAsyncLifetime
     [Fact]
     public async Task ListAsync_WithCompany_ReturnsItsSummary()
     {
-        var company = NewCompany(CompanyName, CompanyKind.RecruitmentAgency);
+        var company = CompanyFactory.New(CompanyName, CompanyKind.RecruitmentAgency);
         company.Industry = Industry;
         company.Location = Location;
         await AddAsync(company);
@@ -47,7 +48,7 @@ public class CompanyServiceTests : IAsyncLifetime
     [Fact]
     public async Task ListAsync_WithSeveralCompanies_SortsByNameIgnoringCase()
     {
-        await AddAsync(NewCompany("kelvio"), NewCompany("Atelier Nord"), NewCompany("Brightwave"));
+        await AddAsync(CompanyFactory.New("kelvio"), CompanyFactory.New("Atelier Nord"), CompanyFactory.New("Brightwave"));
 
         var names = (await ListAsync()).Select(c => c.Name);
 
@@ -57,9 +58,9 @@ public class CompanyServiceTests : IAsyncLifetime
     [Fact]
     public async Task ListAsync_WithArchivedCompany_LeavesItOut()
     {
-        var archived = NewCompany("Orbital Freight");
+        var archived = CompanyFactory.New("Orbital Freight");
         archived.ArchivedAt = DateTime.UtcNow;
-        await AddAsync(NewCompany(CompanyName), archived);
+        await AddAsync(CompanyFactory.New(CompanyName), archived);
 
         var summary = Assert.Single(await ListAsync());
 
@@ -69,7 +70,7 @@ public class CompanyServiceTests : IAsyncLifetime
     [Fact]
     public async Task GetAsync_WithUnknownId_ReturnsNull()
     {
-        await AddAsync(NewCompany(CompanyName));
+        await AddAsync(CompanyFactory.New(CompanyName));
 
         Assert.Null(await GetAsync(Guid.CreateVersion7()));
     }
@@ -77,7 +78,7 @@ public class CompanyServiceTests : IAsyncLifetime
     [Fact]
     public async Task GetAsync_WithCompany_ReturnsEveryField()
     {
-        var company = NewCompany(CompanyName, CompanyKind.ServiceCompany);
+        var company = CompanyFactory.New(CompanyName, CompanyKind.ServiceCompany);
         company.Industry = Industry;
         company.Size = CompanySize.Medium;
         company.Location = Location;
@@ -96,7 +97,7 @@ public class CompanyServiceTests : IAsyncLifetime
     [Fact]
     public async Task GetAsync_WithArchivedCompany_ReturnsIt()
     {
-        var archived = NewCompany(CompanyName);
+        var archived = CompanyFactory.New(CompanyName);
         archived.ArchivedAt = DateTime.UtcNow;
         await AddAsync(archived);
 
@@ -156,7 +157,7 @@ public class CompanyServiceTests : IAsyncLifetime
     [MemberData(nameof(SameNames))]
     public async Task CreateAsync_WithExistingNameIgnoringCase_ReturnsAlreadyExists(string name)
     {
-        await AddAsync(NewCompany(CompanyName));
+        await AddAsync(CompanyFactory.New(CompanyName));
 
         var result = await CreateAsync(new CompanyInput { Name = name });
 
@@ -168,7 +169,7 @@ public class CompanyServiceTests : IAsyncLifetime
     [Fact]
     public async Task CreateAsync_WithNameOfArchivedCompany_ReturnsAlreadyExists()
     {
-        var archived = NewCompany(CompanyName);
+        var archived = CompanyFactory.New(CompanyName);
         archived.ArchivedAt = DateTime.UtcNow;
         await AddAsync(archived);
 
@@ -178,9 +179,50 @@ public class CompanyServiceTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task CreateAsync_WithName_StoresItsSlug()
+    {
+        var result = await CreateAsync(new CompanyInput { Name = CompanyName });
+
+        Assert.True(result.TryGetValue(out var id));
+        Assert.Equal(CompanySlug, (await FindAsync(id)).Slug);
+    }
+
+    [Fact]
+    public async Task CreateAsync_WithSlugOfOtherCompanies_AddsFirstFreeSuffix()
+    {
+        await AddAsync(CompanyFactory.New("Acme Inc."));
+
+        var second = await CreateAsync(new CompanyInput { Name = "Acme, Inc" });
+        var third = await CreateAsync(new CompanyInput { Name = "Acme Inc" });
+
+        Assert.True(second.TryGetValue(out var secondId));
+        Assert.True(third.TryGetValue(out var thirdId));
+        Assert.Equal("acme-inc-2", (await FindAsync(secondId)).Slug);
+        Assert.Equal("acme-inc-3", (await FindAsync(thirdId)).Slug);
+    }
+
+    [Fact]
+    public async Task CreateAsync_WithReservedSlug_AddsSuffix()
+    {
+        var result = await CreateAsync(new CompanyInput { Name = "New" });
+
+        Assert.True(result.TryGetValue(out var id));
+        Assert.Equal("new-2", (await FindAsync(id)).Slug);
+    }
+
+    [Fact]
+    public async Task CreateAsync_WithoutLetterOrDigit_UsesFallbackSlug()
+    {
+        var result = await CreateAsync(new CompanyInput { Name = "!!!" });
+
+        Assert.True(result.TryGetValue(out var id));
+        Assert.Equal(CompanyFactory.SlugFallback, (await FindAsync(id)).Slug);
+    }
+
+    [Fact]
     public async Task UpdateAsync_WithEveryField_SavesThem()
     {
-        var company = NewCompany(OtherCompanyName);
+        var company = CompanyFactory.New(OtherCompanyName);
         await AddAsync(company);
 
         var result = await UpdateAsync(company.Id, new CompanyInput
@@ -210,7 +252,7 @@ public class CompanyServiceTests : IAsyncLifetime
     [Fact]
     public async Task UpdateAsync_WithPaddedOrBlankFields_TrimsThemAndStoresBlankAsNull()
     {
-        var company = NewCompany(CompanyName);
+        var company = CompanyFactory.New(CompanyName);
         company.Industry = Industry;
         company.Website = Website;
         await AddAsync(company);
@@ -234,7 +276,7 @@ public class CompanyServiceTests : IAsyncLifetime
     [Fact]
     public async Task UpdateAsync_WithOwnNameInOtherCase_RenamesIt()
     {
-        var company = NewCompany("brightwave");
+        var company = CompanyFactory.New("brightwave");
         await AddAsync(company);
 
         var result = await UpdateAsync(company.Id, new CompanyInput { Name = CompanyName });
@@ -247,8 +289,8 @@ public class CompanyServiceTests : IAsyncLifetime
     [MemberData(nameof(SameNames))]
     public async Task UpdateAsync_WithNameOfAnotherCompanyIgnoringCase_ReturnsAlreadyExists(string name)
     {
-        var company = NewCompany(OtherCompanyName);
-        await AddAsync(NewCompany(CompanyName), company);
+        var company = CompanyFactory.New(OtherCompanyName);
+        await AddAsync(CompanyFactory.New(CompanyName), company);
 
         var result = await UpdateAsync(company.Id, new CompanyInput { Name = name });
 
@@ -260,9 +302,9 @@ public class CompanyServiceTests : IAsyncLifetime
     [Fact]
     public async Task UpdateAsync_WithNameOfArchivedCompany_ReturnsAlreadyExists()
     {
-        var archived = NewCompany(CompanyName);
+        var archived = CompanyFactory.New(CompanyName);
         archived.ArchivedAt = DateTime.UtcNow;
-        var company = NewCompany(OtherCompanyName);
+        var company = CompanyFactory.New(OtherCompanyName);
         await AddAsync(archived, company);
 
         var result = await UpdateAsync(company.Id, new CompanyInput { Name = CompanyName });
@@ -279,11 +321,51 @@ public class CompanyServiceTests : IAsyncLifetime
         Assert.Equal(CompanyErrors.NotFound, result.GetMessage);
     }
 
-    private static Company NewCompany(string name, CompanyKind kind = CompanyKind.Employer) => new()
+    [Fact]
+    public async Task UpdateAsync_WithNewName_RecomputesSlug()
     {
-        Name = name,
-        Kind = kind,
-    };
+        var company = CompanyFactory.New(OtherCompanyName);
+        await AddAsync(company);
+
+        await UpdateAsync(company.Id, new CompanyInput { Name = CompanyName });
+
+        Assert.Equal(CompanySlug, (await FindAsync(company.Id)).Slug);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WithNameGivingOwnSlug_KeepsIt()
+    {
+        var company = CompanyFactory.New("Acme Inc");
+        await AddAsync(company);
+
+        await UpdateAsync(company.Id, new CompanyInput { Name = "Acme Inc." });
+
+        Assert.Equal("acme-inc", (await FindAsync(company.Id)).Slug);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WithoutRenaming_KeepsSlug()
+    {
+        // acme-inc is free again, but only a rename moves the company to another URL.
+        var company = CompanyFactory.New("Acme, Inc");
+        company.Slug = "acme-inc-2";
+        await AddAsync(company);
+
+        await UpdateAsync(company.Id, new CompanyInput { Name = "Acme, Inc", Location = Location });
+
+        Assert.Equal("acme-inc-2", (await FindAsync(company.Id)).Slug);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WithSlugOfAnotherCompany_AddsSuffix()
+    {
+        var company = CompanyFactory.New(OtherCompanyName);
+        await AddAsync(CompanyFactory.New("Acme Inc."), company);
+
+        await UpdateAsync(company.Id, new CompanyInput { Name = "Acme, Inc" });
+
+        Assert.Equal("acme-inc-2", (await FindAsync(company.Id)).Slug);
+    }
 
     private async Task AddAsync(params Company[] companies)
     {
