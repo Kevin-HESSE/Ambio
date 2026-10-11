@@ -1,0 +1,11 @@
+@* An offer in a list inside a card, such as the Offers tab of the company page. It becomes a link to the offer
+   page with #46. *@
+<div class="offer-item">
+    <span class="offer-title t-body-strong">@Offer.Title</span>
+    <div class="offer-tags"><OfferTags Offer="Offer" /></div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public JobOfferSummaryDto Offer { get; set; } = null!;
+}

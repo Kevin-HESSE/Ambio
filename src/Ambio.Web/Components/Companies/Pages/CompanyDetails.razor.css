@@ -33,6 +33,16 @@
     color: var(--ambio-text-muted);
 }
 
+.company-offers {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.company-offers > li + li {
+    border-top: 1px solid var(--ambio-border-default);
+}
+
 @media (min-width: 992px) {
     .company-detail {
         grid-template-columns: minmax(0, 1fr) 320px;

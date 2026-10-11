@@ -3,6 +3,7 @@ using Ambio.Application.Offers.Dtos;
 using Ambio.Domain.Offers;
 using Ambio.Web.Components.Offers;
 using Ambio.Web.Components.Offers.Pages;
+using Ambio.Web.Tests.Fixtures;
 
 using Bunit;
 
@@ -97,11 +98,15 @@ public class OfferListTests : BunitContext
     private void GivenOffers(params JobOfferSummaryDto[] offers) =>
         _jobOfferService.ListAsync(Arg.Any<CancellationToken>()).Returns(offers);
 
-    private static JobOfferSummaryDto FullStack { get; } = new(
-        Guid.CreateVersion7(), "Full-stack Engineer", "Kelvio", "kelvio", ContractType.Permanent, RemotePolicy.Hybrid, 3,
-        new DateTime(2026, 8, 28, 9, 0, 0, DateTimeKind.Utc));
+    private static JobOfferSummaryDto FullStack { get; } = JobOfferSummaryFactory.New(
+        title: "Full-stack Engineer",
+        postingCount: 3,
+        registerAt: new DateTime(2026, 8, 28, 9, 0, 0, DateTimeKind.Utc));
 
-    private static JobOfferSummaryDto DataEngineer { get; } = new(
-        Guid.CreateVersion7(), "Data Engineer", "Lumen Health", "lumen-health", ContractType.FixedTerm, RemotePolicy.OnSite, 1,
-        new DateTime(2026, 9, 21, 9, 0, 0, DateTimeKind.Utc));
+    private static JobOfferSummaryDto DataEngineer { get; } = JobOfferSummaryFactory.New(
+        title: "Data Engineer",
+        companyName: "Lumen Health",
+        contractType: ContractType.FixedTerm,
+        remotePolicy: RemotePolicy.OnSite,
+        registerAt: new DateTime(2026, 9, 21, 9, 0, 0, DateTimeKind.Utc));
 }

@@ -7,7 +7,13 @@ public static class CompanyRoutes
 
     public const string New = "companies/new";
 
+    /// <summary>Value of the Offers tab of the company page.</summary>
+    public const string OffersTab = "offers";
+
     public static string Details(string slug) => $"companies/{slug}";
+
+    /// <summary>The company page showing one of its tabs, such as <see cref="OffersTab"/>.</summary>
+    public static string Details(string slug, string tab) => $"companies/{slug}?tab={tab}";
 
     public static string Edit(string slug) => $"companies/{slug}/edit";
 }
