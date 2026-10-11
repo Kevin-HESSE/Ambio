@@ -17,6 +17,7 @@ namespace Ambio.Web.Tests.Components.Companies.Pages;
 public class CompanyNewTests : BunitContext
 {
     private const string CompanyName = "Brightwave";
+    private const string CompanySlug = "brightwave";
     private const string NameError = "Enter the name of the company.";
     private const string UrlError = "Enter the full link, such as https://example.com";
 
@@ -57,11 +58,10 @@ public class CompanyNewTests : BunitContext
     }
 
     [Fact]
-    public void Submit_WithValidInput_CreatesCompanyAndNavigatesToDetails()
+    public void Submit_WithValidInput_CreatesCompanyAndNavigatesToReturnedSlug()
     {
-        var id = Guid.CreateVersion7();
         _companyService.CreateAsync(Arg.Any<CompanyInput>(), Arg.Any<CancellationToken>())
-            .Returns(ServiceResult<Guid>.Success(id));
+            .Returns(ServiceResult<string>.Success(CompanySlug));
         var cut = Render<CompanyNew>();
 
         cut.Find("#company-name").Change(CompanyName);
@@ -71,7 +71,7 @@ public class CompanyNewTests : BunitContext
         _companyService.Received(1).CreateAsync(
             Arg.Is<CompanyInput>(input => input.Name == CompanyName && input.Kind == CompanyKind.RecruitmentAgency),
             Arg.Any<CancellationToken>());
-        Assert.EndsWith($"/{CompanyRoutes.Details(id)}", Services.GetRequiredService<NavigationManager>().Uri);
+        Assert.EndsWith($"/{CompanyRoutes.Details(CompanySlug)}", Services.GetRequiredService<NavigationManager>().Uri);
     }
 
     [Fact]
@@ -102,7 +102,7 @@ public class CompanyNewTests : BunitContext
     public void Submit_WithExistingName_ShowsErrorUnderNameAndStaysOnPage()
     {
         _companyService.CreateAsync(Arg.Any<CompanyInput>(), Arg.Any<CancellationToken>())
-            .Returns(ServiceResult<Guid>.Failure(CompanyErrors.AlreadyExists));
+            .Returns(ServiceResult<string>.Failure(CompanyErrors.AlreadyExists));
         var cut = Render<CompanyNew>();
         var navigation = Services.GetRequiredService<NavigationManager>();
         var startUri = navigation.Uri;

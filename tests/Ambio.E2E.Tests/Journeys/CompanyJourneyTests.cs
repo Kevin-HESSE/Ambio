@@ -23,7 +23,9 @@ public class CompanyJourneyTests : IClassFixture<AmbioAppFixture>
     private const string UserPassword = "Passw0rd!";
     private const string CompaniesPath = "companies";
     private const string CompanyName = "Brightwave";
+    private const string CompanySlug = "brightwave";
     private const string NewCompanyName = "Brightwave Energy";
+    private const string NewCompanySlug = "brightwave-energy";
     private const string Location = "Lyon";
     private const string NewLocation = "Grenoble";
     private const string Website = "https://brightwave.io";
@@ -48,12 +50,10 @@ public class CompanyJourneyTests : IClassFixture<AmbioAppFixture>
 
         await page.GetByLabel("Website").FillAsync(Website);
         await page.GetByRole(AriaRole.Button, new() { Name = "Create company" }).ClickAsync();
-        await Expect(page).ToHaveURLAsync(new Regex($"/{CompaniesPath}/[0-9a-f-]{{36}}$"));
+        await Expect(page).ToHaveURLAsync(new Regex($"/{CompaniesPath}/{CompanySlug}$"));
         await Expect(page.GetByRole(AriaRole.Heading, new() { Name = CompanyName, Level = 1 })).ToBeVisibleAsync();
         await Expect(page.GetByText("Recruitment agency")).ToBeVisibleAsync();
         await Expect(page.GetByRole(AriaRole.Link, new() { Name = "brightwave.io" })).ToHaveAttributeAsync("href", Website);
-        var detailsUrl = page.Url;
-
         await page.GetByRole(AriaRole.Link, new() { Name = "Edit", Exact = true }).ClickAsync();
         await Expect(page.GetByLabel("Name", new() { Exact = true })).ToHaveValueAsync(CompanyName);
         await Expect(page.GetByLabel("Location")).ToHaveValueAsync(Location);
@@ -61,12 +61,12 @@ public class CompanyJourneyTests : IClassFixture<AmbioAppFixture>
         await page.GetByLabel("Location").FillAsync(NewLocation);
         await page.GetByRole(AriaRole.Button, new() { Name = "Save changes" }).ClickAsync();
 
-        await Expect(page).ToHaveURLAsync(detailsUrl);
+        await Expect(page).ToHaveURLAsync(new Regex($"/{CompaniesPath}/{NewCompanySlug}$"));
         await Expect(page.GetByRole(AriaRole.Heading, new() { Name = NewCompanyName, Level = 1 })).ToBeVisibleAsync();
         await Expect(page.GetByText(NewLocation)).ToBeVisibleAsync();
 
         await page.GotoAsync(CompaniesPath);
         await page.GetByRole(AriaRole.Link, new() { Name = NewCompanyName }).First.ClickAsync();
-        await Expect(page).ToHaveURLAsync(detailsUrl);
+        await Expect(page).ToHaveURLAsync(new Regex($"/{CompaniesPath}/{NewCompanySlug}$"));
     }
 }

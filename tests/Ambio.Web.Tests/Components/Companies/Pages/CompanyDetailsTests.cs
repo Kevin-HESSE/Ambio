@@ -30,7 +30,7 @@ public class CompanyDetailsTests : BunitContext
     {
         GivenCompany(Brightwave);
 
-        var cut = RenderDetails(Brightwave.Id);
+        var cut = RenderDetails(Brightwave.Slug);
 
         Assert.Equal(CompanyName, cut.Find("h1").TextContent);
         Assert.Equal("IT services", cut.Find(".detail-tags .tag").TextContent.Trim());
@@ -41,7 +41,7 @@ public class CompanyDetailsTests : BunitContext
     {
         GivenCompany(Brightwave);
 
-        var cut = RenderDetails(Brightwave.Id);
+        var cut = RenderDetails(Brightwave.Slug);
 
         var profile = cut.FindAll(".company-profile dl > div")
             .Select(row => (row.QuerySelector("dt")!.TextContent, row.QuerySelector("dd")!.TextContent.Trim()));
@@ -62,7 +62,7 @@ public class CompanyDetailsTests : BunitContext
     {
         GivenCompany(Brightwave);
 
-        var cut = RenderDetails(Brightwave.Id);
+        var cut = RenderDetails(Brightwave.Slug);
 
         Assert.Equal(Description, cut.Find(".company-description").TextContent);
     }
@@ -72,7 +72,7 @@ public class CompanyDetailsTests : BunitContext
     {
         GivenCompany(Talentis);
 
-        var cut = RenderDetails(Talentis.Id);
+        var cut = RenderDetails(Talentis.Slug);
 
         Assert.Empty(cut.FindAll(".company-profile dl"));
         Assert.Equal("No details yet.", cut.Find(".company-profile-empty").TextContent);
@@ -84,9 +84,9 @@ public class CompanyDetailsTests : BunitContext
     {
         GivenCompany(Brightwave);
 
-        var cut = RenderDetails(Brightwave.Id);
+        var cut = RenderDetails(Brightwave.Slug);
 
-        Assert.Equal("Edit", cut.Find($".detail-actions a[href='{CompanyRoutes.Edit(Brightwave.Id)}']").TextContent.Trim());
+        Assert.Equal("Edit", cut.Find($".detail-actions a[href='{CompanyRoutes.Edit(Brightwave.Slug)}']").TextContent.Trim());
     }
 
     [Fact]
@@ -94,31 +94,32 @@ public class CompanyDetailsTests : BunitContext
     {
         GivenCompany(Brightwave);
 
-        var cut = RenderDetails(Brightwave.Id);
+        var cut = RenderDetails(Brightwave.Slug);
 
         Assert.Equal("Companies", cut.Find($".detail-breadcrumb a[href='{CompanyRoutes.List}']").TextContent);
     }
 
     [Fact]
-    public void Render_WithUnknownId_RequestsNotFound()
+    public void Render_WithUnknownSlug_RequestsNotFound()
     {
         var notFound = false;
         Services.GetRequiredService<NavigationManager>().OnNotFound += (_, _) => notFound = true;
 
-        var cut = RenderDetails(Guid.CreateVersion7());
+        var cut = RenderDetails("kelvio");
 
         Assert.True(notFound);
         Assert.Empty(cut.FindAll("h1"));
     }
 
     private void GivenCompany(CompanyDetailsDto company) =>
-        _companyService.GetAsync(company.Id, Arg.Any<CancellationToken>()).Returns(company);
+        _companyService.GetAsync(company.Slug, Arg.Any<CancellationToken>()).Returns(company);
 
-    private IRenderedComponent<CompanyDetails> RenderDetails(Guid id) =>
-        Render<CompanyDetails>(parameters => parameters.Add(page => page.Id, id));
+    private IRenderedComponent<CompanyDetails> RenderDetails(string slug) =>
+        Render<CompanyDetails>(parameters => parameters.Add(page => page.Slug, slug));
 
     private static CompanyDetailsDto Brightwave { get; } = new(
         Guid.CreateVersion7(),
+        "brightwave",
         CompanyName,
         CompanyKind.ServiceCompany,
         "Software",
@@ -129,5 +130,5 @@ public class CompanyDetailsTests : BunitContext
         Description);
 
     private static CompanyDetailsDto Talentis { get; } = new(
-        Guid.CreateVersion7(), "Talentis Recruitment", CompanyKind.RecruitmentAgency, null, null, null, null, null, null);
+        Guid.CreateVersion7(), "talentis-recruitment", "Talentis Recruitment", CompanyKind.RecruitmentAgency, null, null, null, null, null, null);
 }

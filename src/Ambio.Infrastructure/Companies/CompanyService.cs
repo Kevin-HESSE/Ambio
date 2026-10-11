@@ -34,18 +34,18 @@ internal class CompanyService : ICompanyService
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<CompanyDetailsDto?> GetAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<CompanyDetailsDto?> GetAsync(string slug, CancellationToken cancellationToken = default)
     {
         await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
 
         return await db.Companies
             .AsNoTracking()
-            .Where(c => c.Id == id)
+            .Where(c => c.Slug == slug)
             .ToDetailsDto()
             .SingleOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<ServiceResult<Guid>> CreateAsync(CompanyInput input, CancellationToken cancellationToken = default)
+    public async Task<ServiceResult<string>> CreateAsync(CompanyInput input, CancellationToken cancellationToken = default)
     {
         await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
 
@@ -53,24 +53,24 @@ internal class CompanyService : ICompanyService
         var name = input.Name.Trim();
         if (await db.Companies.AnyAsync(c => c.Name == name, cancellationToken))
         {
-            return ServiceResult<Guid>.Failure(CompanyErrors.AlreadyExists);
+            return ServiceResult<string>.Failure(CompanyErrors.AlreadyExists);
         }
 
         var company = input.ToEntity(await FreeSlugAsync(db, name, companyId: null, cancellationToken));
         db.Companies.Add(company);
         await db.SaveChangesAsync(cancellationToken);
 
-        return ServiceResult<Guid>.Success(company.Id);
+        return ServiceResult<string>.Success(company.Slug);
     }
 
-    public async Task<ServiceResult> UpdateAsync(Guid id, CompanyInput input, CancellationToken cancellationToken = default)
+    public async Task<ServiceResult<string>> UpdateAsync(Guid id, CompanyInput input, CancellationToken cancellationToken = default)
     {
         await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
 
         var company = await db.Companies.SingleOrDefaultAsync(c => c.Id == id, cancellationToken);
         if (company is null)
         {
-            return ServiceResult.Failure(CompanyErrors.NotFound);
+            return ServiceResult<string>.Failure(CompanyErrors.NotFound);
         }
 
         var previousName = company.Name;
@@ -79,7 +79,7 @@ internal class CompanyService : ICompanyService
         // Same NOCASE comparison as CreateAsync. The company itself is left out, so its name can change case.
         if (await db.Companies.AnyAsync(c => c.Id != id && c.Name == company.Name, cancellationToken))
         {
-            return ServiceResult.Failure(CompanyErrors.AlreadyExists);
+            return ServiceResult<string>.Failure(CompanyErrors.AlreadyExists);
         }
 
         // Only a rename moves the company to another URL: old links aren't kept.
@@ -90,7 +90,7 @@ internal class CompanyService : ICompanyService
 
         await db.SaveChangesAsync(cancellationToken);
 
-        return ServiceResult.Success();
+        return ServiceResult<string>.Success(company.Slug);
     }
 
     /// <summary>The slug of the name, followed by -2, -3… while it is reserved or held by another company,
