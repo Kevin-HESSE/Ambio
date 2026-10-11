@@ -1,0 +1,8 @@
+@* The contract and remote policy of an offer, as tags. *@
+<Tag Icon="briefcase">@Offer.ContractType.ToLabel()</Tag>
+<Tag Icon="house-door">@Offer.RemotePolicy.ToLabel()</Tag>
+
+@code {
+    [Parameter, EditorRequired]
+    public JobOfferSummaryDto Offer { get; set; } = null!;
+}

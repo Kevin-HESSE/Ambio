@@ -1,0 +1,30 @@
+@* The offers list on desktop (≥ 992 px). *@
+<table class="table offer-table">
+    <thead>
+        <tr>
+            <th scope="col">Offer</th>
+            <th scope="col">Contract</th>
+            <th scope="col" class="num">Postings</th>
+            <th scope="col">Published</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var offer in Offers)
+        {
+            <tr>
+                <th scope="row">
+                    <span class="offer-title t-body-strong">@offer.Title</span>
+                    <div class="offer-company t-small">@offer.CompanyName</div>
+                </th>
+                <td><div class="offer-tags"><OfferTags Offer="offer" /></div></td>
+                <td class="num">@offer.PostingCount</td>
+                <td class="offer-date"><time datetime="@offer.RegisterAt.ToString("yyyy-MM-dd")">@offer.RegisterAt.ToDisplayDate()</time></td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    [Parameter, EditorRequired]
+    public IReadOnlyList<JobOfferSummaryDto> Offers { get; set; } = [];
+}
