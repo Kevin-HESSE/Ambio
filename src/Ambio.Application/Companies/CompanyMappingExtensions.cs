@@ -7,23 +7,23 @@ public static class CompanyMappingExtensions
 {
     /// <summary>Projection translated to SQL by EF Core: only the listed columns are read.</summary>
     public static IQueryable<CompanySummaryDto> ToSummaryDto(this IQueryable<Company> companies) =>
-        companies.Select(c => new CompanySummaryDto(c.Id, c.Name, c.Kind, c.Industry, c.Location));
+        companies.Select(c => new CompanySummaryDto(c.Id, c.Slug, c.Name, c.Kind, c.Industry, c.Location));
 
     /// <summary>Projection translated to SQL by EF Core.</summary>
     public static IQueryable<CompanyDetailsDto> ToDetailsDto(this IQueryable<Company> companies) =>
         companies.Select(c => new CompanyDetailsDto(
-            c.Id, c.Name, c.Kind, c.Industry, c.Size, c.Location, c.Website, c.LinkedInUrl, c.Description));
+            c.Id, c.Slug, c.Name, c.Kind, c.Industry, c.Size, c.Location, c.Website, c.LinkedInUrl, c.Description));
 
-    /// <summary>A new company with the fields of the form, see <see cref="ApplyTo"/>.</summary>
-    public static Company ToEntity(this CompanyInput input)
+    /// <summary>A new company with the fields of the form, see <see cref="ApplyTo"/>, and its slug.</summary>
+    public static Company ToEntity(this CompanyInput input, string slug)
     {
-        var company = new Company { Name = input.Name, Kind = input.Kind };
+        var company = new Company { Name = input.Name, Slug = slug, Kind = input.Kind };
         input.ApplyTo(company);
         return company;
     }
 
-    /// <summary>Copies the fields of the form onto the company. The optional text fields are trimmed,
-    /// and a blank one is stored as null.</summary>
+    /// <summary>Copies the fields of the form onto the company, but not its slug. The optional text fields
+    /// are trimmed, and a blank one is stored as null.</summary>
     public static void ApplyTo(this CompanyInput input, Company company)
     {
         company.Name = input.Name;

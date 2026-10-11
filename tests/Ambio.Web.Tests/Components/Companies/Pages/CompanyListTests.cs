@@ -67,7 +67,7 @@ public class CompanyListTests : BunitContext
 
         var cut = Render<CompanyList>();
 
-        string[] expected = [CompanyRoutes.Details(Brightwave.Id), CompanyRoutes.Details(Talentis.Id)];
+        string[] expected = [CompanyRoutes.Details(Brightwave.Slug), CompanyRoutes.Details(Talentis.Slug)];
         Assert.Equal(expected, cut.FindAll("tbody a").Select(link => link.GetAttribute("href")));
         Assert.Equal(expected, cut.FindAll("a.company-card").Select(link => link.GetAttribute("href")));
     }
@@ -86,8 +86,8 @@ public class CompanyListTests : BunitContext
         _companyService.ListAsync(Arg.Any<CancellationToken>()).Returns(companies);
 
     private static CompanySummaryDto Brightwave { get; } =
-        new(Guid.CreateVersion7(), "Brightwave", CompanyKind.Employer, "Software", "Lyon");
+        new(Guid.CreateVersion7(), "brightwave", "Brightwave", CompanyKind.Employer, "Software", "Lyon");
 
     private static CompanySummaryDto Talentis { get; } =
-        new(Guid.CreateVersion7(), "Talentis Recruitment", CompanyKind.RecruitmentAgency, null, "Paris");
+        new(Guid.CreateVersion7(), "talentis-recruitment", "Talentis Recruitment", CompanyKind.RecruitmentAgency, null, "Paris");
 }

@@ -54,6 +54,7 @@ flowchart LR
 | Data access | `await using var db = await dbFactory.CreateDbContextAsync(ct);` in each service method. No repositories, no unit of work. |
 | Queries | LINQ projections to DTOs so EF translates them to SQL, `AsNoTracking()` for reads |
 | Application URLs | `/applications/{ShortId}-{slug}`, `ShortId` generated with NanoId, looked up by `ShortId`, redirected to the canonical slug ([ADR 0014](adr/0014-short-id-and-slug-urls.md)) |
+| Company URLs | `/companies/{slug}`, slug stored with a unique index, numeric suffix on collision, recomputed on rename ([ADR 0021](adr/0021-slug-urls-for-companies.md)) |
 | UI tokens | Colors, typography and spacing come from `--ambio-*` CSS variables mapped onto Bootstrap. No hard-coded colors in components. See [design-system.md](design-system.md) ([ADR 0015](adr/0015-neutral-visual-identity-with-status-colors.md)) |
 | UI layout | Bottom tab bar + "More" sheet below 992 px, sidebar above. Lists are tables on desktop and cards on mobile; detail pages use tabs in the URL (`?tab=`). See [ui.md](ui.md) ([ADR 0016](adr/0016-responsive-navigation-bottom-tabs-and-sidebar.md)) |
 | Plugin naming | `Ambio.Plugins.<Domain>.<Purpose>` — see [plugins.md](plugins.md) |

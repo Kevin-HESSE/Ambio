@@ -32,7 +32,7 @@
     {
         var result = await CompanyService.CreateAsync(Input);
 
-        if (!result.TryGetValue(out var id))
+        if (!result.TryGetValue(out var slug))
         {
             // The only failure is a duplicate name: the message goes under the Name field.
             new ValidationMessageStore(editContext).Add(() => Input.Name, result.GetMessage);
@@ -40,6 +40,6 @@
             return;
         }
 
-        NavigationManager.NavigateTo(CompanyRoutes.Details(id));
+        NavigationManager.NavigateTo(CompanyRoutes.Details(slug));
     }
 }

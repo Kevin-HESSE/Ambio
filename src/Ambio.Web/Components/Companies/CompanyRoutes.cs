@@ -7,7 +7,7 @@ public static class CompanyRoutes
 
     public const string New = "companies/new";
 
-    public static string Details(Guid id) => $"companies/{id}";
+    public static string Details(string slug) => $"companies/{slug}";
 
-    public static string Edit(Guid id) => $"companies/{id}/edit";
+    public static string Edit(string slug) => $"companies/{slug}/edit";
 }

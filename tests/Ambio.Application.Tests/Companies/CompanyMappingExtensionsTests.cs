@@ -11,6 +11,7 @@ public class CompanyMappingExtensionsTests
     {
         var company = new CompanyDetailsDto(
             Guid.CreateVersion7(),
+            "brightwave",
             "Brightwave",
             CompanyKind.ServiceCompany,
             "Software",

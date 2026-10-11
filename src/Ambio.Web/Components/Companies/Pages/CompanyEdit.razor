@@ -1,4 +1,4 @@
-@page "/companies/{Id:guid}/edit"
+@page "/companies/{Slug}/edit"
 @attribute [Authorize]
 @inject ICompanyService CompanyService
 @inject NavigationManager NavigationManager
@@ -6,7 +6,7 @@
 @if (_company is not null)
 {
     <PageTitle>Edit @_company.Name</PageTitle>
-    <AppBarBack Href="@CompanyRoutes.Details(Id)" />
+    <AppBarBack Href="@CompanyRoutes.Details(_company.Slug)" />
     <AppBarTitle>Edit company</AppBarTitle>
 
     <PageHeader Title="Edit company" Subtitle="@_company.Name" />
@@ -18,7 +18,7 @@
             <CompanyFormFields Input="Input" />
 
             <div class="action-bar">
-                <ButtonLink Href="@CompanyRoutes.Details(Id)" Variant="ButtonVariant.Secondary">Cancel</ButtonLink>
+                <ButtonLink Href="@CompanyRoutes.Details(_company.Slug)" Variant="ButtonVariant.Secondary">Cancel</ButtonLink>
                 <button type="submit" class="btn btn-primary">Save changes</button>
             </div>
         </EditForm>
@@ -27,7 +27,7 @@
 
 @code {
     [Parameter]
-    public Guid Id { get; set; }
+    public string Slug { get; set; } = "";
 
     [SupplyParameterFromForm]
     private CompanyInput Input { get; set; } = default!;
@@ -37,7 +37,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _company = await CompanyService.GetAsync(Id);
+        _company = await CompanyService.GetAsync(Slug);
 
         if (_company is null)
         {
@@ -51,11 +51,12 @@
 
     private async Task UpdateCompany(EditContext editContext)
     {
-        var result = await CompanyService.UpdateAsync(Id, Input);
+        var result = await CompanyService.UpdateAsync(_company!.Id, Input);
 
-        if (result.IsSuccess)
+        // A rename gives the company a new slug: the page it goes back to has a new URL.
+        if (result.TryGetValue(out var slug))
         {
-            NavigationManager.NavigateTo(CompanyRoutes.Details(Id));
+            NavigationManager.NavigateTo(CompanyRoutes.Details(slug));
             return;
         }
 

@@ -24,5 +24,6 @@ Each significant decision is recorded as a short ADR: context, decision, consequ
 | [0018](0018-feature-folders-in-every-project.md) | Feature folders in every project | Accepted |
 | [0019](0019-git-hooks-with-husky-net.md) | Git hooks with Husky.Net: formatting and commit messages | Accepted |
 | [0020](0020-ci-and-protected-branches.md) | CI checks and protected `dev` and `main` branches | Accepted |
+| [0021](0021-slug-urls-for-companies.md) | Slug URLs for companies | Accepted |
 
 New ADRs copy the structure of an existing one and take the next number. An ADR is never edited once accepted: a new ADR supersedes it.

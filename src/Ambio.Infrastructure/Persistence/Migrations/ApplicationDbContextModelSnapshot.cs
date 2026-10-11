@@ -52,6 +52,10 @@ partial class ApplicationDbContextModelSnapshot : ModelSnapshot
                 b.Property<string>("Size")
                     .HasColumnType("TEXT");
 
+                b.Property<string>("Slug")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
+
                 b.Property<DateTime>("UpdatedAt")
                     .HasColumnType("TEXT");
 
@@ -61,6 +65,9 @@ partial class ApplicationDbContextModelSnapshot : ModelSnapshot
                 b.HasKey("Id");
 
                 b.HasIndex("Name")
+                    .IsUnique();
+
+                b.HasIndex("Slug")
                     .IsUnique();
 
                 b.ToTable("Companies");

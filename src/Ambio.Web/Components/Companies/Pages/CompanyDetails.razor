@@ -1,4 +1,4 @@
-@page "/companies/{Id:guid}"
+@page "/companies/{Slug}"
 @attribute [Authorize]
 @inject ICompanyService CompanyService
 @inject NavigationManager NavigationManager
@@ -9,7 +9,7 @@
     <AppBarBack Href="@CompanyRoutes.List" />
     <AppBarTitle>Company</AppBarTitle>
     <AppBarActions>
-        <ButtonLink Href="@CompanyRoutes.Edit(Id)" Icon="pencil" IconOnly aria-label="Edit company" />
+        <ButtonLink Href="@CompanyRoutes.Edit(_company.Slug)" Icon="pencil" IconOnly aria-label="Edit company" />
     </AppBarActions>
 
     <div class="company-detail">
@@ -18,7 +18,7 @@
                 <Tag Icon="building">@_company.Kind.ToLabel()</Tag>
             </Tags>
             <Actions>
-                <ButtonLink Href="@CompanyRoutes.Edit(Id)" Variant="ButtonVariant.Secondary" Icon="pencil">Edit</ButtonLink>
+                <ButtonLink Href="@CompanyRoutes.Edit(_company.Slug)" Variant="ButtonVariant.Secondary" Icon="pencil">Edit</ButtonLink>
             </Actions>
         </DetailHeader>
 
@@ -46,13 +46,13 @@
 
 @code {
     [Parameter]
-    public Guid Id { get; set; }
+    public string Slug { get; set; } = "";
 
     private CompanyDetailsDto? _company;
 
     protected override async Task OnInitializedAsync()
     {
-        _company = await CompanyService.GetAsync(Id);
+        _company = await CompanyService.GetAsync(Slug);
 
         if (_company is null)
         {

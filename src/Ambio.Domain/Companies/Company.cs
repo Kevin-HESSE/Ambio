@@ -16,6 +16,8 @@ public class Company : ITimeStampable
         }
     }
 
+    public required string Slug { get; set; }
+
     public required CompanyKind Kind { get; set; }
 
     public string? Website { get; set; }
