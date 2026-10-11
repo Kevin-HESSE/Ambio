@@ -30,6 +30,7 @@ erDiagram
     COMPANY {
         guid Id
         string Name "unique, case-insensitive"
+        string Slug "unique, used in URLs"
         enum Kind "Employer | RecruitmentAgency | ServiceCompany"
         string Website
         string Industry
@@ -136,6 +137,13 @@ A company profile that is kept across applications.
 - `Name` is unique, compared case-insensitively (`COLLATE NOCASE`).
 - `Size` is a range (`1-10`, `11-50`, `51-250`, `251-1000`, `1001+`).
 
+**URL: slug**. The company page is `/companies/{Slug}`, for example `/companies/brightwave` ([ADR 0021](adr/0021-slug-urls-for-companies.md)):
+
+- `Slug` is stored, with a unique index, and generated from the name by `Slug.From(...)` (see [Application hierarchy](#application-hierarchy)). A name with no letter or digit left gives `company`.
+- A slug already held by another company, archived or not, gets the first free numeric suffix: `acme-inc`, `acme-inc-2`, `acme-inc-3`… Slugs caught by a page route (`new`) are reserved and get a suffix too.
+- Only a rename recomputes the slug. Old links aren't kept: the previous slug leads to the Not Found page.
+- `Guid Id` remains the primary key and the target of every foreign key.
+
 ### CompanyNote
 
 Dated research notes written in plain text, such as "culture, tech stack, feedback from former employees, what was said in the first interview". They are shown as a timeline on the company page, newest first. They are deleted with their company.
@@ -196,7 +204,7 @@ The base class carries everything they share:
 ```
 
 - The **short id** identifies the application. It keeps two applications with the same title (the same job applied to twice, or the same title at two companies) apart.
-- The **slug** makes the URL readable. It isn't stored: it's computed from the title (offer title or `TargetPosition`) and the effective company name. A `Slug.From(...)` helper in Application lowercases, removes accents, replaces anything that isn't a letter or digit with `-`, and truncates to 60 characters.
+- The **slug** makes the URL readable. It isn't stored: it's computed from the title (offer title or `TargetPosition`) and the effective company name. A `Slug.From(...)` helper in Application keeps lowercase ASCII letters and digits only: it removes accents, spells out `œ`, `æ` and `ß`, replaces any other run of characters with one `-`, truncates to 60 characters, and returns a fallback given by the caller when nothing is left.
 - The page looks the application up by `ShortId` only. When the slug in the URL doesn't match the current one (the title changed, the link was mistyped), the page redirects to the canonical URL, so old links keep working.
 - The short id is **random rather than sequential**, so the URL doesn't reveal how many applications exist ([ADR 0013](adr/0013-guid-v7-primary-keys.md)).
 - **Generation**: the creating service in Infrastructure calls `Nanoid.Generate(alphabet, size)`. The domain doesn't depend on the library: it receives the value. The service retries while the id is already taken, and the unique index is the final guard.

@@ -92,7 +92,7 @@ The screens of the MVP ([Phase 1](roadmap.md#phase-1--application-tracking-mvp))
 | 12 | Offer — detail | `/offers/{id}` | Postings (site, link, seen on), applications, plain-text copy of the ad. | — |
 | 13 | New offer | `/offers/new` | Offer, first posting, ad text. **Duplicate suggestion** banner when the company and a similar title match. | Recruiter company (2b) |
 | 14 | Companies — list | `/companies` | Kind, industry, location, offers and applications counts. | — |
-| 15 | Company — detail | `/companies/{id}` | Profile, description, Offers and Applications tabs. | Notes and Contacts tabs (2b) |
+| 15 | Company — detail | `/companies/{slug}` | Profile, description, Offers and Applications tabs. | Notes and Contacts tabs (2b) |
 | 16 | More sheet | mobile only | Settings, Account, Theme, Log out. | Profile, My CVs, Templates, Export |
 | 17 | Settings | `/settings` | Follow-up delay (days), theme. | Language (5) |
 | 18 | Account | `/Account/Manage` | Identity management: section list on desktop, scrolling tabs on mobile. | External logins (5) |

@@ -45,7 +45,7 @@ Each item is a vertical slice: domain, persistence, service, page and tests for 
   - EF Core mapping class and migration, `SaveChangesInterceptor` for `CreatedAt`/`UpdatedAt`
   - Application service returning DTOs, with the mapping written as extension methods
 - [x] Companies: detail and edit
-- [ ] Companies: readable URLs such as `/companies/brightwave`, with a unique slug stored from the name (suffix on collision, recomputed on rename)
+- [x] Companies: readable URLs such as `/companies/brightwave`, with a unique slug stored from the name (suffix on collision, recomputed on rename)
 - [ ] Offers: create and list, `JobOffer` with a plain-text copy of the ad and its first `JobOfferPosting`, offers shown on the company page
 - [ ] Offers: detail with their postings (the same offer seen on several sites), edit
 - [ ] Offers: duplicate suggestion when creating an offer (same company, similar title)
