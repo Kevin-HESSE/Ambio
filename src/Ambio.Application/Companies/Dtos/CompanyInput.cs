@@ -5,8 +5,8 @@ using Ambio.Domain.Companies;
 
 namespace Ambio.Application.Companies.Dtos;
 
-/// <summary>The fields of the new company form.</summary>
-public record CreateCompanyInput
+/// <summary>The fields of the company form, to create or edit a company.</summary>
+public record CompanyInput
 {
     [Required(ErrorMessage = "Enter the name of the company.")]
     [StringLength(200, ErrorMessage = "The name can't be longer than {1} characters.")]

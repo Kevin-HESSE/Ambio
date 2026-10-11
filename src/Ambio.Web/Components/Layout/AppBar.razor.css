@@ -11,6 +11,24 @@
     border-bottom: 1px solid var(--ambio-border-default);
 }
 
+.appbar-back {
+    display: flex;
+    margin-left: calc(-1 * var(--ambio-space-8));
+}
+
+.appbar-back:empty {
+    display: none;
+}
+
+.appbar-logo {
+    display: flex;
+}
+
+/* The back arrow takes the place of the logo. */
+.appbar-back:not(:empty) + .appbar-logo {
+    display: none;
+}
+
 .appbar-title {
     flex: 1;
     min-width: 0;

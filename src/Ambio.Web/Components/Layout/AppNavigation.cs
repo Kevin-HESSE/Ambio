@@ -1,3 +1,5 @@
+using Ambio.Web.Components.Companies;
+
 using Microsoft.AspNetCore.Components.Routing;
 
 namespace Ambio.Web.Components.Layout;
@@ -12,7 +14,7 @@ public static class AppNavigation
     public static IReadOnlyList<NavigationEntry> Tracking { get; } =
     [
         new("Dashboard", "Home", "", "house-door", "house-door-fill", NavLinkMatch.All),
-        new("Companies", "Companies", "companies", "building", "building-fill"),
+        new("Companies", "Companies", CompanyRoutes.List, "building", "building-fill"),
     ];
 
     /// <summary>Base-relative paths of the pages reached from the More sheet, where the "More" tab is active.</summary>

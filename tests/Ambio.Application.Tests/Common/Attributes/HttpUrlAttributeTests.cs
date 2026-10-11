@@ -21,6 +21,13 @@ public class HttpUrlAttributeTests
     }
 
     [Theory]
+    [MemberData(nameof(UrlsWithoutDomainName))]
+    public void IsValid_WithoutDomainName_ReturnsFalse(string url)
+    {
+        Assert.False(_attribute.IsValid(url));
+    }
+
+    [Theory]
     [InlineData(null)]
     [InlineData("")]
     public void IsValid_WithNullOrEmpty_ReturnsTrue(string? url)
@@ -31,7 +38,7 @@ public class HttpUrlAttributeTests
     [Fact]
     public void FormatErrorMessage_Default_SaysHowToFixTheValue()
     {
-        Assert.Equal("Enter the full link, starting with https://", _attribute.FormatErrorMessage("Website"));
+        Assert.Equal("Enter the full link, such as https://example.com", _attribute.FormatErrorMessage("Website"));
     }
 
     public static TheoryData<string> ValidUrls =>
@@ -40,6 +47,8 @@ public class HttpUrlAttributeTests
         "http://brightwave.io/careers",
         "https://www.linkedin.com/company/brightwave/",
         " https://brightwave.io ",
+        "https://careers.kelvio.co.uk/jobs?id=42",
+        "https://café.fr",
     ];
 
     public static TheoryData<string> InvalidUrls =>
@@ -50,5 +59,15 @@ public class HttpUrlAttributeTests
         "mailto:jobs@brightwave.io",
         "https://",
         "not a link",
+    ];
+
+    public static TheoryData<string> UrlsWithoutDomainName =>
+    [
+        "https://acme",
+        "https://acme.",
+        "https://acme.c",
+        "https://acme.123",
+        "https://localhost:5160",
+        "https://192.168.1.10",
     ];
 }

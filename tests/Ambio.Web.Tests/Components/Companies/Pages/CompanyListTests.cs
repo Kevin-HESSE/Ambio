@@ -1,6 +1,7 @@
 using Ambio.Application.Companies;
 using Ambio.Application.Companies.Dtos;
 using Ambio.Domain.Companies;
+using Ambio.Web.Components.Companies;
 using Ambio.Web.Components.Companies.Pages;
 
 using Bunit;
@@ -13,8 +14,6 @@ namespace Ambio.Web.Tests.Components.Companies.Pages;
 
 public class CompanyListTests : BunitContext
 {
-    private const string NewCompanyPath = "companies/new";
-
     private readonly ICompanyService _companyService = Substitute.For<ICompanyService>();
 
     public CompanyListTests()
@@ -29,7 +28,7 @@ public class CompanyListTests : BunitContext
 
         var cut = Render<CompanyList>();
 
-        Assert.NotNull(cut.Find($".empty a[href='{NewCompanyPath}']"));
+        Assert.NotNull(cut.Find($".empty a[href='{CompanyRoutes.New}']"));
         Assert.Empty(cut.FindAll("table"));
     }
 
@@ -62,13 +61,25 @@ public class CompanyListTests : BunitContext
     }
 
     [Fact]
+    public void Render_WithCompanies_LinksEachRowAndCardToItsDetails()
+    {
+        GivenCompanies(Brightwave, Talentis);
+
+        var cut = Render<CompanyList>();
+
+        string[] expected = [CompanyRoutes.Details(Brightwave.Id), CompanyRoutes.Details(Talentis.Id)];
+        Assert.Equal(expected, cut.FindAll("tbody a").Select(link => link.GetAttribute("href")));
+        Assert.Equal(expected, cut.FindAll("a.company-card").Select(link => link.GetAttribute("href")));
+    }
+
+    [Fact]
     public void Render_WithCompanies_LinksToNewCompany()
     {
         GivenCompanies(Brightwave);
 
         var cut = Render<CompanyList>();
 
-        Assert.NotNull(cut.Find($".page-header a[href='{NewCompanyPath}']"));
+        Assert.NotNull(cut.Find($".page-header a[href='{CompanyRoutes.New}']"));
     }
 
     private void GivenCompanies(params CompanySummaryDto[] companies) =>

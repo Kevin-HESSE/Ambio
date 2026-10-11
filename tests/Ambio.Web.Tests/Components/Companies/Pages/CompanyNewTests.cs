@@ -2,6 +2,7 @@ using Ambio.Application.Common;
 using Ambio.Application.Companies;
 using Ambio.Application.Companies.Dtos;
 using Ambio.Domain.Companies;
+using Ambio.Web.Components.Companies;
 using Ambio.Web.Components.Companies.Pages;
 
 using Bunit;
@@ -16,9 +17,8 @@ namespace Ambio.Web.Tests.Components.Companies.Pages;
 public class CompanyNewTests : BunitContext
 {
     private const string CompanyName = "Brightwave";
-    private const string CompaniesPath = "companies";
     private const string NameError = "Enter the name of the company.";
-    private const string UrlError = "Enter the full link, starting with https://";
+    private const string UrlError = "Enter the full link, such as https://example.com";
 
     private readonly ICompanyService _companyService = Substitute.For<ICompanyService>();
 
@@ -53,14 +53,15 @@ public class CompanyNewTests : BunitContext
     {
         var cut = Render<CompanyNew>();
 
-        Assert.Equal("Cancel", cut.Find($".action-bar a[href='{CompaniesPath}']").TextContent.Trim());
+        Assert.Equal("Cancel", cut.Find($".action-bar a[href='{CompanyRoutes.List}']").TextContent.Trim());
     }
 
     [Fact]
-    public void Submit_WithValidInput_CreatesCompanyAndNavigatesToList()
+    public void Submit_WithValidInput_CreatesCompanyAndNavigatesToDetails()
     {
-        _companyService.CreateAsync(Arg.Any<CreateCompanyInput>(), Arg.Any<CancellationToken>())
-            .Returns(ServiceResult<Guid>.Success(Guid.CreateVersion7()));
+        var id = Guid.CreateVersion7();
+        _companyService.CreateAsync(Arg.Any<CompanyInput>(), Arg.Any<CancellationToken>())
+            .Returns(ServiceResult<Guid>.Success(id));
         var cut = Render<CompanyNew>();
 
         cut.Find("#company-name").Change(CompanyName);
@@ -68,9 +69,9 @@ public class CompanyNewTests : BunitContext
         cut.Find("form").Submit();
 
         _companyService.Received(1).CreateAsync(
-            Arg.Is<CreateCompanyInput>(input => input.Name == CompanyName && input.Kind == CompanyKind.RecruitmentAgency),
+            Arg.Is<CompanyInput>(input => input.Name == CompanyName && input.Kind == CompanyKind.RecruitmentAgency),
             Arg.Any<CancellationToken>());
-        Assert.EndsWith($"/{CompaniesPath}", Services.GetRequiredService<NavigationManager>().Uri);
+        Assert.EndsWith($"/{CompanyRoutes.Details(id)}", Services.GetRequiredService<NavigationManager>().Uri);
     }
 
     [Fact]
@@ -100,7 +101,7 @@ public class CompanyNewTests : BunitContext
     [Fact]
     public void Submit_WithExistingName_ShowsErrorUnderNameAndStaysOnPage()
     {
-        _companyService.CreateAsync(Arg.Any<CreateCompanyInput>(), Arg.Any<CancellationToken>())
+        _companyService.CreateAsync(Arg.Any<CompanyInput>(), Arg.Any<CancellationToken>())
             .Returns(ServiceResult<Guid>.Failure(CompanyErrors.AlreadyExists));
         var cut = Render<CompanyNew>();
         var navigation = Services.GetRequiredService<NavigationManager>();
@@ -114,5 +115,5 @@ public class CompanyNewTests : BunitContext
     }
 
     private void AssertNotCreated() =>
-        _companyService.DidNotReceive().CreateAsync(Arg.Any<CreateCompanyInput>(), Arg.Any<CancellationToken>());
+        _companyService.DidNotReceive().CreateAsync(Arg.Any<CompanyInput>(), Arg.Any<CancellationToken>());
 }

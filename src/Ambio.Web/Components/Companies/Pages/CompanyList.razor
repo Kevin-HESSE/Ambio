@@ -5,12 +5,12 @@
 <PageTitle>Companies</PageTitle>
 <AppBarTitle>Companies</AppBarTitle>
 <AppBarActions>
-    <ButtonLink Href="@NewCompanyPath" Icon="plus-lg" IconOnly aria-label="New company" />
+    <ButtonLink Href="@CompanyRoutes.New" Icon="plus-lg" IconOnly aria-label="New company" />
 </AppBarActions>
 
 <PageHeader Title="Companies" Subtitle="Employers, agencies and IT services companies">
     <Actions>
-        <ButtonLink Href="@NewCompanyPath" Variant="ButtonVariant.Primary" Icon="plus-lg">New company</ButtonLink>
+        <ButtonLink Href="@CompanyRoutes.New" Variant="ButtonVariant.Primary" Icon="plus-lg">New company</ButtonLink>
     </Actions>
 </PageHeader>
 
@@ -20,7 +20,7 @@
         <EmptyState Icon="building" Title="No companies yet">
             <ChildContent>Keep a profile of each employer, recruitment agency or IT services company you apply to, and find it again with every offer.</ChildContent>
             <Actions>
-                <ButtonLink Href="@NewCompanyPath" Variant="ButtonVariant.Primary" Icon="plus-lg">New company</ButtonLink>
+                <ButtonLink Href="@CompanyRoutes.New" Variant="ButtonVariant.Primary" Icon="plus-lg">New company</ButtonLink>
             </Actions>
         </EmptyState>
     </section>
@@ -41,8 +41,6 @@ else if (_companies is not null)
 }
 
 @code {
-    private const string NewCompanyPath = "companies/new";
-
     private IReadOnlyList<CompanySummaryDto>? _companies;
 
     protected override async Task OnInitializedAsync() => _companies = await CompanyService.ListAsync();

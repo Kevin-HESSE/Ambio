@@ -4,4 +4,6 @@ namespace Ambio.Application.Companies;
 public static class CompanyErrors
 {
     public const string AlreadyExists = "A company with this name already exists. Choose another name.";
+
+    public const string NotFound = "This company doesn't exist.";
 }

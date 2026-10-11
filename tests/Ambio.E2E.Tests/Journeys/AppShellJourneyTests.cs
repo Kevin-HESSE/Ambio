@@ -18,7 +18,6 @@ public class AppShellJourneyTests : IClassFixture<AmbioAppFixture>
 
     private const string UserEmail = "user@example.com";
     private const string UserPassword = "Passw0rd!";
-    private const string LoginPath = "Account/Login";
     private const string MoreSheetSelector = "#more-sheet";
 
     [Fact]
@@ -34,10 +33,7 @@ public class AppShellJourneyTests : IClassFixture<AmbioAppFixture>
         var page = await context.NewPageAsync();
         var html = page.Locator("html");
 
-        await page.GotoAsync(LoginPath);
-        await page.GetByLabel("Email").FillAsync(UserEmail);
-        await page.GetByLabel("Password").FillAsync(UserPassword);
-        await page.GetByRole(AriaRole.Button, new() { Name = "Log in" }).ClickAsync();
+        await page.LogInAsync(UserEmail, UserPassword);
         await Expect(page.GetByRole(AriaRole.Navigation).GetByRole(AriaRole.Button, new() { Name = "More" })).ToBeVisibleAsync();
         await Expect(html).ToHaveAttributeAsync("data-bs-theme", "light");
 

@@ -107,9 +107,11 @@ What the mockups are built from, and the Blazor component each becomes. Stock Bo
 
 | UI element | Mockup class | Future component |
 |---|---|---|
-| App shell | `app`, `sidebar`, `appbar`, `tabbar`, `fab` | `MainLayout.razor`, `Sidebar.razor`, `AppBar.razor`, `TabBar.razor` |
+| App shell | `app`, `sidebar`, `appbar`, `tabbar`, `fab` | `MainLayout.razor`, `Sidebar.razor`, `AppBar.razor` (with `AppBarTitle`, `AppBarActions` and the back arrow `AppBarBack`), `TabBar.razor` |
 | Logo | `logo`, `logo-mark` | `Logo.razor` |
-| Page header | `page-header`, `breadcrumb` | `PageHeader.razor` |
+| Page header | `page-header` | `PageHeader.razor` |
+| Detail header | `detail-head`, `breadcrumb` | `DetailHeader.razor` (title, tags, actions) |
+| Link to another site | `box-arrow-up-right` icon | `ExternalLink.razor` (new tab, short text) |
 | Status badge | `status-badge status-{status}` | `StatusBadge.razor` |
 | Tag | `tag`, `tag-accent`, `tag-archived` | `Tag.razor` |
 | Filter chip | `chip` | `FilterChip.razor` |

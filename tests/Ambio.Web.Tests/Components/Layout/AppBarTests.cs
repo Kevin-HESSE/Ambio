@@ -11,6 +11,7 @@ public class AppBarTests : BunitContext
 {
     private const string PageTitle = "Dashboard";
     private const string ActionLabel = "New company";
+    private const string ParentHref = "companies";
 
     public AppBarTests()
     {
@@ -51,6 +52,29 @@ public class AppBarTests : BunitContext
         var cut = Render<MainLayout>(parameters => parameters.Add(layout => layout.Body, page));
 
         Assert.NotNull(cut.Find($".appbar-actions button[aria-label='{ActionLabel}']"));
+    }
+
+    [Fact]
+    public void Render_WhenPageSetsBackLink_ShowsItInAppBar()
+    {
+        RenderFragment page = builder =>
+        {
+            builder.OpenComponent<AppBarBack>(0);
+            builder.AddComponentParameter(1, nameof(AppBarBack.Href), ParentHref);
+            builder.CloseComponent();
+        };
+
+        var cut = Render<MainLayout>(parameters => parameters.Add(layout => layout.Body, page));
+
+        Assert.NotNull(cut.Find($".appbar-back a[href='{ParentHref}'][aria-label='Back']"));
+    }
+
+    [Fact]
+    public void Render_WhenPageSetsNoBackLink_LeavesBackEmpty()
+    {
+        var cut = Render<MainLayout>(parameters => parameters.Add(layout => layout.Body, (RenderFragment)(_ => { })));
+
+        Assert.Empty(cut.Find(".appbar-back").InnerHtml);
     }
 
     [Fact]

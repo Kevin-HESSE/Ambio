@@ -1,12 +1,12 @@
 @* A company in the mobile list (< 992 px). *@
-<div class="company-card">
+<a class="company-card" href="@CompanyRoutes.Details(Company.Id)">
     <span class="company-name t-body-strong">@Company.Name</span>
     @if (Details.Length > 0)
     {
         <div class="company-details t-small">@Details</div>
     }
     <div><Tag Icon="building">@Company.Kind.ToLabel()</Tag></div>
-</div>
+</a>
 
 @code {
     [Parameter, EditorRequired]
