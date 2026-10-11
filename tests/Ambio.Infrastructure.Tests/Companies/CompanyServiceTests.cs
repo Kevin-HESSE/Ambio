@@ -12,6 +12,7 @@ namespace Ambio.Infrastructure.Tests.Companies;
 public class CompanyServiceTests : IAsyncLifetime
 {
     private const string CompanyName = "Brightwave";
+    private const string OtherCompanyName = "Kelvio";
     private const string Industry = "Software";
     private const string Location = "Lyon";
     private const string Website = "https://brightwave.io";
@@ -63,6 +64,45 @@ public class CompanyServiceTests : IAsyncLifetime
         var summary = Assert.Single(await ListAsync());
 
         Assert.Equal(CompanyName, summary.Name);
+    }
+
+    [Fact]
+    public async Task GetAsync_WithUnknownId_ReturnsNull()
+    {
+        await AddAsync(NewCompany(CompanyName));
+
+        Assert.Null(await GetAsync(Guid.CreateVersion7()));
+    }
+
+    [Fact]
+    public async Task GetAsync_WithCompany_ReturnsEveryField()
+    {
+        var company = NewCompany(CompanyName, CompanyKind.ServiceCompany);
+        company.Industry = Industry;
+        company.Size = CompanySize.Medium;
+        company.Location = Location;
+        company.Website = Website;
+        company.LinkedInUrl = LinkedInUrl;
+        company.Description = Description;
+        await AddAsync(company);
+
+        var details = await GetAsync(company.Id);
+
+        Assert.Equal(
+            new CompanyDetailsDto(company.Id, CompanyName, CompanyKind.ServiceCompany, Industry, CompanySize.Medium, Location, Website, LinkedInUrl, Description),
+            details);
+    }
+
+    [Fact]
+    public async Task GetAsync_WithArchivedCompany_ReturnsIt()
+    {
+        var archived = NewCompany(CompanyName);
+        archived.ArchivedAt = DateTime.UtcNow;
+        await AddAsync(archived);
+
+        var details = await GetAsync(archived.Id);
+
+        Assert.Equal(CompanyName, details?.Name);
     }
 
     [Fact]
@@ -137,6 +177,108 @@ public class CompanyServiceTests : IAsyncLifetime
         Assert.Equal(CompanyErrors.AlreadyExists, result.GetMessage);
     }
 
+    [Fact]
+    public async Task UpdateAsync_WithEveryField_SavesThem()
+    {
+        var company = NewCompany(OtherCompanyName);
+        await AddAsync(company);
+
+        var result = await UpdateAsync(company.Id, new CompanyInput
+        {
+            Name = CompanyName,
+            Kind = CompanyKind.ServiceCompany,
+            Industry = Industry,
+            Size = CompanySize.Medium,
+            Location = Location,
+            Website = Website,
+            LinkedInUrl = LinkedInUrl,
+            Description = Description,
+        });
+
+        Assert.True(result.IsSuccess);
+        var saved = await FindAsync(company.Id);
+        Assert.Equal(CompanyName, saved.Name);
+        Assert.Equal(CompanyKind.ServiceCompany, saved.Kind);
+        Assert.Equal(Industry, saved.Industry);
+        Assert.Equal(CompanySize.Medium, saved.Size);
+        Assert.Equal(Location, saved.Location);
+        Assert.Equal(Website, saved.Website);
+        Assert.Equal(LinkedInUrl, saved.LinkedInUrl);
+        Assert.Equal(Description, saved.Description);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WithPaddedOrBlankFields_TrimsThemAndStoresBlankAsNull()
+    {
+        var company = NewCompany(CompanyName);
+        company.Industry = Industry;
+        company.Website = Website;
+        await AddAsync(company);
+
+        var result = await UpdateAsync(company.Id, new CompanyInput
+        {
+            Name = $"  {CompanyName}  ",
+            Industry = "   ",
+            Location = $" {Location} ",
+            Website = "",
+        });
+
+        Assert.True(result.IsSuccess);
+        var saved = await FindAsync(company.Id);
+        Assert.Equal(CompanyName, saved.Name);
+        Assert.Null(saved.Industry);
+        Assert.Equal(Location, saved.Location);
+        Assert.Null(saved.Website);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WithOwnNameInOtherCase_RenamesIt()
+    {
+        var company = NewCompany("brightwave");
+        await AddAsync(company);
+
+        var result = await UpdateAsync(company.Id, new CompanyInput { Name = CompanyName });
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(CompanyName, (await FindAsync(company.Id)).Name);
+    }
+
+    [Theory]
+    [MemberData(nameof(SameNames))]
+    public async Task UpdateAsync_WithNameOfAnotherCompanyIgnoringCase_ReturnsAlreadyExists(string name)
+    {
+        var company = NewCompany(OtherCompanyName);
+        await AddAsync(NewCompany(CompanyName), company);
+
+        var result = await UpdateAsync(company.Id, new CompanyInput { Name = name });
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(CompanyErrors.AlreadyExists, result.GetMessage);
+        Assert.Equal(OtherCompanyName, (await FindAsync(company.Id)).Name);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WithNameOfArchivedCompany_ReturnsAlreadyExists()
+    {
+        var archived = NewCompany(CompanyName);
+        archived.ArchivedAt = DateTime.UtcNow;
+        var company = NewCompany(OtherCompanyName);
+        await AddAsync(archived, company);
+
+        var result = await UpdateAsync(company.Id, new CompanyInput { Name = CompanyName });
+
+        Assert.Equal(CompanyErrors.AlreadyExists, result.GetMessage);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WithUnknownId_ReturnsNotFound()
+    {
+        var result = await UpdateAsync(Guid.CreateVersion7(), new CompanyInput { Name = CompanyName });
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(CompanyErrors.NotFound, result.GetMessage);
+    }
+
     private static Company NewCompany(string name, CompanyKind kind = CompanyKind.Employer) => new()
     {
         Name = name,
@@ -157,11 +299,25 @@ public class CompanyServiceTests : IAsyncLifetime
         return await service.ListAsync(TestContext.Current.CancellationToken);
     }
 
+    private async Task<CompanyDetailsDto?> GetAsync(Guid id)
+    {
+        await using var scope = _services.CreateScope();
+        var service = scope.ServiceProvider.GetRequiredService<ICompanyService>();
+        return await service.GetAsync(id, TestContext.Current.CancellationToken);
+    }
+
     private async Task<ServiceResult<Guid>> CreateAsync(CompanyInput input)
     {
         await using var scope = _services.CreateScope();
         var service = scope.ServiceProvider.GetRequiredService<ICompanyService>();
         return await service.CreateAsync(input, TestContext.Current.CancellationToken);
+    }
+
+    private async Task<ServiceResult> UpdateAsync(Guid id, CompanyInput input)
+    {
+        await using var scope = _services.CreateScope();
+        var service = scope.ServiceProvider.GetRequiredService<ICompanyService>();
+        return await service.UpdateAsync(id, input, TestContext.Current.CancellationToken);
     }
 
     private async Task<Company> FindAsync(Guid id)
