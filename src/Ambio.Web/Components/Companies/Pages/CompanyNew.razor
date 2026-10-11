@@ -67,7 +67,7 @@
     private const string CompaniesPath = "companies";
 
     [SupplyParameterFromForm]
-    private CreateCompanyInput Input { get; set; } = default!;
+    private CompanyInput Input { get; set; } = default!;
 
     protected override void OnInitialized() => Input ??= new();
 

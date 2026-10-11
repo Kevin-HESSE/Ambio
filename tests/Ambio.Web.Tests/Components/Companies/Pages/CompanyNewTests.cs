@@ -59,7 +59,7 @@ public class CompanyNewTests : BunitContext
     [Fact]
     public void Submit_WithValidInput_CreatesCompanyAndNavigatesToList()
     {
-        _companyService.CreateAsync(Arg.Any<CreateCompanyInput>(), Arg.Any<CancellationToken>())
+        _companyService.CreateAsync(Arg.Any<CompanyInput>(), Arg.Any<CancellationToken>())
             .Returns(ServiceResult<Guid>.Success(Guid.CreateVersion7()));
         var cut = Render<CompanyNew>();
 
@@ -68,7 +68,7 @@ public class CompanyNewTests : BunitContext
         cut.Find("form").Submit();
 
         _companyService.Received(1).CreateAsync(
-            Arg.Is<CreateCompanyInput>(input => input.Name == CompanyName && input.Kind == CompanyKind.RecruitmentAgency),
+            Arg.Is<CompanyInput>(input => input.Name == CompanyName && input.Kind == CompanyKind.RecruitmentAgency),
             Arg.Any<CancellationToken>());
         Assert.EndsWith($"/{CompaniesPath}", Services.GetRequiredService<NavigationManager>().Uri);
     }
@@ -100,7 +100,7 @@ public class CompanyNewTests : BunitContext
     [Fact]
     public void Submit_WithExistingName_ShowsErrorUnderNameAndStaysOnPage()
     {
-        _companyService.CreateAsync(Arg.Any<CreateCompanyInput>(), Arg.Any<CancellationToken>())
+        _companyService.CreateAsync(Arg.Any<CompanyInput>(), Arg.Any<CancellationToken>())
             .Returns(ServiceResult<Guid>.Failure(CompanyErrors.AlreadyExists));
         var cut = Render<CompanyNew>();
         var navigation = Services.GetRequiredService<NavigationManager>();
@@ -114,5 +114,5 @@ public class CompanyNewTests : BunitContext
     }
 
     private void AssertNotCreated() =>
-        _companyService.DidNotReceive().CreateAsync(Arg.Any<CreateCompanyInput>(), Arg.Any<CancellationToken>());
+        _companyService.DidNotReceive().CreateAsync(Arg.Any<CompanyInput>(), Arg.Any<CancellationToken>());
 }

@@ -10,7 +10,7 @@ public static class CompanyMappingExtensions
         companies.Select(c => new CompanySummaryDto(c.Id, c.Name, c.Kind, c.Industry, c.Location));
 
     /// <summary>The optional text fields are trimmed, and a blank one is stored as null.</summary>
-    public static Company ToEntity(this CreateCompanyInput input) => new()
+    public static Company ToEntity(this CompanyInput input) => new()
     {
         Name = input.Name,
         Kind = input.Kind,

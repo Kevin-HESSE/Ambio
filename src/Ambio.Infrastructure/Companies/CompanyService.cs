@@ -28,7 +28,7 @@ internal class CompanyService : ICompanyService
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<ServiceResult<Guid>> CreateAsync(CreateCompanyInput input, CancellationToken cancellationToken = default)
+    public async Task<ServiceResult<Guid>> CreateAsync(CompanyInput input, CancellationToken cancellationToken = default)
     {
         var company = input.ToEntity();
 

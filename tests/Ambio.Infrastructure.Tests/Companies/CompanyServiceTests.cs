@@ -68,7 +68,7 @@ public class CompanyServiceTests : IAsyncLifetime
     [Fact]
     public async Task CreateAsync_WithEveryField_SavesTheCompanyAndReturnsItsId()
     {
-        var result = await CreateAsync(new CreateCompanyInput
+        var result = await CreateAsync(new CompanyInput
         {
             Name = CompanyName,
             Kind = CompanyKind.ServiceCompany,
@@ -96,7 +96,7 @@ public class CompanyServiceTests : IAsyncLifetime
     [Fact]
     public async Task CreateAsync_WithPaddedOrBlankFields_TrimsThemAndStoresBlankAsNull()
     {
-        var result = await CreateAsync(new CreateCompanyInput
+        var result = await CreateAsync(new CompanyInput
         {
             Name = $"  {CompanyName}  ",
             Industry = "   ",
@@ -118,7 +118,7 @@ public class CompanyServiceTests : IAsyncLifetime
     {
         await AddAsync(NewCompany(CompanyName));
 
-        var result = await CreateAsync(new CreateCompanyInput { Name = name });
+        var result = await CreateAsync(new CompanyInput { Name = name });
 
         Assert.False(result.IsSuccess);
         Assert.Equal(CompanyErrors.AlreadyExists, result.GetMessage);
@@ -132,7 +132,7 @@ public class CompanyServiceTests : IAsyncLifetime
         archived.ArchivedAt = DateTime.UtcNow;
         await AddAsync(archived);
 
-        var result = await CreateAsync(new CreateCompanyInput { Name = CompanyName });
+        var result = await CreateAsync(new CompanyInput { Name = CompanyName });
 
         Assert.Equal(CompanyErrors.AlreadyExists, result.GetMessage);
     }
@@ -157,7 +157,7 @@ public class CompanyServiceTests : IAsyncLifetime
         return await service.ListAsync(TestContext.Current.CancellationToken);
     }
 
-    private async Task<ServiceResult<Guid>> CreateAsync(CreateCompanyInput input)
+    private async Task<ServiceResult<Guid>> CreateAsync(CompanyInput input)
     {
         await using var scope = _services.CreateScope();
         var service = scope.ServiceProvider.GetRequiredService<ICompanyService>();
