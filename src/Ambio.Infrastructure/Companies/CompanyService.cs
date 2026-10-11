@@ -9,12 +9,6 @@ namespace Ambio.Infrastructure.Companies;
 
 internal class CompanyService : ICompanyService
 {
-    // The slug of a company whose name keeps no letter or digit.
-    private const string SlugFallback = "company";
-
-    // Slugs that a page route would catch first, such as /companies/new.
-    private static readonly string[] ReservedSlugs = ["new"];
-
     private readonly IDbContextFactory<ApplicationDbContext> _dbFactory;
 
     public CompanyService(IDbContextFactory<ApplicationDbContext> dbFactory)
@@ -56,7 +50,7 @@ internal class CompanyService : ICompanyService
             return ServiceResult<string>.Failure(CompanyErrors.AlreadyExists);
         }
 
-        var company = input.ToEntity(await FreeSlugAsync(db, name, companyId: null, cancellationToken));
+        var company = input.ToEntity(await CompanySlugs.FreeSlugAsync(db, name, companyId: null, cancellationToken));
         db.Companies.Add(company);
         await db.SaveChangesAsync(cancellationToken);
 
@@ -85,35 +79,11 @@ internal class CompanyService : ICompanyService
         // Only a rename moves the company to another URL: old links aren't kept.
         if (company.Name != previousName)
         {
-            company.Slug = await FreeSlugAsync(db, company.Name, company.Id, cancellationToken);
+            company.Slug = await CompanySlugs.FreeSlugAsync(db, company.Name, company.Id, cancellationToken);
         }
 
         await db.SaveChangesAsync(cancellationToken);
 
         return ServiceResult<string>.Success(company.Slug);
-    }
-
-    /// <summary>The slug of the name, followed by -2, -3… while it is reserved or held by another company,
-    /// archived or not. The company itself is left out, so a rename keeps a slug it already holds.
-    /// The unique index on Slug is the final guard.</summary>
-    private static async Task<string> FreeSlugAsync(
-        ApplicationDbContext db, string name, Guid? companyId, CancellationToken cancellationToken)
-    {
-        var slug = Slug.From(name, SlugFallback);
-        var candidate = slug;
-        var suffix = 1;
-
-        while (await IsTakenAsync(candidate))
-        {
-            suffix++;
-            candidate = $"{slug}-{suffix}";
-        }
-
-        return candidate;
-
-        // Taken: reserved for a route, or held by another company, archived or not.
-        async Task<bool> IsTakenAsync(string candidate) =>
-            ReservedSlugs.Contains(candidate)
-            || await db.Companies.AnyAsync(c => c.Id != companyId && c.Slug == candidate, cancellationToken);
     }
 }
