@@ -1,0 +1,72 @@
+@page "/companies/{Id:guid}/edit"
+@attribute [Authorize]
+@inject ICompanyService CompanyService
+@inject NavigationManager NavigationManager
+
+@if (_company is not null)
+{
+    <PageTitle>Edit @_company.Name</PageTitle>
+    <AppBarBack Href="@CompanyRoutes.Details(Id)" />
+    <AppBarTitle>Edit company</AppBarTitle>
+
+    <PageHeader Title="Edit company" Subtitle="@_company.Name" />
+
+    <section class="card form-page">
+        <EditForm Model="Input" method="post" OnValidSubmit="UpdateCompany" FormName="edit-company" novalidate class="card-body form-sections">
+            <DataAnnotationsValidator />
+
+            <CompanyFormFields Input="Input" />
+
+            <div class="action-bar">
+                <ButtonLink Href="@CompanyRoutes.Details(Id)" Variant="ButtonVariant.Secondary">Cancel</ButtonLink>
+                <button type="submit" class="btn btn-primary">Save changes</button>
+            </div>
+        </EditForm>
+    </section>
+}
+
+@code {
+    [Parameter]
+    public Guid Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private CompanyInput Input { get; set; } = default!;
+
+    // The company as saved: it names the page, even while the form holds unsaved changes.
+    private CompanyDetailsDto? _company;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _company = await CompanyService.GetAsync(Id);
+
+        if (_company is null)
+        {
+            NavigationManager.NotFound();
+            return;
+        }
+
+        // On a post, Input already holds the submitted values.
+        Input ??= _company.ToInput();
+    }
+
+    private async Task UpdateCompany(EditContext editContext)
+    {
+        var result = await CompanyService.UpdateAsync(Id, Input);
+
+        if (result.IsSuccess)
+        {
+            NavigationManager.NavigateTo(CompanyRoutes.Details(Id));
+            return;
+        }
+
+        if (result.GetMessage == CompanyErrors.NotFound)
+        {
+            NavigationManager.NotFound();
+            return;
+        }
+
+        // The other failure is a duplicate name: the message goes under the Name field.
+        new ValidationMessageStore(editContext).Add(() => Input.Name, result.GetMessage);
+        editContext.NotifyValidationStateChanged();
+    }
+}
