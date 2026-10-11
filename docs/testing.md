@@ -68,7 +68,9 @@ Playwright drives a headless Chromium against the real app, hosted in the test p
 - Every E2E test class carries `[Trait("Category", "E2E")]`, so the fast loop can exclude it.
 - Only **critical journeys** get an E2E test, as one test per journey. The current ones are:
   - `Journeys/SingleAccountJourneyTests`: register, confirm the email, log in, log out, then check that registration is closed;
-  - `Journeys/AppShellJourneyTests`: on a phone-sized viewport, open the More sheet, choose the Dark theme, check that it survives a reload, then log out from the sheet. It covers the shell script (`wwwroot/js/shell.js`), which bUnit doesn't run. Its account is created by `AmbioAppFixture.CreateConfirmedUserAsync`.
+  - `Journeys/AppShellJourneyTests`: on a phone-sized viewport, open the More sheet, choose the Dark theme, check that it survives a reload, then log out from the sheet. It covers the shell script (`wwwroot/js/shell.js`), which bUnit doesn't run. Its account is created by `AmbioAppFixture.CreateConfirmedUserAsync`;
+  - `Journeys/CompanyJourneyTests`: create a company (after a link refused by the validation), check its detail page, edit it, then open it again from the list. It covers the statically rendered forms and their redirects, which bUnit doesn't post.
+- Steps shared by several journeys are extension methods on Playwright's `IPage` in `Fixtures/PageExtensions.cs`, such as `LogInAsync`, which works at any viewport width.
 - Select elements by role or label (`GetByRole`, `GetByLabel`), and add a `data-testid` only when nothing else is stable. Assert with Playwright's `Expect`, which waits for the page instead of failing at once.
 
 ## PDF snapshot tests
