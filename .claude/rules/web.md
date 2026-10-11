@@ -21,6 +21,7 @@ paths: src/Ambio.Web/**
 ## UI
 
 - Colors, typography and spacing come from the `--ambio-*` CSS variables mapped onto Bootstrap. No hard-coded colors in components ([docs/design-system.md](../../docs/design-system.md), [ADR 0015](../../docs/adr/0015-neutral-visual-identity-with-status-colors.md)).
+- Size text fields in lines with the `lh` unit (`min-height: 6lh` for a textarea), not in pixels, so they follow the font and its line height.
 - Layout: bottom tab bar + "More" sheet below 992 px, sidebar above. Lists are tables on desktop and cards on mobile; detail pages put their tab in the URL (`?tab=`) ([docs/ui.md](../../docs/ui.md), mockups in `docs/mockups/`, [ADR 0016](../../docs/adr/0016-responsive-navigation-bottom-tabs-and-sidebar.md)).
 - The shell is rendered statically; its behaviors (sheets, theme) are in `wwwroot/js/shell.js` and the `<head>` script of `App.razor`. A new page adds its section to `Components/Layout/AppNavigation.cs` and sets its mobile title with `<AppBarTitle>`; a page below a list (detail, new, edit) adds `<AppBarBack>` towards its parent.
 - Each feature lists its base-relative URLs in `Components/<Feature>/<Feature>Routes.cs` (constants, plus builders such as `CompanyRoutes.Details(slug)`). Links, redirects, tests and `AppNavigation` use it; pages keep their `@page` template.

@@ -88,9 +88,9 @@ The screens of the MVP ([Phase 1](roadmap.md#phase-1--application-tracking-mvp))
 | 8 | Application — archived | same | Restore banner, Undo toast. | — |
 | 9 | New application | `/applications/new` | "From an offer / Spontaneous" toggle. Offer search with inline creation, or company and target position. "Already sent" + date, otherwise Draft. | — |
 | 10 | Change status | modal / sheet | Allowed transitions with their badges, date when sending, comment. | — |
-| 11 | Offers — list | `/offers` | Contract, remote policy, postings and applications counts, "Apply" when there is none. | Recruiter (2b) |
-| 12 | Offer — detail | `/offers/{id}` | Postings (site, link, seen on), applications, plain-text copy of the ad. | — |
-| 13 | New offer | `/offers/new` | Offer, first posting, ad text. **Duplicate suggestion** banner when the company and a similar title match. | Recruiter company (2b) |
+| 11 | Offers — list | `/offers` | Contract, remote policy, postings and applications counts, "Apply" when there is none. "Published" is the day the offer was recorded. | Recruiter (2b) |
+| 12 | Offer — detail | `/offers/{id}` | Postings (site, link, day recorded), applications, plain-text copy of the ad. | — |
+| 13 | New offer | `/offers/new` | Offer (company picked from the existing ones or typed to create it), first posting (site and link, no date), ad text. **Duplicate suggestion** banner when the company and a similar title match. | Recruiter company (2b) |
 | 14 | Companies — list | `/companies` | Kind, industry, location, offers and applications counts. | — |
 | 15 | Company — detail | `/companies/{slug}` | Profile, description, Offers and Applications tabs. | Notes and Contacts tabs (2b) |
 | 16 | More sheet | mobile only | Settings, Account, Theme, Log out. | Profile, My CVs, Templates, Export |
