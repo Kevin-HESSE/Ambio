@@ -7,387 +7,488 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Ambio.Infrastructure.Persistence.Migrations;
-
-[DbContext(typeof(ApplicationDbContext))]
-partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+namespace Ambio.Infrastructure.Persistence.Migrations
 {
-    protected override void BuildModel(ModelBuilder modelBuilder)
+    [DbContext(typeof(ApplicationDbContext))]
+    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
     {
+        protected override void BuildModel(ModelBuilder modelBuilder)
+        {
 #pragma warning disable 612, 618
-        modelBuilder.HasAnnotation("ProductVersion", "10.0.12");
+            modelBuilder.HasAnnotation("ProductVersion", "10.0.12");
 
-        modelBuilder.Entity("Ambio.Domain.Companies.Company", b =>
-            {
-                b.Property<Guid>("Id")
-                    .HasColumnType("TEXT");
+            modelBuilder.Entity("Ambio.Domain.Companies.Company", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
 
-                b.Property<DateTime?>("ArchivedAt")
-                    .HasColumnType("TEXT");
+                    b.Property<DateTime?>("ArchivedAt")
+                        .HasColumnType("TEXT");
 
-                b.Property<DateTime>("CreatedAt")
-                    .HasColumnType("TEXT");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
 
-                b.Property<string>("Description")
-                    .HasColumnType("TEXT");
+                    b.Property<string>("Description")
+                        .HasColumnType("TEXT");
 
-                b.Property<string>("Industry")
-                    .HasColumnType("TEXT");
+                    b.Property<string>("Industry")
+                        .HasColumnType("TEXT");
 
-                b.Property<string>("Kind")
-                    .IsRequired()
-                    .HasColumnType("TEXT");
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
-                b.Property<string>("LinkedInUrl")
-                    .HasColumnType("TEXT");
+                    b.Property<string>("LinkedInUrl")
+                        .HasColumnType("TEXT");
 
-                b.Property<string>("Location")
-                    .HasColumnType("TEXT");
+                    b.Property<string>("Location")
+                        .HasColumnType("TEXT");
 
-                b.Property<string>("Name")
-                    .IsRequired()
-                    .HasColumnType("TEXT")
-                    .UseCollation("NOCASE");
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .UseCollation("NOCASE");
 
-                b.Property<string>("Size")
-                    .HasColumnType("TEXT");
+                    b.Property<string>("Size")
+                        .HasColumnType("TEXT");
 
-                b.Property<string>("Slug")
-                    .IsRequired()
-                    .HasColumnType("TEXT");
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
-                b.Property<DateTime>("UpdatedAt")
-                    .HasColumnType("TEXT");
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
 
-                b.Property<string>("Website")
-                    .HasColumnType("TEXT");
+                    b.Property<string>("Website")
+                        .HasColumnType("TEXT");
 
-                b.HasKey("Id");
+                    b.HasKey("Id");
 
-                b.HasIndex("Name")
-                    .IsUnique();
+                    b.HasIndex("Name")
+                        .IsUnique();
 
-                b.HasIndex("Slug")
-                    .IsUnique();
+                    b.HasIndex("Slug")
+                        .IsUnique();
 
-                b.ToTable("Companies");
-            });
+                    b.ToTable("Companies");
+                });
 
-        modelBuilder.Entity("Ambio.Infrastructure.Users.ApplicationUser", b =>
-            {
-                b.Property<string>("Id")
-                    .HasColumnType("TEXT");
+            modelBuilder.Entity("Ambio.Domain.Offers.JobOffer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
 
-                b.Property<int>("AccessFailedCount")
-                    .HasColumnType("INTEGER");
+                    b.Property<DateTime?>("ArchivedAt")
+                        .HasColumnType("TEXT");
 
-                b.Property<string>("ConcurrencyStamp")
-                    .IsConcurrencyToken()
-                    .HasColumnType("TEXT");
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("TEXT");
 
-                b.Property<string>("Email")
-                    .HasMaxLength(256)
-                    .HasColumnType("TEXT");
+                    b.Property<string>("ContractType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
-                b.Property<bool>("EmailConfirmed")
-                    .HasColumnType("INTEGER");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
 
-                b.Property<bool>("LockoutEnabled")
-                    .HasColumnType("INTEGER");
+                    b.Property<string>("Description")
+                        .HasColumnType("TEXT");
 
-                b.Property<DateTimeOffset?>("LockoutEnd")
-                    .HasColumnType("TEXT");
+                    b.Property<string>("Location")
+                        .HasColumnType("TEXT");
 
-                b.Property<string>("NormalizedEmail")
-                    .HasMaxLength(256)
-                    .HasColumnType("TEXT");
+                    b.Property<string>("RemotePolicy")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
-                b.Property<string>("NormalizedUserName")
-                    .HasMaxLength(256)
-                    .HasColumnType("TEXT");
+                    b.Property<string>("Salary")
+                        .HasColumnType("TEXT");
 
-                b.Property<string>("PasswordHash")
-                    .HasColumnType("TEXT");
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
-                b.Property<string>("PhoneNumber")
-                    .HasMaxLength(256)
-                    .HasColumnType("TEXT");
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
 
-                b.Property<bool>("PhoneNumberConfirmed")
-                    .HasColumnType("INTEGER");
+                    b.HasKey("Id");
 
-                b.Property<string>("SecurityStamp")
-                    .HasColumnType("TEXT");
+                    b.HasIndex("CompanyId");
 
-                b.Property<bool>("TwoFactorEnabled")
-                    .HasColumnType("INTEGER");
+                    b.ToTable("JobOffers");
+                });
 
-                b.Property<string>("UserName")
-                    .HasMaxLength(256)
-                    .HasColumnType("TEXT");
+            modelBuilder.Entity("Ambio.Domain.Offers.JobOfferPosting", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
 
-                b.HasKey("Id");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
 
-                b.HasIndex("NormalizedEmail")
-                    .HasDatabaseName("EmailIndex");
+                    b.Property<Guid>("JobOfferId")
+                        .HasColumnType("TEXT");
 
-                b.HasIndex("NormalizedUserName")
-                    .IsUnique()
-                    .HasDatabaseName("UserNameIndex");
+                    b.Property<string>("Site")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
-                b.ToTable("AspNetUsers", (string)null);
-            });
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
 
-        modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
-            {
-                b.Property<string>("Id")
-                    .HasColumnType("TEXT");
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
-                b.Property<string>("ConcurrencyStamp")
-                    .IsConcurrencyToken()
-                    .HasColumnType("TEXT");
+                    b.HasKey("Id");
 
-                b.Property<string>("Name")
-                    .HasMaxLength(256)
-                    .HasColumnType("TEXT");
+                    b.HasIndex("JobOfferId", "Url")
+                        .IsUnique();
 
-                b.Property<string>("NormalizedName")
-                    .HasMaxLength(256)
-                    .HasColumnType("TEXT");
+                    b.ToTable("JobOfferPostings", (string)null);
+                });
 
-                b.HasKey("Id");
+            modelBuilder.Entity("Ambio.Infrastructure.Users.ApplicationUser", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT");
 
-                b.HasIndex("NormalizedName")
-                    .IsUnique()
-                    .HasDatabaseName("RoleNameIndex");
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("INTEGER");
 
-                b.ToTable("AspNetRoles", (string)null);
-            });
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("TEXT");
 
-        modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
-            {
-                b.Property<int>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("INTEGER");
+                    b.Property<string>("Email")
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
 
-                b.Property<string>("ClaimType")
-                    .HasColumnType("TEXT");
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("INTEGER");
 
-                b.Property<string>("ClaimValue")
-                    .HasColumnType("TEXT");
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("INTEGER");
 
-                b.Property<string>("RoleId")
-                    .IsRequired()
-                    .HasColumnType("TEXT");
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("TEXT");
 
-                b.HasKey("Id");
+                    b.Property<string>("NormalizedEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
 
-                b.HasIndex("RoleId");
+                    b.Property<string>("NormalizedUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
 
-                b.ToTable("AspNetRoleClaims", (string)null);
-            });
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("TEXT");
 
-        modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
-            {
-                b.Property<int>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("INTEGER");
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
 
-                b.Property<string>("ClaimType")
-                    .HasColumnType("TEXT");
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("INTEGER");
 
-                b.Property<string>("ClaimValue")
-                    .HasColumnType("TEXT");
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("TEXT");
 
-                b.Property<string>("UserId")
-                    .IsRequired()
-                    .HasColumnType("TEXT");
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("INTEGER");
 
-                b.HasKey("Id");
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
 
-                b.HasIndex("UserId");
+                    b.HasKey("Id");
 
-                b.ToTable("AspNetUserClaims", (string)null);
-            });
+                    b.HasIndex("NormalizedEmail")
+                        .HasDatabaseName("EmailIndex");
 
-        modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
-            {
-                b.Property<string>("LoginProvider")
-                    .HasMaxLength(128)
-                    .HasColumnType("TEXT");
+                    b.HasIndex("NormalizedUserName")
+                        .IsUnique()
+                        .HasDatabaseName("UserNameIndex");
 
-                b.Property<string>("ProviderKey")
-                    .HasMaxLength(128)
-                    .HasColumnType("TEXT");
+                    b.ToTable("AspNetUsers", (string)null);
+                });
 
-                b.Property<string>("ProviderDisplayName")
-                    .HasColumnType("TEXT");
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT");
 
-                b.Property<string>("UserId")
-                    .IsRequired()
-                    .HasColumnType("TEXT");
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("TEXT");
 
-                b.HasKey("LoginProvider", "ProviderKey");
+                    b.Property<string>("Name")
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
 
-                b.HasIndex("UserId");
+                    b.Property<string>("NormalizedName")
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
 
-                b.ToTable("AspNetUserLogins", (string)null);
-            });
+                    b.HasKey("Id");
 
-        modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserPasskey<string>", b =>
-            {
-                b.Property<byte[]>("CredentialId")
-                    .HasMaxLength(1024)
-                    .HasColumnType("BLOB");
+                    b.HasIndex("NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("RoleNameIndex");
 
-                b.Property<string>("UserId")
-                    .IsRequired()
-                    .HasColumnType("TEXT");
+                    b.ToTable("AspNetRoles", (string)null);
+                });
 
-                b.HasKey("CredentialId");
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
-                b.HasIndex("UserId");
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("TEXT");
 
-                b.ToTable("AspNetUserPasskeys", (string)null);
-            });
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("TEXT");
 
-        modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
-            {
-                b.Property<string>("UserId")
-                    .HasColumnType("TEXT");
+                    b.Property<string>("RoleId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
-                b.Property<string>("RoleId")
-                    .HasColumnType("TEXT");
+                    b.HasKey("Id");
 
-                b.HasKey("UserId", "RoleId");
+                    b.HasIndex("RoleId");
 
-                b.HasIndex("RoleId");
+                    b.ToTable("AspNetRoleClaims", (string)null);
+                });
 
-                b.ToTable("AspNetUserRoles", (string)null);
-            });
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
-        modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
-            {
-                b.Property<string>("UserId")
-                    .HasColumnType("TEXT");
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("TEXT");
 
-                b.Property<string>("LoginProvider")
-                    .HasMaxLength(128)
-                    .HasColumnType("TEXT");
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("TEXT");
 
-                b.Property<string>("Name")
-                    .HasMaxLength(128)
-                    .HasColumnType("TEXT");
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
-                b.Property<string>("Value")
-                    .HasColumnType("TEXT");
+                    b.HasKey("Id");
 
-                b.HasKey("UserId", "LoginProvider", "Name");
+                    b.HasIndex("UserId");
 
-                b.ToTable("AspNetUserTokens", (string)null);
-            });
+                    b.ToTable("AspNetUserClaims", (string)null);
+                });
 
-        modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
-            {
-                b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
-                    .WithMany()
-                    .HasForeignKey("RoleId")
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .IsRequired();
-            });
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+                {
+                    b.Property<string>("LoginProvider")
+                        .HasMaxLength(128)
+                        .HasColumnType("TEXT");
 
-        modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
-            {
-                b.HasOne("Ambio.Infrastructure.Users.ApplicationUser", null)
-                    .WithMany()
-                    .HasForeignKey("UserId")
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .IsRequired();
-            });
+                    b.Property<string>("ProviderKey")
+                        .HasMaxLength(128)
+                        .HasColumnType("TEXT");
 
-        modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
-            {
-                b.HasOne("Ambio.Infrastructure.Users.ApplicationUser", null)
-                    .WithMany()
-                    .HasForeignKey("UserId")
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .IsRequired();
-            });
+                    b.Property<string>("ProviderDisplayName")
+                        .HasColumnType("TEXT");
 
-        modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserPasskey<string>", b =>
-            {
-                b.HasOne("Ambio.Infrastructure.Users.ApplicationUser", null)
-                    .WithMany()
-                    .HasForeignKey("UserId")
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .IsRequired();
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
-                b.OwnsOne("Microsoft.AspNetCore.Identity.IdentityPasskeyData", "Data", b1 =>
-                    {
-                        b1.Property<byte[]>("IdentityUserPasskeyCredentialId");
+                    b.HasKey("LoginProvider", "ProviderKey");
 
-                        b1.Property<byte[]>("AttestationObject")
-                            .IsRequired();
+                    b.HasIndex("UserId");
 
-                        b1.Property<byte[]>("ClientDataJson")
-                            .IsRequired();
+                    b.ToTable("AspNetUserLogins", (string)null);
+                });
 
-                        b1.Property<DateTimeOffset>("CreatedAt");
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserPasskey<string>", b =>
+                {
+                    b.Property<byte[]>("CredentialId")
+                        .HasMaxLength(1024)
+                        .HasColumnType("BLOB");
 
-                        b1.Property<bool>("IsBackedUp");
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
-                        b1.Property<bool>("IsBackupEligible");
+                    b.HasKey("CredentialId");
 
-                        b1.Property<bool>("IsUserVerified");
+                    b.HasIndex("UserId");
 
-                        b1.Property<string>("Name");
+                    b.ToTable("AspNetUserPasskeys", (string)null);
+                });
 
-                        b1.Property<byte[]>("PublicKey")
-                            .IsRequired();
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("TEXT");
 
-                        b1.Property<uint>("SignCount");
+                    b.Property<string>("RoleId")
+                        .HasColumnType("TEXT");
 
-                        b1.PrimitiveCollection<string>("Transports");
+                    b.HasKey("UserId", "RoleId");
 
-                        b1.HasKey("IdentityUserPasskeyCredentialId");
+                    b.HasIndex("RoleId");
 
-                        b1.ToTable("AspNetUserPasskeys");
+                    b.ToTable("AspNetUserRoles", (string)null);
+                });
 
-                        b1
-                            .ToJson("Data")
-                            .HasColumnType("TEXT");
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("TEXT");
 
-                        b1.WithOwner()
-                            .HasForeignKey("IdentityUserPasskeyCredentialId");
-                    });
+                    b.Property<string>("LoginProvider")
+                        .HasMaxLength(128)
+                        .HasColumnType("TEXT");
 
-                b.Navigation("Data")
-                    .IsRequired();
-            });
+                    b.Property<string>("Name")
+                        .HasMaxLength(128)
+                        .HasColumnType("TEXT");
 
-        modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
-            {
-                b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
-                    .WithMany()
-                    .HasForeignKey("RoleId")
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .IsRequired();
+                    b.Property<string>("Value")
+                        .HasColumnType("TEXT");
 
-                b.HasOne("Ambio.Infrastructure.Users.ApplicationUser", null)
-                    .WithMany()
-                    .HasForeignKey("UserId")
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .IsRequired();
-            });
+                    b.HasKey("UserId", "LoginProvider", "Name");
 
-        modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
-            {
-                b.HasOne("Ambio.Infrastructure.Users.ApplicationUser", null)
-                    .WithMany()
-                    .HasForeignKey("UserId")
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .IsRequired();
-            });
+                    b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("Ambio.Domain.Offers.JobOffer", b =>
+                {
+                    b.HasOne("Ambio.Domain.Companies.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+                });
+
+            modelBuilder.Entity("Ambio.Domain.Offers.JobOfferPosting", b =>
+                {
+                    b.HasOne("Ambio.Domain.Offers.JobOffer", null)
+                        .WithMany("Postings")
+                        .HasForeignKey("JobOfferId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+                {
+                    b.HasOne("Ambio.Infrastructure.Users.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+                {
+                    b.HasOne("Ambio.Infrastructure.Users.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserPasskey<string>", b =>
+                {
+                    b.HasOne("Ambio.Infrastructure.Users.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("Microsoft.AspNetCore.Identity.IdentityPasskeyData", "Data", b1 =>
+                        {
+                            b1.Property<byte[]>("IdentityUserPasskeyCredentialId");
+
+                            b1.Property<byte[]>("AttestationObject")
+                                .IsRequired();
+
+                            b1.Property<byte[]>("ClientDataJson")
+                                .IsRequired();
+
+                            b1.Property<DateTimeOffset>("CreatedAt");
+
+                            b1.Property<bool>("IsBackedUp");
+
+                            b1.Property<bool>("IsBackupEligible");
+
+                            b1.Property<bool>("IsUserVerified");
+
+                            b1.Property<string>("Name");
+
+                            b1.Property<byte[]>("PublicKey")
+                                .IsRequired();
+
+                            b1.Property<uint>("SignCount");
+
+                            b1.PrimitiveCollection<string>("Transports");
+
+                            b1.HasKey("IdentityUserPasskeyCredentialId");
+
+                            b1.ToTable("AspNetUserPasskeys");
+
+                            b1
+                                .ToJson("Data")
+                                .HasColumnType("TEXT");
+
+                            b1.WithOwner()
+                                .HasForeignKey("IdentityUserPasskeyCredentialId");
+                        });
+
+                    b.Navigation("Data")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Ambio.Infrastructure.Users.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+                {
+                    b.HasOne("Ambio.Infrastructure.Users.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Ambio.Domain.Offers.JobOffer", b =>
+                {
+                    b.Navigation("Postings");
+                });
 #pragma warning restore 612, 618
+        }
     }
 }

@@ -1,6 +1,7 @@
 @page "/companies/{Slug}"
 @attribute [Authorize]
 @inject ICompanyService CompanyService
+@inject IJobOfferService JobOfferService
 @inject NavigationManager NavigationManager
 
 @if (_company is not null)
@@ -26,7 +27,6 @@
             <CompanyProfile Company="_company" />
         </div>
 
-        @* The Offers and Applications tabs come with the offers (#45) and the applications (#48). *@
         <div class="company-detail-main">
             <section class="card" aria-label="Description">
                 <div class="card-body">
@@ -40,6 +40,29 @@
                     }
                 </div>
             </section>
+
+            @* The Applications tab comes with the applications (#48). *@
+            <TabNav Label="Company sections" Tabs="Tabs" Active="@CompanyRoutes.OffersTab" />
+            <section class="card" aria-label="Offers">
+                @if (_offers is { Count: 0 })
+                {
+                    <EmptyState Icon="briefcase" Title="No offers yet">
+                        <ChildContent>The offers you save for this company show up here.</ChildContent>
+                        <Actions>
+                            <ButtonLink Href="@OfferRoutes.New" Variant="ButtonVariant.Primary" Icon="plus-lg">New offer</ButtonLink>
+                        </Actions>
+                    </EmptyState>
+                }
+                else
+                {
+                    <ul class="company-offers">
+                        @foreach (var offer in _offers)
+                        {
+                            <li><OfferListItem Offer="offer" /></li>
+                        }
+                    </ul>
+                }
+            </section>
         </div>
     </div>
 }
@@ -50,6 +73,13 @@
 
     private CompanyDetailsDto? _company;
 
+    private IReadOnlyList<JobOfferSummaryDto> _offers = [];
+
+    private IReadOnlyList<TabNavItem> Tabs =>
+    [
+        new(CompanyRoutes.OffersTab, "Offers", CompanyRoutes.Details(_company!.Slug, CompanyRoutes.OffersTab), _offers.Count),
+    ];
+
     protected override async Task OnInitializedAsync()
     {
         _company = await CompanyService.GetAsync(Slug);
@@ -57,6 +87,9 @@
         if (_company is null)
         {
             NavigationManager.NotFound();
+            return;
         }
+
+        _offers = await JobOfferService.ListByCompanyAsync(_company.Id);
     }
 }

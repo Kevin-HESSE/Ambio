@@ -1,4 +1,5 @@
 using Ambio.Domain.Companies;
+using Ambio.Domain.Offers;
 using Ambio.Infrastructure.Users;
 
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -13,6 +14,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     }
 
     public DbSet<Company> Companies => Set<Company>();
+
+    public DbSet<JobOffer> JobOffers => Set<JobOffer>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

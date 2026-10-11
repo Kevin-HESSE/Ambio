@@ -1,0 +1,34 @@
+.offer-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ambio-space-8);
+    padding: var(--ambio-space-12) var(--ambio-space-16);
+}
+
+.offer-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--ambio-space-12);
+}
+
+.offer-date {
+    color: var(--ambio-text-muted);
+    white-space: nowrap;
+}
+
+.offer-company {
+    color: var(--ambio-text-secondary);
+}
+
+.offer-tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ambio-space-8);
+}
+
+.offer-postings {
+    color: var(--ambio-text-muted);
+    font-variant-numeric: tabular-nums;
+}

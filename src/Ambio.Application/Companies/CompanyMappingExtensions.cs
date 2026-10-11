@@ -1,3 +1,4 @@
+using Ambio.Application.Common;
 using Ambio.Application.Companies.Dtos;
 using Ambio.Domain.Companies;
 
@@ -28,12 +29,12 @@ public static class CompanyMappingExtensions
     {
         company.Name = input.Name;
         company.Kind = input.Kind;
-        company.Industry = NullIfBlank(input.Industry);
+        company.Industry = input.Industry.NullIfBlank();
         company.Size = input.Size;
-        company.Location = NullIfBlank(input.Location);
-        company.Website = NullIfBlank(input.Website);
-        company.LinkedInUrl = NullIfBlank(input.LinkedInUrl);
-        company.Description = NullIfBlank(input.Description);
+        company.Location = input.Location.NullIfBlank();
+        company.Website = input.Website.NullIfBlank();
+        company.LinkedInUrl = input.LinkedInUrl.NullIfBlank();
+        company.Description = input.Description.NullIfBlank();
     }
 
     /// <summary>The edit form, filled with the current values of the company.</summary>
@@ -48,6 +49,4 @@ public static class CompanyMappingExtensions
         LinkedInUrl = company.LinkedInUrl,
         Description = company.Description,
     };
-
-    private static string? NullIfBlank(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 }

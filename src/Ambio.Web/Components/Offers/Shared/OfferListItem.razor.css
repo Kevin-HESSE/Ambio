@@ -1,0 +1,18 @@
+.offer-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: var(--ambio-space-12) var(--ambio-space-16);
+}
+
+.offer-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.offer-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ambio-space-8);
+}

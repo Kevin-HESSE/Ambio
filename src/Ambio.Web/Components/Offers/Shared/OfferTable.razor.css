@@ -1,0 +1,52 @@
+.offer-table {
+    margin: 0;
+}
+
+.offer-table thead th {
+    padding: var(--ambio-space-8) var(--ambio-space-16);
+    border-bottom: 0;
+    background: var(--ambio-bg-subtle);
+    color: var(--ambio-text-secondary);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.offer-table thead th:first-child {
+    border-top-left-radius: var(--ambio-radius-lg);
+}
+
+.offer-table thead th:last-child {
+    border-top-right-radius: var(--ambio-radius-lg);
+}
+
+.offer-table tbody th,
+.offer-table td {
+    padding: var(--ambio-space-12) var(--ambio-space-16);
+    border-top: 1px solid var(--ambio-border-default);
+    border-bottom: 0;
+    font-weight: 400;
+    vertical-align: middle;
+}
+
+.offer-table .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.offer-title {
+    color: var(--ambio-text-primary);
+}
+
+.offer-company {
+    color: var(--ambio-text-secondary);
+}
+
+.offer-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ambio-space-8);
+}
+
+.offer-date {
+    white-space: nowrap;
+}

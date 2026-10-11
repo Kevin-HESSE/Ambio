@@ -1,0 +1,47 @@
+@page "/offers"
+@attribute [Authorize]
+@inject IJobOfferService JobOfferService
+
+<PageTitle>Offers</PageTitle>
+<AppBarTitle>Offers</AppBarTitle>
+<AppBarActions>
+    <ButtonLink Href="@OfferRoutes.New" Icon="plus-lg" IconOnly aria-label="New offer" />
+</AppBarActions>
+
+<PageHeader Title="Offers" Subtitle="Job ads you saved, applied to or not">
+    <Actions>
+        <ButtonLink Href="@OfferRoutes.New" Variant="ButtonVariant.Primary" Icon="plus-lg">New offer</ButtonLink>
+    </Actions>
+</PageHeader>
+
+@if (_offers is { Count: 0 })
+{
+    <section class="card">
+        <EmptyState Icon="briefcase" Title="No offers yet">
+            <ChildContent>Save the job ads you come across, whether you apply or not. A copy of each ad stays here when it goes offline.</ChildContent>
+            <Actions>
+                <ButtonLink Href="@OfferRoutes.New" Variant="ButtonVariant.Primary" Icon="plus-lg">New offer</ButtonLink>
+            </Actions>
+        </EmptyState>
+    </section>
+}
+else if (_offers is not null)
+{
+    <section class="card offer-cards">
+        <ul class="offer-list">
+            @foreach (var offer in _offers)
+            {
+                <li><OfferCard Offer="offer" /></li>
+            }
+        </ul>
+    </section>
+    <section class="card offer-table-card">
+        <OfferTable Offers="_offers" />
+    </section>
+}
+
+@code {
+    private IReadOnlyList<JobOfferSummaryDto>? _offers;
+
+    protected override async Task OnInitializedAsync() => _offers = await JobOfferService.ListAsync();
+}

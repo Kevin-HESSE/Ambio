@@ -4,6 +4,7 @@ using Ambio.Application.Companies.Dtos;
 using Ambio.Domain.Companies;
 using Ambio.Web.Components.Companies;
 using Ambio.Web.Components.Companies.Pages;
+using Ambio.Web.Tests.Fixtures;
 
 using Bunit;
 
@@ -131,15 +132,12 @@ public class CompanyEditTests : BunitContext
         return () => notFound;
     }
 
-    private static CompanyDetailsDto Brightwave { get; } = new(
-        Guid.CreateVersion7(),
-        "brightwave",
+    private static CompanyDetailsDto Brightwave { get; } = CompanyDetailsFactory.New(
         "Brightwave",
         CompanyKind.ServiceCompany,
-        "Software",
-        CompanySize.Medium,
-        "Lyon",
-        "https://brightwave.io",
-        null,
-        "Energy-monitoring software.");
+        industry: "Software",
+        size: CompanySize.Medium,
+        location: "Lyon",
+        website: "https://brightwave.io",
+        description: "Energy-monitoring software.");
 }

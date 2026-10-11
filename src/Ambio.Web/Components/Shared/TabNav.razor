@@ -1,0 +1,27 @@
+@* The tabs of a detail page (docs/ui.md#patterns): links carrying ?tab=, so the active tab is in the URL. *@
+<nav class="tabs" aria-label="@Label">
+    @foreach (var tab in Tabs)
+    {
+        var active = tab.Value == Active;
+        <a class="@(active ? "tab active" : "tab")" href="@tab.Href" aria-current="@(active ? "page" : null)">
+            @tab.Label
+            @if (tab.Count is { } count)
+            {
+                <span class="tab-count t-badge">@count</span>
+            }
+        </a>
+    }
+</nav>
+
+@code {
+    /// <summary>Accessible name of the tabs, such as "Company sections".</summary>
+    [Parameter, EditorRequired]
+    public string Label { get; set; } = "";
+
+    [Parameter, EditorRequired]
+    public IReadOnlyList<TabNavItem> Tabs { get; set; } = [];
+
+    /// <summary>Value of the active tab.</summary>
+    [Parameter, EditorRequired]
+    public string Active { get; set; } = "";
+}

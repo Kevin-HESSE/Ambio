@@ -8,7 +8,9 @@
       "Read(./**/.env*)",
       "Edit(./**/.env*)",
       "Read(./**/appsettings*)",
-      "Edit(./**/appsettings*)"
+      "Edit(./**/appsettings*)",
+      "Read(./**/ApplicationDbContextModelSnapshot.cs)",
+      "Edit(./**/ApplicationDbContextModelSnapshot.cs)"
     ],
     "ask": [
       "Bash(dotnet ef *)"

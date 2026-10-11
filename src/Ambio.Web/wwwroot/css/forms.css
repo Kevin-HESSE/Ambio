@@ -94,7 +94,7 @@
 }
 
 .field textarea.form-control {
-    min-height: 120px;
+    min-height: 6lh;
     resize: vertical;
 }
 
@@ -102,6 +102,12 @@
 .field .form-select.invalid {
     border-color: var(--ambio-feedback-danger);
     outline: none;
+}
+
+/* A short help under the input, before its validation message. */
+.field .form-text {
+    margin: 0;
+    color: var(--ambio-text-secondary);
 }
 
 /* The message says how to fix the value; the icon is the Bootstrap Icons exclamation-triangle. */
