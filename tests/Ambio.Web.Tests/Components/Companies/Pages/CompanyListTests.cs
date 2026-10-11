@@ -61,6 +61,18 @@ public class CompanyListTests : BunitContext
     }
 
     [Fact]
+    public void Render_WithCompanies_LinksEachRowAndCardToItsDetails()
+    {
+        GivenCompanies(Brightwave, Talentis);
+
+        var cut = Render<CompanyList>();
+
+        string[] expected = [CompanyRoutes.Details(Brightwave.Id), CompanyRoutes.Details(Talentis.Id)];
+        Assert.Equal(expected, cut.FindAll("tbody a").Select(link => link.GetAttribute("href")));
+        Assert.Equal(expected, cut.FindAll("a.company-card").Select(link => link.GetAttribute("href")));
+    }
+
+    [Fact]
     public void Render_WithCompanies_LinksToNewCompany()
     {
         GivenCompanies(Brightwave);

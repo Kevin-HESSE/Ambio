@@ -1,0 +1,44 @@
+/* Header, profile, then content below 992 px; content and a profile column above (docs/ui.md#patterns). */
+.company-detail {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "head" "aside" "main";
+    gap: var(--ambio-space-16);
+}
+
+.company-detail ::deep .detail-head {
+    grid-area: head;
+}
+
+.company-detail-aside {
+    grid-area: aside;
+}
+
+.company-detail-main {
+    grid-area: main;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ambio-space-16);
+    min-width: 0;
+}
+
+.company-description {
+    margin: 0;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+.company-description-empty {
+    margin: 0;
+    color: var(--ambio-text-muted);
+}
+
+@media (min-width: 992px) {
+    .company-detail {
+        grid-template-columns: minmax(0, 1fr) 320px;
+        grid-template-areas: "head head" "main aside";
+        align-items: start;
+        column-gap: var(--ambio-space-32);
+        row-gap: var(--ambio-space-24);
+    }
+}

@@ -57,10 +57,11 @@ public class CompanyNewTests : BunitContext
     }
 
     [Fact]
-    public void Submit_WithValidInput_CreatesCompanyAndNavigatesToList()
+    public void Submit_WithValidInput_CreatesCompanyAndNavigatesToDetails()
     {
+        var id = Guid.CreateVersion7();
         _companyService.CreateAsync(Arg.Any<CompanyInput>(), Arg.Any<CancellationToken>())
-            .Returns(ServiceResult<Guid>.Success(Guid.CreateVersion7()));
+            .Returns(ServiceResult<Guid>.Success(id));
         var cut = Render<CompanyNew>();
 
         cut.Find("#company-name").Change(CompanyName);
@@ -70,7 +71,7 @@ public class CompanyNewTests : BunitContext
         _companyService.Received(1).CreateAsync(
             Arg.Is<CompanyInput>(input => input.Name == CompanyName && input.Kind == CompanyKind.RecruitmentAgency),
             Arg.Any<CancellationToken>());
-        Assert.EndsWith($"/{CompanyRoutes.List}", Services.GetRequiredService<NavigationManager>().Uri);
+        Assert.EndsWith($"/{CompanyRoutes.Details(id)}", Services.GetRequiredService<NavigationManager>().Uri);
     }
 
     [Fact]

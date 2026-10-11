@@ -1,0 +1,62 @@
+@page "/companies/{Id:guid}"
+@attribute [Authorize]
+@inject ICompanyService CompanyService
+@inject NavigationManager NavigationManager
+
+@if (_company is not null)
+{
+    <PageTitle>@_company.Name</PageTitle>
+    <AppBarBack Href="@CompanyRoutes.List" />
+    <AppBarTitle>Company</AppBarTitle>
+    <AppBarActions>
+        <ButtonLink Href="@CompanyRoutes.Edit(Id)" Icon="pencil" IconOnly aria-label="Edit company" />
+    </AppBarActions>
+
+    <div class="company-detail">
+        <DetailHeader Title="@_company.Name" ParentTitle="Companies" ParentHref="@CompanyRoutes.List">
+            <Tags>
+                <Tag Icon="building">@_company.Kind.ToLabel()</Tag>
+            </Tags>
+            <Actions>
+                <ButtonLink Href="@CompanyRoutes.Edit(Id)" Variant="ButtonVariant.Secondary" Icon="pencil">Edit</ButtonLink>
+            </Actions>
+        </DetailHeader>
+
+        <div class="company-detail-aside">
+            <CompanyProfile Company="_company" />
+        </div>
+
+        @* The Offers and Applications tabs come with the offers (#45) and the applications (#48). *@
+        <div class="company-detail-main">
+            <section class="card" aria-label="Description">
+                <div class="card-body">
+                    @if (_company.Description is not null)
+                    {
+                        <p class="company-description">@_company.Description</p>
+                    }
+                    else
+                    {
+                        <p class="company-description-empty">No description yet.</p>
+                    }
+                </div>
+            </section>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Guid Id { get; set; }
+
+    private CompanyDetailsDto? _company;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _company = await CompanyService.GetAsync(Id);
+
+        if (_company is null)
+        {
+            NavigationManager.NotFound();
+        }
+    }
+}
