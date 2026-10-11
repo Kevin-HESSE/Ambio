@@ -2,6 +2,7 @@ using Ambio.Application.Common;
 using Ambio.Application.Companies;
 using Ambio.Application.Companies.Dtos;
 using Ambio.Domain.Companies;
+using Ambio.Web.Components.Companies;
 using Ambio.Web.Components.Companies.Pages;
 
 using Bunit;
@@ -16,7 +17,6 @@ namespace Ambio.Web.Tests.Components.Companies.Pages;
 public class CompanyNewTests : BunitContext
 {
     private const string CompanyName = "Brightwave";
-    private const string CompaniesPath = "companies";
     private const string NameError = "Enter the name of the company.";
     private const string UrlError = "Enter the full link, starting with https://";
 
@@ -53,7 +53,7 @@ public class CompanyNewTests : BunitContext
     {
         var cut = Render<CompanyNew>();
 
-        Assert.Equal("Cancel", cut.Find($".action-bar a[href='{CompaniesPath}']").TextContent.Trim());
+        Assert.Equal("Cancel", cut.Find($".action-bar a[href='{CompanyRoutes.List}']").TextContent.Trim());
     }
 
     [Fact]
@@ -70,7 +70,7 @@ public class CompanyNewTests : BunitContext
         _companyService.Received(1).CreateAsync(
             Arg.Is<CompanyInput>(input => input.Name == CompanyName && input.Kind == CompanyKind.RecruitmentAgency),
             Arg.Any<CancellationToken>());
-        Assert.EndsWith($"/{CompaniesPath}", Services.GetRequiredService<NavigationManager>().Uri);
+        Assert.EndsWith($"/{CompanyRoutes.List}", Services.GetRequiredService<NavigationManager>().Uri);
     }
 
     [Fact]
