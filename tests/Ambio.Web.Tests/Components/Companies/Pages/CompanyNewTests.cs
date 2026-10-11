@@ -18,7 +18,7 @@ public class CompanyNewTests : BunitContext
 {
     private const string CompanyName = "Brightwave";
     private const string NameError = "Enter the name of the company.";
-    private const string UrlError = "Enter the full link, starting with https://";
+    private const string UrlError = "Enter the full link, such as https://example.com";
 
     private readonly ICompanyService _companyService = Substitute.For<ICompanyService>();
 
