@@ -1,13 +1,18 @@
 @using Microsoft.AspNetCore.Components.Sections
 
-@* Mobile only (< 992 px). Pages give their title with <AppBarTitle> and their actions with <AppBarActions>. *@
+@* Mobile only (< 992 px). Pages give their title with <AppBarTitle>, their actions with <AppBarActions>,
+   and a back arrow, which takes the place of the logo, with <AppBarBack>. *@
 <header class="appbar">
-    <Logo MarkOnly />
+    <div class="appbar-back"><SectionOutlet SectionName="@BackSection" /></div>
+    <div class="appbar-logo"><Logo MarkOnly /></div>
     <div class="appbar-title t-h3"><SectionOutlet SectionName="@TitleSection" /></div>
     <div class="appbar-actions"><SectionOutlet SectionName="@ActionsSection" /></div>
 </header>
 
 @code {
+    /// <summary>Section filled by <see cref="AppBarBack"/>.</summary>
+    public const string BackSection = "app-bar-back";
+
     /// <summary>Section filled by <see cref="AppBarTitle"/>.</summary>
     public const string TitleSection = "app-bar-title";
 
