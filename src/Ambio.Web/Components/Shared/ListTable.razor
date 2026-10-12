@@ -1,0 +1,18 @@
+@* The table of a list on desktop (≥ 992 px): a tinted header with rounded corners, and rows separated by a line
+   (docs/ui.md#patterns). A cell with the "num" class is aligned right, with tabular figures. *@
+<table class="table list-table">
+    <thead>
+        <tr>@Columns</tr>
+    </thead>
+    <tbody>@Rows</tbody>
+</table>
+
+@code {
+    /// <summary>The header cells, <c>&lt;th scope="col"&gt;</c>.</summary>
+    [Parameter, EditorRequired]
+    public RenderFragment Columns { get; set; } = null!;
+
+    /// <summary>The rows, <c>&lt;tr&gt;</c> starting with a <c>&lt;th scope="row"&gt;</c>.</summary>
+    [Parameter, EditorRequired]
+    public RenderFragment Rows { get; set; } = null!;
+}

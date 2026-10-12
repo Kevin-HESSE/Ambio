@@ -27,17 +27,10 @@
 }
 else if (_offers is not null)
 {
-    <section class="card offer-cards">
-        <ul class="offer-list list-divided">
-            @foreach (var offer in _offers)
-            {
-                <li><OfferCard Offer="offer" /></li>
-            }
-        </ul>
-    </section>
-    <section class="card offer-table-card">
-        <OfferTable Offers="_offers" />
-    </section>
+    <ResponsiveList Items="_offers">
+        <Card Context="offer"><OfferCard Offer="offer" /></Card>
+        <Table><OfferTable Offers="_offers" /></Table>
+    </ResponsiveList>
 }
 
 @code {

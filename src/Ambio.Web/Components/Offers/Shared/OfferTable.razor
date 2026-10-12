@@ -1,14 +1,12 @@
 @* The offers list on desktop (≥ 992 px). *@
-<table class="table offer-table">
-    <thead>
-        <tr>
-            <th scope="col">Offer</th>
-            <th scope="col">Contract</th>
-            <th scope="col" class="num">Postings</th>
-            <th scope="col">Published</th>
-        </tr>
-    </thead>
-    <tbody>
+<ListTable>
+    <Columns>
+        <th scope="col">Offer</th>
+        <th scope="col">Contract</th>
+        <th scope="col" class="num">Postings</th>
+        <th scope="col">Published</th>
+    </Columns>
+    <Rows>
         @foreach (var offer in Offers)
         {
             <tr>
@@ -21,8 +19,8 @@
                 <td class="offer-date"><time datetime="@offer.RegisterAt.ToString("yyyy-MM-dd")">@offer.RegisterAt.ToDisplayDate()</time></td>
             </tr>
         }
-    </tbody>
-</table>
+    </Rows>
+</ListTable>
 
 @code {
     [Parameter, EditorRequired]

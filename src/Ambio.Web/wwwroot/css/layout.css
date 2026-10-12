@@ -21,3 +21,17 @@
     flex-direction: column;
     gap: var(--gap);
 }
+
+/* The single breakpoint (docs/ui.md#layout): tablets get the mobile layout. These classes only hide, so an element
+   keeps its own display; !important wins over the scoped rules that set it. */
+@media (max-width: 991px) {
+    .desktop-only {
+        display: none !important;
+    }
+}
+
+@media (min-width: 992px) {
+    .mobile-only {
+        display: none !important;
+    }
+}

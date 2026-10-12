@@ -1,21 +1,15 @@
 .page-header {
-    display: none;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--ambio-space-16);
 }
 
 .page-title {
     text-wrap: balance;
 }
 
-@media (min-width: 992px) {
-    .page-header {
-        display: flex;
-        align-items: flex-end;
-        justify-content: space-between;
-        gap: var(--ambio-space-16);
-    }
-
-    .page-actions {
-        display: flex;
-        gap: var(--ambio-space-8);
-    }
+.page-actions {
+    display: flex;
+    gap: var(--ambio-space-8);
 }

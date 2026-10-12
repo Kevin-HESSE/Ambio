@@ -1,0 +1,35 @@
+/* The cells come from the parent's fragments and carry its scope: ::deep reaches them. */
+.list-table {
+    margin: 0;
+}
+
+.list-table ::deep thead th {
+    padding: var(--ambio-space-8) var(--ambio-space-16);
+    border-bottom: 0;
+    background: var(--ambio-bg-subtle);
+    color: var(--ambio-text-secondary);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.list-table ::deep thead th:first-child {
+    border-top-left-radius: var(--ambio-radius-lg);
+}
+
+.list-table ::deep thead th:last-child {
+    border-top-right-radius: var(--ambio-radius-lg);
+}
+
+.list-table ::deep tbody th,
+.list-table ::deep td {
+    padding: var(--ambio-space-12) var(--ambio-space-16);
+    border-top: 1px solid var(--ambio-border-default);
+    border-bottom: 0;
+    font-weight: 400;
+    vertical-align: middle;
+}
+
+.list-table ::deep .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}

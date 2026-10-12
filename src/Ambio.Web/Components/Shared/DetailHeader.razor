@@ -2,7 +2,7 @@
    and actions (desktop). On mobile the actions go in the app bar (<AppBarActions>). *@
 <div class="detail-head">
     <div class="detail-head-text stack">
-        <nav class="detail-breadcrumb t-small t-muted" aria-label="Breadcrumb">
+        <nav class="detail-breadcrumb desktop-only t-small t-muted" aria-label="Breadcrumb">
             <a href="@ParentHref">@ParentTitle</a>
             <i class="bi bi-chevron-right" aria-hidden="true"></i>
             <span aria-current="page">@Title</span>
@@ -15,7 +15,7 @@
     </div>
     @if (Actions is not null)
     {
-        <div class="detail-actions">@Actions</div>
+        <div class="detail-actions desktop-only">@Actions</div>
     }
 </div>
 

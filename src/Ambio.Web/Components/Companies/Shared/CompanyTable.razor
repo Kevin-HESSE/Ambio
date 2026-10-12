@@ -1,13 +1,11 @@
 @* The companies list on desktop (≥ 992 px). *@
-<table class="table company-table">
-    <thead>
-        <tr>
-            <th scope="col">Company</th>
-            <th scope="col">Kind</th>
-            <th scope="col">Location</th>
-        </tr>
-    </thead>
-    <tbody>
+<ListTable>
+    <Columns>
+        <th scope="col">Company</th>
+        <th scope="col">Kind</th>
+        <th scope="col">Location</th>
+    </Columns>
+    <Rows>
         @foreach (var company in Companies)
         {
             <tr>
@@ -22,8 +20,8 @@
                 <td>@company.Location</td>
             </tr>
         }
-    </tbody>
-</table>
+    </Rows>
+</ListTable>
 
 @code {
     [Parameter, EditorRequired]

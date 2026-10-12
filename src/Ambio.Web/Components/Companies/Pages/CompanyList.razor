@@ -27,17 +27,10 @@
 }
 else if (_companies is not null)
 {
-    <section class="card company-cards">
-        <ul class="company-list list-divided">
-            @foreach (var company in _companies)
-            {
-                <li><CompanyCard Company="company" /></li>
-            }
-        </ul>
-    </section>
-    <section class="card company-table-card">
-        <CompanyTable Companies="_companies" />
-    </section>
+    <ResponsiveList Items="_companies">
+        <Card Context="company"><CompanyCard Company="company" /></Card>
+        <Table><CompanyTable Companies="_companies" /></Table>
+    </ResponsiveList>
 }
 
 @code {
