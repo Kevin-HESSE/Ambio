@@ -1,5 +1,4 @@
 .menu-list {
-    margin: 0;
     padding: var(--ambio-space-8) 0;
     list-style: none;
 }
@@ -9,9 +8,7 @@
 }
 
 .sheet-section {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+    --gap: var(--ambio-space-6);
     padding: var(--ambio-space-12) var(--ambio-space-16) var(--ambio-space-16);
 }
 

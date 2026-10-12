@@ -1,8 +1,8 @@
 @* The header of a detail page, shown at every width (docs/ui.md#patterns): breadcrumb (desktop), title, tags
    and actions (desktop). On mobile the actions go in the app bar (<AppBarActions>). *@
 <div class="detail-head">
-    <div class="detail-head-text">
-        <nav class="detail-breadcrumb t-small" aria-label="Breadcrumb">
+    <div class="detail-head-text stack">
+        <nav class="detail-breadcrumb t-small t-muted" aria-label="Breadcrumb">
             <a href="@ParentHref">@ParentTitle</a>
             <i class="bi bi-chevron-right" aria-hidden="true"></i>
             <span aria-current="page">@Title</span>
@@ -10,7 +10,7 @@
         <h1 class="detail-title">@Title</h1>
         @if (Tags is not null)
         {
-            <div class="detail-tags">@Tags</div>
+            <div class="detail-tags cluster">@Tags</div>
         }
     </div>
     @if (Actions is not null)

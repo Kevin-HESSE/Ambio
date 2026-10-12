@@ -3,20 +3,20 @@
    the px values of the design system are in the comments. Body text (16 / 24, Regular) is Bootstrap's
    default and needs no class. */
 .t-h1 {
-    font-size: 1.75rem; /* 28px */
-    line-height: 2.25rem; /* 36px */
+    font-size: 1.75rem;
+    line-height: 2.25rem;
     font-weight: 600;
 }
 
 .t-h3 {
-    font-size: 1.125rem; /* 18px */
-    line-height: 1.625rem; /* 26px */
+    font-size: 1.125rem;
+    line-height: 1.625rem;
     font-weight: 600;
 }
 
 .t-body-strong {
     font-size: 1rem;
-    line-height: 1.5rem; /* 24px */
+    line-height: 1.5rem;
     font-weight: 600;
 }
 
@@ -30,4 +30,13 @@
     font-size: 0.8125rem; /* 13px */
     line-height: 1rem;
     font-weight: 600;
+}
+
+/* Text colors, to combine with a text style: supporting text and metadata (docs/design-system.md#colors). */
+.t-secondary {
+    color: var(--ambio-text-secondary);
+}
+
+.t-muted {
+    color: var(--ambio-text-muted);
 }

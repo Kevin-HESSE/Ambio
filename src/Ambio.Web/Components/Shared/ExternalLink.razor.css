@@ -5,12 +5,6 @@
     max-width: 100%;
 }
 
-.external-link-text {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
 .external-link .bi {
     flex: none;
     font-size: 0.75rem; /* 12px */

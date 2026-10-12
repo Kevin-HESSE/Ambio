@@ -1,13 +1,13 @@
 @* An offer in the mobile list (< 992 px). It becomes a link to the offer page with #46. *@
-<div class="offer-card">
+<div class="offer-card stack">
     <div class="offer-card-head">
         <span class="offer-title t-body-strong">@Offer.Title</span>
-        <time class="offer-date t-small" datetime="@Offer.RegisterAt.ToString("yyyy-MM-dd")">@Offer.RegisterAt.ToShortDisplayDate()</time>
+        <time class="offer-date t-small t-muted" datetime="@Offer.RegisterAt.ToString("yyyy-MM-dd")">@Offer.RegisterAt.ToShortDisplayDate()</time>
     </div>
-    <div class="offer-company t-small">@Offer.CompanyName</div>
-    <div class="offer-tags">
+    <div class="offer-company t-small t-secondary">@Offer.CompanyName</div>
+    <div class="offer-tags cluster">
         <OfferTags Offer="Offer" />
-        <span class="offer-postings t-small">@OfferLabels.PostingCountLabel(Offer.PostingCount)</span>
+        <span class="offer-postings t-small t-muted">@OfferLabels.PostingCountLabel(Offer.PostingCount)</span>
     </div>
 </div>
 

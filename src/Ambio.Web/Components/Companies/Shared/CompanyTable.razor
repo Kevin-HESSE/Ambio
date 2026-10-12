@@ -15,7 +15,7 @@
                     <a class="company-name t-body-strong" href="@CompanyRoutes.Details(company.Slug)">@company.Name</a>
                     @if (!string.IsNullOrWhiteSpace(company.Industry))
                     {
-                        <div class="company-industry t-small">@company.Industry</div>
+                        <div class="company-industry t-small t-secondary">@company.Industry</div>
                     }
                 </th>
                 <td><Tag Icon="building">@company.Kind.ToLabel()</Tag></td>

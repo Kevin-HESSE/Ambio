@@ -38,7 +38,3 @@
     color: var(--ambio-accent-text);
     text-decoration: underline;
 }
-
-.company-industry {
-    color: var(--ambio-text-secondary);
-}

@@ -14,9 +14,9 @@
             <tr>
                 <th scope="row">
                     <span class="offer-title t-body-strong">@offer.Title</span>
-                    <div class="offer-company t-small">@offer.CompanyName</div>
+                    <div class="offer-company t-small t-secondary">@offer.CompanyName</div>
                 </th>
-                <td><div class="offer-tags"><OfferTags Offer="offer" /></div></td>
+                <td><div class="offer-tags cluster"><OfferTags Offer="offer" /></div></td>
                 <td class="num">@offer.PostingCount</td>
                 <td class="offer-date"><time datetime="@offer.RegisterAt.ToString("yyyy-MM-dd")">@offer.RegisterAt.ToDisplayDate()</time></td>
             </tr>

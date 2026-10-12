@@ -37,16 +37,6 @@
     color: var(--ambio-text-primary);
 }
 
-.offer-company {
-    color: var(--ambio-text-secondary);
-}
-
-.offer-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--ambio-space-8);
-}
-
 .offer-date {
     white-space: nowrap;
 }

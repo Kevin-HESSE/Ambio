@@ -1,0 +1,23 @@
+/* Layout primitives (docs/ui.md#components): a column or a row that wraps, with a gap between the children.
+   --gap sets the gap on the element itself and isn't inherited, so a stack inside a .page keeps its own gap.
+   Its initial value must be a fixed length: it is --ambio-space-8. */
+@property --gap {
+    syntax: "*";
+    inherits: false;
+    initial-value: var(--ambio-space-8);
+}
+
+/* A row of items that wraps, such as tags or buttons. */
+.cluster {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--gap);
+}
+
+/* A column of items. */
+.stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+}

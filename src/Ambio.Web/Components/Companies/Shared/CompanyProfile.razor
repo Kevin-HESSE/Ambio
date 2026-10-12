@@ -9,36 +9,36 @@
             <dl class="company-profile-list">
                 @if (Company.Website is not null)
                 {
-                    <div>
-                        <dt>Website</dt>
+                    <div class="stack">
+                        <dt class="t-small t-muted">Website</dt>
                         <dd><ExternalLink Href="@Company.Website" /></dd>
                     </div>
                 }
                 @if (Company.Industry is not null)
                 {
-                    <div>
-                        <dt>Industry</dt>
+                    <div class="stack">
+                        <dt class="t-small t-muted">Industry</dt>
                         <dd>@Company.Industry</dd>
                     </div>
                 }
                 @if (Company.Size is { } size)
                 {
-                    <div>
-                        <dt>Size</dt>
+                    <div class="stack">
+                        <dt class="t-small t-muted">Size</dt>
                         <dd>@size.ToLabel()</dd>
                     </div>
                 }
                 @if (Company.Location is not null)
                 {
-                    <div>
-                        <dt>Location</dt>
+                    <div class="stack">
+                        <dt class="t-small t-muted">Location</dt>
                         <dd>@Company.Location</dd>
                     </div>
                 }
                 @if (Company.LinkedInUrl is not null)
                 {
-                    <div>
-                        <dt>LinkedIn</dt>
+                    <div class="stack">
+                        <dt class="t-small t-muted">LinkedIn</dt>
                         <dd><ExternalLink Href="@Company.LinkedInUrl" /></dd>
                     </div>
                 }
@@ -46,7 +46,7 @@
         }
         else
         {
-            <p class="company-profile-empty">No details yet.</p>
+            <p class="company-profile-empty t-muted">No details yet.</p>
         }
     </div>
 </section>

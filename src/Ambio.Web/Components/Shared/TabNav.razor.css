@@ -10,7 +10,7 @@
     flex: none;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--ambio-space-6);
     padding: var(--ambio-space-12) 0 10px;
     border-bottom: 2px solid transparent;
     color: var(--ambio-text-secondary);

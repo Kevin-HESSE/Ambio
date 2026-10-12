@@ -64,7 +64,9 @@
     --ambio-status-withdrawn-border: #E2E8F0;
     --ambio-status-withdrawn-solid: #475569;
 
+    --ambio-space-2: 2px;
     --ambio-space-4: 4px;
+    --ambio-space-6: 6px;
     --ambio-space-8: 8px;
     --ambio-space-12: 12px;
     --ambio-space-16: 16px;
@@ -209,6 +211,10 @@
     --bs-warning-rgb: 245, 158, 11;
     --bs-danger-rgb: 239, 68, 68;
     --bs-info-rgb: 59, 130, 246;
+}
+
+h1, h2, h3, h4, h5, h6, p, ul, ol, dl, dd, figure, blockquote {
+    margin: 0;
 }
 
 /* ---------- Components whose Bootstrap colors are compiled ---------- */
