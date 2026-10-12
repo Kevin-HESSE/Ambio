@@ -3,10 +3,10 @@ using Ambio.Application.Companies;
 using Ambio.Application.Companies.Dtos;
 using Ambio.Application.Offers;
 using Ambio.Application.Offers.Dtos;
-using Ambio.Domain.Companies;
 using Ambio.Domain.Offers;
 using Ambio.Web.Components.Offers;
 using Ambio.Web.Components.Offers.Pages;
+using Ambio.Web.Tests.Fixtures;
 
 using Bunit;
 
@@ -27,16 +27,15 @@ public class OfferNewTests : BunitContext
 
     private readonly IJobOfferService _jobOfferService = Substitute.For<IJobOfferService>();
     private readonly ICompanyService _companyService = Substitute.For<ICompanyService>();
+    private readonly IReadOnlyList<CompanySummaryDto> _companies;
 
     public OfferNewTests()
     {
         Services.AddSingleton(_jobOfferService);
         Services.AddSingleton(_companyService);
-        _companyService.ListAsync(Arg.Any<CancellationToken>()).Returns(
-        [
-            new CompanySummaryDto(Guid.CreateVersion7(), "brightwave", "Brightwave", CompanyKind.Employer, null, null),
-            new CompanySummaryDto(Guid.CreateVersion7(), "kelvio", CompanyName, CompanyKind.Employer, null, null),
-        ]);
+        var companySummaryFactory = CompanySummaryFactory.GetGenerator();
+        _companies = companySummaryFactory.Generate(2);
+        _companyService.ListAsync(Arg.Any<CancellationToken>()).Returns(_companies);
     }
 
     [Fact]
@@ -56,7 +55,7 @@ public class OfferNewTests : BunitContext
         var cut = Render<OfferNew>();
 
         Assert.Equal("offer-companies", cut.Find("#offer-company").GetAttribute("list"));
-        Assert.Equal(["Brightwave", CompanyName], cut.FindAll("#offer-companies option").Select(option => option.GetAttribute("value")));
+        Assert.Equal(_companies.Select(company => company.Name), cut.FindAll("#offer-companies option").Select(option => option.GetAttribute("value")));
         Assert.Equal("offer-company-hint", cut.Find("#offer-company").GetAttribute("aria-describedby"));
     }
 

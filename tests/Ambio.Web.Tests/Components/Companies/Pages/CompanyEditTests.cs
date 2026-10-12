@@ -1,7 +1,6 @@
 using Ambio.Application.Common;
 using Ambio.Application.Companies;
 using Ambio.Application.Companies.Dtos;
-using Ambio.Domain.Companies;
 using Ambio.Web.Components.Companies;
 using Ambio.Web.Components.Companies.Pages;
 using Ambio.Web.Tests.Fixtures;
@@ -23,49 +22,52 @@ public class CompanyEditTests : BunitContext
     private const string NameError = "Enter the name of the company.";
 
     private readonly ICompanyService _companyService = Substitute.For<ICompanyService>();
+    private readonly CompanyDetailsDto _company;
 
     public CompanyEditTests()
     {
         Services.AddSingleton(_companyService);
-        _companyService.GetAsync(Brightwave.Slug, Arg.Any<CancellationToken>()).Returns(Brightwave);
+        var companyDetailsFactory = CompanyDetailsFactory.GetGenerator();
+        _company = companyDetailsFactory.Generate();
+        _companyService.GetAsync(_company.Slug, Arg.Any<CancellationToken>()).Returns(_company);
     }
 
     [Fact]
     public void Render_WithCompany_PrefillsTheForm()
     {
-        var cut = RenderEdit(Brightwave.Slug);
+        var cut = RenderEdit(_company.Slug);
 
-        Assert.Equal(Brightwave.Name, cut.Find("#company-name").GetAttribute("value"));
-        Assert.Equal(nameof(CompanyKind.ServiceCompany), cut.Find("#company-kind").GetAttribute("value"));
-        Assert.Equal(nameof(CompanySize.Medium), cut.Find("#company-size").GetAttribute("value"));
-        Assert.Equal(Brightwave.Location, cut.Find("#company-location").GetAttribute("value"));
-        Assert.Equal(Brightwave.Website, cut.Find("#company-website").GetAttribute("value"));
-        Assert.Equal(Brightwave.Description, cut.Find("#company-description").GetAttribute("value"));
+        Assert.Equal(_company.Name, cut.Find("#company-name").GetAttribute("value"));
+        Assert.Equal(_company.Kind.ToString(), cut.Find("#company-kind").GetAttribute("value"));
+        Assert.Equal(_company.Size.ToString(), cut.Find("#company-size").GetAttribute("value"));
+        Assert.Equal(_company.Location, cut.Find("#company-location").GetAttribute("value"));
+        Assert.Equal(_company.Website, cut.Find("#company-website").GetAttribute("value"));
+        Assert.Equal(_company.Description, cut.Find("#company-description").GetAttribute("value"));
     }
 
     [Fact]
     public void Render_WithCompany_CancelLinksToDetails()
     {
-        var cut = RenderEdit(Brightwave.Slug);
+        var cut = RenderEdit(_company.Slug);
 
-        Assert.Equal("Cancel", cut.Find($".action-bar a[href='{CompanyRoutes.Details(Brightwave.Slug)}']").TextContent.Trim());
+        Assert.Equal("Cancel", cut.Find($".action-bar a[href='{CompanyRoutes.Details(_company.Slug)}']").TextContent.Trim());
     }
 
     [Fact]
     public void Submit_WithChanges_UpdatesCompanyAndNavigatesToReturnedSlug()
     {
-        _companyService.UpdateAsync(Brightwave.Id, Arg.Any<CompanyInput>(), Arg.Any<CancellationToken>())
+        _companyService.UpdateAsync(_company.Id, Arg.Any<CompanyInput>(), Arg.Any<CancellationToken>())
             .Returns(ServiceResult<string>.Success(NewSlug));
-        var cut = RenderEdit(Brightwave.Slug);
+        var cut = RenderEdit(_company.Slug);
 
         cut.Find("#company-name").Change(NewName);
         cut.Find("#company-location").Change(NewLocation);
         cut.Find("form").Submit();
 
         _companyService.Received(1).UpdateAsync(
-            Brightwave.Id,
+            _company.Id,
             Arg.Is<CompanyInput>(input =>
-                input.Name == NewName && input.Location == NewLocation && input.Industry == Brightwave.Industry),
+                input.Name == NewName && input.Location == NewLocation && input.Industry == _company.Industry),
             Arg.Any<CancellationToken>());
         Assert.EndsWith($"/{CompanyRoutes.Details(NewSlug)}", Services.GetRequiredService<NavigationManager>().Uri);
     }
@@ -73,7 +75,7 @@ public class CompanyEditTests : BunitContext
     [Fact]
     public void Submit_WithoutName_ShowsErrorUnderNameWithoutUpdating()
     {
-        var cut = RenderEdit(Brightwave.Slug);
+        var cut = RenderEdit(_company.Slug);
 
         cut.Find("#company-name").Change("");
         cut.Find("form").Submit();
@@ -85,9 +87,9 @@ public class CompanyEditTests : BunitContext
     [Fact]
     public void Submit_WithExistingName_ShowsErrorUnderNameAndStaysOnPage()
     {
-        _companyService.UpdateAsync(Brightwave.Id, Arg.Any<CompanyInput>(), Arg.Any<CancellationToken>())
+        _companyService.UpdateAsync(_company.Id, Arg.Any<CompanyInput>(), Arg.Any<CancellationToken>())
             .Returns(ServiceResult<string>.Failure(CompanyErrors.AlreadyExists));
-        var cut = RenderEdit(Brightwave.Slug);
+        var cut = RenderEdit(_company.Slug);
         var navigation = Services.GetRequiredService<NavigationManager>();
         var startUri = navigation.Uri;
 
@@ -112,10 +114,10 @@ public class CompanyEditTests : BunitContext
     [Fact]
     public void Submit_WhenCompanyNoLongerExists_RequestsNotFound()
     {
-        _companyService.UpdateAsync(Brightwave.Id, Arg.Any<CompanyInput>(), Arg.Any<CancellationToken>())
+        _companyService.UpdateAsync(_company.Id, Arg.Any<CompanyInput>(), Arg.Any<CancellationToken>())
             .Returns(ServiceResult<string>.Failure(CompanyErrors.NotFound));
         var notFound = ListenToNotFound();
-        var cut = RenderEdit(Brightwave.Slug);
+        var cut = RenderEdit(_company.Slug);
 
         cut.Find("form").Submit();
 
@@ -131,13 +133,4 @@ public class CompanyEditTests : BunitContext
         Services.GetRequiredService<NavigationManager>().OnNotFound += (_, _) => notFound = true;
         return () => notFound;
     }
-
-    private static CompanyDetailsDto Brightwave { get; } = CompanyDetailsFactory.New(
-        "Brightwave",
-        CompanyKind.ServiceCompany,
-        industry: "Software",
-        size: CompanySize.Medium,
-        location: "Lyon",
-        website: "https://brightwave.io",
-        description: "Energy-monitoring software.");
 }
