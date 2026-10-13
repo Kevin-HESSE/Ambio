@@ -1,0 +1,27 @@
+@* The "Postings" card of the offer page: every site the offer was seen on, from the first seen. *@
+<section class="card offer-postings" aria-labelledby="offer-postings-title">
+    <div class="card-header offer-postings-header">
+        <h2 id="offer-postings-title" class="t-h3">
+            Postings
+            <CountBadge Count="Postings.Count" class="offer-postings-count" />
+        </h2>
+    </div>
+    <ul class="list-divided">
+        @foreach (var posting in Postings)
+        {
+            <li class="offer-posting">
+                <i class="offer-posting-icon bi bi-globe" aria-hidden="true"></i>
+                <div class="offer-posting-text stack">
+                    <span class="offer-posting-site t-body-strong">@posting.Site</span>
+                    <span class="offer-posting-link t-small"><ExternalLink Href="@posting.Url" /></span>
+                </div>
+                <time class="offer-posting-date t-small t-muted" datetime="@posting.SeenAt.ToString("yyyy-MM-dd")">@posting.SeenAt.ToShortDisplayDate()</time>
+            </li>
+        }
+    </ul>
+</section>
+
+@code {
+    [Parameter, EditorRequired]
+    public IReadOnlyList<JobOfferPostingDto> Postings { get; set; } = [];
+}

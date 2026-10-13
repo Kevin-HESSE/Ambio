@@ -25,6 +25,6 @@ public static class OfferLabels
         _ => throw new ArgumentOutOfRangeException(nameof(remotePolicy), remotePolicy, null),
     };
 
-    /// <summary>"1 posting", "3 postings".</summary>
-    public static string PostingCountLabel(int count) => count == 1 ? "1 posting" : $"{count} postings";
+    /// <summary>"posting" or "postings", the word after a count of postings.</summary>
+    public static string PostingWord(int count) => count == 1 ? "posting" : "postings";
 }

@@ -46,7 +46,10 @@ public class OfferJourneyTests : IClassFixture<AmbioAppFixture>
 
         await page.GetByLabel("Link", new() { Exact = true }).FillAsync(Url);
         await page.GetByRole(AriaRole.Button, new() { Name = "Create offer" }).ClickAsync();
-        await Expect(page).ToHaveURLAsync(new Regex($"/{OffersPath}$"));
+        await Expect(page).ToHaveURLAsync(new Regex($"/{OffersPath}/[0-9a-f-]{{36}}$"));
+        await Expect(page.GetByRole(AriaRole.Heading, new() { Name = Title, Level = 1 })).ToBeVisibleAsync();
+
+        await page.GotoAsync(OffersPath);
         var row = page.GetByRole(AriaRole.Row).Filter(new() { HasText = Title });
         await Expect(row).ToContainTextAsync(CompanyName);
         await Expect(row).ToContainTextAsync("Freelance");

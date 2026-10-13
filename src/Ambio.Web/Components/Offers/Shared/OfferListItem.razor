@@ -1,9 +1,11 @@
-@* An offer in a list inside a card, such as the Offers tab of the company page. It becomes a link to the offer
-   page with #46. *@
-<div class="offer-item stack">
-    <span class="offer-title t-body-strong text-truncate">@Offer.Title</span>
-    <div class="offer-tags cluster"><OfferTags Offer="Offer" /></div>
-</div>
+@* An offer in a list inside a card, such as the Offers tab of the company page, linking to its page. *@
+<a class="offer-item" href="@OfferRoutes.Details(Offer.Id)">
+    <div class="offer-item-text stack">
+        <span class="offer-title t-body-strong text-truncate">@Offer.Title</span>
+        <div class="offer-tags cluster"><OfferTags ContractType="Offer.ContractType" RemotePolicy="Offer.RemotePolicy" /></div>
+    </div>
+    <i class="bi bi-chevron-right t-muted" aria-hidden="true"></i>
+</a>
 
 @code {
     [Parameter, EditorRequired]

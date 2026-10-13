@@ -98,10 +98,9 @@
         _companyNames = (await CompanyService.ListAsync()).Select(company => company.Name).ToList();
     }
 
-    // The offer page comes with #46: until then, the new offer is shown in the list.
     private async Task CreateOffer()
     {
-        await JobOfferService.CreateAsync(Input);
-        NavigationManager.NavigateTo(OfferRoutes.List);
+        var id = await JobOfferService.CreateAsync(Input);
+        NavigationManager.NavigateTo(OfferRoutes.Details(id));
     }
 }

@@ -1,0 +1,19 @@
+@* A count in a rounded pill, such as the number of items behind a tab or the postings of an offer. A class passed
+   by the caller is added to its own, and other attributes pass through. *@
+<span class="@ComponentClass" @attributes="OtherAttributes">@Count</span>
+
+@code {
+
+    [Parameter, EditorRequired]
+    public int Count { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string ComponentClass => CssClassHelper
+        .Serialize(["count-badge", "t-badge"], [], AdditionalAttributes);
+
+    private IEnumerable<KeyValuePair<string, object>>? OtherAttributes =>
+        AdditionalAttributes?.Where(attribute => attribute.Key != "class");
+
+}

@@ -88,8 +88,10 @@ public class OfferNewTests : BunitContext
     }
 
     [Fact]
-    public void Submit_WithValidInput_CreatesOfferAndNavigatesToOffers()
+    public void Submit_WithValidInput_CreatesOfferAndNavigatesToItsPage()
     {
+        var id = Guid.CreateVersion7();
+        _jobOfferService.CreateAsync(Arg.Any<NewJobOfferInput>(), Arg.Any<CancellationToken>()).Returns(id);
         var cut = Render<OfferNew>();
 
         cut.Find("#offer-company").Change(CompanyName);
@@ -111,7 +113,7 @@ public class OfferNewTests : BunitContext
                 && input.Url == Url
                 && input.Description == Description),
             Arg.Any<CancellationToken>());
-        Assert.EndsWith($"/{OfferRoutes.List}", Services.GetRequiredService<NavigationManager>().Uri);
+        Assert.EndsWith($"/{OfferRoutes.Details(id)}", Services.GetRequiredService<NavigationManager>().Uri);
     }
 
     [Fact]

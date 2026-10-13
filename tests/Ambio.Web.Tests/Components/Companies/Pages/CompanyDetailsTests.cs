@@ -150,6 +150,21 @@ public class CompanyDetailsTests : BunitContext
     }
 
     [Fact]
+    public void Render_WithOffers_LinksEachToTheOfferPage()
+    {
+        var company = _companyDetailsFactory.Generate();
+        var offers = _jobOfferSummaryFactory.Generate(2);
+        GivenCompany(company);
+        GivenOffers(company, offers);
+
+        var cut = RenderDetails(company.Slug);
+
+        Assert.Equal(
+            offers.Select(offer => OfferRoutes.Details(offer.Id)),
+            cut.FindAll("a.offer-item").Select(link => link.GetAttribute("href")));
+    }
+
+    [Fact]
     public void Render_WithoutOffers_ShowsEmptyTabWithNewOfferLink()
     {
         var company = _companyDetailsFactory.Generate();
