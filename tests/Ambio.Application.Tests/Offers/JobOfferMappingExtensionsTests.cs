@@ -80,4 +80,33 @@ public class JobOfferMappingExtensionsTests
             (offer.CompanyId, offer.Title, offer.ContractType, offer.RemotePolicy, offer.Location, offer.Salary, offer.Description));
         Assert.Same(posting, Assert.Single(offer.Postings));
     }
+
+    [Fact]
+    public void ToInput_CopiesEveryFieldOfTheOffer()
+    {
+        var details = new JobOfferDetailsDto(
+            Id: Guid.CreateVersion7(),
+            Title: Title,
+            CompanyName: CompanyName,
+            CompanySlug: "kelvio",
+            ContractType: ContractType.Freelance,
+            RemotePolicy: RemotePolicy.FullRemote,
+            Location: Location,
+            Salary: Salary,
+            Description: Description,
+            RegisterAt: DateTime.UtcNow,
+            Postings: []);
+
+        Assert.Equal(
+            new JobOfferInput
+            {
+                Title = Title,
+                ContractType = ContractType.Freelance,
+                RemotePolicy = RemotePolicy.FullRemote,
+                Location = Location,
+                Salary = Salary,
+                Description = Description,
+            },
+            details.ToInput());
+    }
 }
