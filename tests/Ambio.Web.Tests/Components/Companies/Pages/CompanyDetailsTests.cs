@@ -2,12 +2,15 @@ using Ambio.Application.Companies;
 using Ambio.Application.Companies.Dtos;
 using Ambio.Application.Offers;
 using Ambio.Application.Offers.Dtos;
-using Ambio.Domain.Companies;
-using Ambio.Domain.Offers;
 using Ambio.Web.Components.Companies;
 using Ambio.Web.Components.Companies.Pages;
+using Ambio.Web.Components.Companies.Shared;
 using Ambio.Web.Components.Offers;
+using Ambio.Web.Components.Offers.Shared;
+using Ambio.Web.Components.Shared;
 using Ambio.Web.Tests.Fixtures;
+
+using Bogus;
 
 using Bunit;
 
@@ -20,67 +23,72 @@ namespace Ambio.Web.Tests.Components.Companies.Pages;
 
 public class CompanyDetailsTests : BunitContext
 {
-    private const string CompanyName = "Brightwave";
-    private const string Description = "Energy-monitoring software.\nAbout 120 people.";
-
     private readonly ICompanyService _companyService = Substitute.For<ICompanyService>();
     private readonly IJobOfferService _jobOfferService = Substitute.For<IJobOfferService>();
+    private readonly Faker<CompanyDetailsDto> _companyDetailsFactory;
+    private readonly Faker<JobOfferSummaryDto> _jobOfferSummaryFactory;
 
     public CompanyDetailsTests()
     {
         Services.AddSingleton(_companyService);
         Services.AddSingleton(_jobOfferService);
         _jobOfferService.ListByCompanyAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns([]);
+        _companyDetailsFactory = CompanyDetailsFactory.GetGenerator();
+        _jobOfferSummaryFactory = JobOfferSummaryFactory.GetGenerator();
     }
 
     [Fact]
     public void Render_WithCompany_ShowsNameAndKind()
     {
-        GivenCompany(Brightwave);
+        var company = _companyDetailsFactory.Generate();
+        GivenCompany(company);
 
-        var cut = RenderDetails(Brightwave.Slug);
+        var cut = RenderDetails(company.Slug);
 
-        Assert.Equal(CompanyName, cut.Find("h1").TextContent);
-        Assert.Equal("IT services", cut.Find(".detail-tags .tag").TextContent.Trim());
+        Assert.Equal(company.Name, cut.Find("h1").TextContent);
+        Assert.Equal(company.Kind.ToLabel(), cut.Find(".detail-tags .tag").TextContent.Trim());
     }
 
     [Fact]
     public void Render_WithEveryField_ShowsWholeProfile()
     {
-        GivenCompany(Brightwave);
+        var company = _companyDetailsFactory.Generate();
+        GivenCompany(company);
 
-        var cut = RenderDetails(Brightwave.Slug);
+        var cut = RenderDetails(company.Slug);
 
         var profile = cut.FindAll(".company-profile dl > div")
             .Select(row => (row.QuerySelector("dt")!.TextContent, row.QuerySelector("dd")!.TextContent.Trim()));
         Assert.Equal(
             [
-                ("Website", "brightwave.io"),
-                ("Industry", "Software"),
-                ("Size", "51–250 employees"),
-                ("Location", "Lyon"),
-                ("LinkedIn", "linkedin.com/company/brightwave"),
+                ("Website", ExternalLink.ShortText(company.Website!)),
+                ("Industry", company.Industry!),
+                ("Size", company.Size!.Value.ToLabel()),
+                ("Location", company.Location!),
+                ("LinkedIn", ExternalLink.ShortText(company.LinkedInUrl!)),
             ],
             profile);
-        Assert.NotNull(cut.Find($".company-profile a[href='{Brightwave.Website}'][target='_blank']"));
+        Assert.NotNull(cut.Find($".company-profile a[href='{company.Website}'][target='_blank']"));
     }
 
     [Fact]
     public void Render_WithDescription_ShowsIt()
     {
-        GivenCompany(Brightwave);
+        var company = _companyDetailsFactory.Generate();
+        GivenCompany(company);
 
-        var cut = RenderDetails(Brightwave.Slug);
+        var cut = RenderDetails(company.Slug);
 
-        Assert.Equal(Description, cut.Find(".company-description").TextContent);
+        Assert.Equal(company.Description, cut.Find(".company-description").TextContent);
     }
 
     [Fact]
     public void Render_WithOnlyRequiredFields_SaysDetailsAndDescriptionAreMissing()
     {
-        GivenCompany(Talentis);
+        var company = _companyDetailsFactory.Generate(CompanyDetailsFactory.RequiredOnlyRuleSet);
+        GivenCompany(company);
 
-        var cut = RenderDetails(Talentis.Slug);
+        var cut = RenderDetails(company.Slug);
 
         Assert.Empty(cut.FindAll(".company-profile dl"));
         Assert.Equal("No details yet.", cut.Find(".company-profile-empty").TextContent);
@@ -90,19 +98,21 @@ public class CompanyDetailsTests : BunitContext
     [Fact]
     public void Render_WithCompany_LinksToEditPage()
     {
-        GivenCompany(Brightwave);
+        var company = _companyDetailsFactory.Generate();
+        GivenCompany(company);
 
-        var cut = RenderDetails(Brightwave.Slug);
+        var cut = RenderDetails(company.Slug);
 
-        Assert.Equal("Edit", cut.Find($".detail-actions a[href='{CompanyRoutes.Edit(Brightwave.Slug)}']").TextContent.Trim());
+        Assert.Equal("Edit", cut.Find($".detail-actions a[href='{CompanyRoutes.Edit(company.Slug)}']").TextContent.Trim());
     }
 
     [Fact]
     public void Render_WithCompany_BreadcrumbLinksToList()
     {
-        GivenCompany(Brightwave);
+        var company = _companyDetailsFactory.Generate();
+        GivenCompany(company);
 
-        var cut = RenderDetails(Brightwave.Slug);
+        var cut = RenderDetails(company.Slug);
 
         Assert.Equal("Companies", cut.Find($".detail-breadcrumb a[href='{CompanyRoutes.List}']").TextContent);
     }
@@ -110,37 +120,42 @@ public class CompanyDetailsTests : BunitContext
     [Fact]
     public void Render_WithOffers_ShowsActiveOffersTabWithCountAndLink()
     {
-        GivenCompany(Brightwave);
-        GivenOffers(Brightwave, BackendDeveloper, MobileDeveloper);
+        var company = _companyDetailsFactory.Generate();
+        var offers = _jobOfferSummaryFactory.Generate(2);
+        GivenCompany(company);
+        GivenOffers(company, offers);
 
-        var cut = RenderDetails(Brightwave.Slug);
+        var cut = RenderDetails(company.Slug);
 
         var tab = cut.Find("nav.tabs a.tab.active");
-        Assert.Equal(CompanyRoutes.Details(Brightwave.Slug, CompanyRoutes.OffersTab), tab.GetAttribute("href"));
+        Assert.Equal(CompanyRoutes.Details(company.Slug, CompanyRoutes.OffersTab), tab.GetAttribute("href"));
         Assert.Equal("2", tab.QuerySelector(".tab-count")!.TextContent);
     }
 
     [Fact]
     public void Render_WithOffers_ListsThemWithTheirTags()
     {
-        GivenCompany(Brightwave);
-        GivenOffers(Brightwave, BackendDeveloper, MobileDeveloper);
+        var company = _companyDetailsFactory.Generate();
+        var jobOffers = _jobOfferSummaryFactory.Generate(2);
+        GivenCompany(company);
+        GivenOffers(company, jobOffers);
 
-        var cut = RenderDetails(Brightwave.Slug);
+        var cut = RenderDetails(company.Slug);
 
         var offers = cut.FindAll(".offer-item").Select(item => (
             item.QuerySelector(".offer-title")!.TextContent,
             string.Join(", ", item.QuerySelectorAll(".tag").Select(tag => tag.TextContent.Trim()))));
-        Assert.Equal([("Backend Developer", "Permanent, Hybrid"), ("Mobile Developer", "Freelance, Full remote")], offers);
+        Assert.Equal([Summary(jobOffers[0]), Summary(jobOffers[1])], offers);
         Assert.Empty(cut.FindAll(".empty"));
     }
 
     [Fact]
     public void Render_WithoutOffers_ShowsEmptyTabWithNewOfferLink()
     {
-        GivenCompany(Brightwave);
+        var company = _companyDetailsFactory.Generate();
+        GivenCompany(company);
 
-        var cut = RenderDetails(Brightwave.Slug);
+        var cut = RenderDetails(company.Slug);
 
         Assert.Equal("0", cut.Find("nav.tabs .tab-count").TextContent);
         Assert.NotNull(cut.Find($".empty a[href='{OfferRoutes.New}']"));
@@ -162,30 +177,12 @@ public class CompanyDetailsTests : BunitContext
     private void GivenCompany(CompanyDetailsDto company) =>
         _companyService.GetAsync(company.Slug, Arg.Any<CancellationToken>()).Returns(company);
 
-    private void GivenOffers(CompanyDetailsDto company, params JobOfferSummaryDto[] offers) =>
+    private void GivenOffers(CompanyDetailsDto company, params IReadOnlyList<JobOfferSummaryDto> offers) =>
         _jobOfferService.ListByCompanyAsync(company.Id, Arg.Any<CancellationToken>()).Returns(offers);
 
     private IRenderedComponent<CompanyDetails> RenderDetails(string slug) =>
         Render<CompanyDetails>(parameters => parameters.Add(page => page.Slug, slug));
 
-    private static CompanyDetailsDto Brightwave { get; } = CompanyDetailsFactory.New(
-        name: CompanyName,
-        kind: CompanyKind.ServiceCompany,
-        industry: "Software",
-        size: CompanySize.Medium,
-        location: "Lyon",
-        website: "https://brightwave.io",
-        linkedInUrl: "https://www.linkedin.com/company/brightwave/",
-        description: Description);
-
-    private static CompanyDetailsDto Talentis { get; } =
-        CompanyDetailsFactory.New(
-            name: "Talentis Recruitment",
-            kind: CompanyKind.RecruitmentAgency);
-
-    private static JobOfferSummaryDto BackendDeveloper { get; } =
-        JobOfferSummaryFactory.New(title: "Backend Developer", companyName: CompanyName);
-
-    private static JobOfferSummaryDto MobileDeveloper { get; } =
-        JobOfferSummaryFactory.New("Mobile Developer", CompanyName, ContractType.Freelance, RemotePolicy.FullRemote);
+    private static (string Title, string Tags) Summary(JobOfferSummaryDto offer) =>
+        (offer.Title, $"{offer.ContractType.ToLabel()}, {offer.RemotePolicy.ToLabel()}");
 }

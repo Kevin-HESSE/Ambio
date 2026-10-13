@@ -69,9 +69,6 @@
 
 .sidebar-foot {
     margin-top: auto;
-    display: flex;
-    flex-direction: column;
-    gap: var(--ambio-space-8);
     padding-top: var(--ambio-space-12);
     border-top: 1px solid var(--ambio-border-default);
 }
@@ -97,11 +94,8 @@
 .account-email {
     flex: 1;
     min-width: 0;
-    overflow: hidden;
     color: var(--ambio-text-secondary);
     text-decoration: none;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .account-email:hover {

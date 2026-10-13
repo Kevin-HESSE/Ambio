@@ -1,8 +1,8 @@
 using Ambio.Application.Offers;
 using Ambio.Application.Offers.Dtos;
-using Ambio.Domain.Offers;
 using Ambio.Web.Components.Offers;
 using Ambio.Web.Components.Offers.Pages;
+using Ambio.Web.Components.Offers.Shared;
 using Ambio.Web.Tests.Fixtures;
 
 using Bunit;
@@ -16,10 +16,25 @@ namespace Ambio.Web.Tests.Components.Offers.Pages;
 public class OfferListTests : BunitContext
 {
     private readonly IJobOfferService _jobOfferService = Substitute.For<IJobOfferService>();
+    private readonly JobOfferSummaryDto[] _offers;
 
     public OfferListTests()
     {
         Services.AddSingleton(_jobOfferService);
+        var jobOfferSummaryFactory = JobOfferSummaryFactory.GetGenerator();
+        _offers =
+        [
+            jobOfferSummaryFactory.Generate() with
+            {
+                PostingCount = 3,
+                RegisterAt = new DateTime(2026, 8, 28, 9, 0, 0, DateTimeKind.Utc),
+            },
+            jobOfferSummaryFactory.Generate() with
+            {
+                PostingCount = 1,
+                RegisterAt = new DateTime(2026, 9, 21, 9, 0, 0, DateTimeKind.Utc),
+            },
+        ];
     }
 
     [Fact]
@@ -36,7 +51,7 @@ public class OfferListTests : BunitContext
     [Fact]
     public void Render_WithOffers_ShowsOneTableRowPerOfferInServiceOrder()
     {
-        GivenOffers(FullStack, DataEngineer);
+        GivenOffers(_offers);
 
         var cut = Render<OfferList>();
 
@@ -47,8 +62,8 @@ public class OfferListTests : BunitContext
             row.QuerySelector(".offer-date")!.TextContent));
         Assert.Equal(
             [
-                ("Full-stack Engineer", "Kelvio", "3", "28 Aug 2026"),
-                ("Data Engineer", "Lumen Health", "1", "21 Sep 2026"),
+                (_offers[0].Title, _offers[0].CompanyName, "3", "28 Aug 2026"),
+                (_offers[1].Title, _offers[1].CompanyName, "1", "21 Sep 2026"),
             ],
             rows);
         Assert.Empty(cut.FindAll(".empty"));
@@ -57,18 +72,23 @@ public class OfferListTests : BunitContext
     [Fact]
     public void Render_WithOffers_ShowsContractAndRemotePolicyTags()
     {
-        GivenOffers(FullStack, DataEngineer);
+        GivenOffers(_offers);
 
         var cut = Render<OfferList>();
 
         var tags = cut.FindAll("tbody tr").Select(row => row.QuerySelectorAll(".tag").Select(tag => tag.TextContent.Trim()));
-        Assert.Equal([["Permanent", "Hybrid"], ["Fixed-term", "On-site"]], tags);
+        Assert.Equal(
+            [
+                [_offers[0].ContractType.ToLabel(), _offers[0].RemotePolicy.ToLabel()],
+                [_offers[1].ContractType.ToLabel(), _offers[1].RemotePolicy.ToLabel()],
+            ],
+            tags);
     }
 
     [Fact]
     public void Render_WithOffers_ShowsCardsWithCompanyDateAndPostings()
     {
-        GivenOffers(FullStack, DataEngineer);
+        GivenOffers(_offers);
 
         var cut = Render<OfferList>();
 
@@ -79,8 +99,8 @@ public class OfferListTests : BunitContext
             card.QuerySelector(".offer-postings")!.TextContent));
         Assert.Equal(
             [
-                ("Full-stack Engineer", "Kelvio", "28 Aug", "3 postings"),
-                ("Data Engineer", "Lumen Health", "21 Sep", "1 posting"),
+                (_offers[0].Title, _offers[0].CompanyName, "28 Aug", "3 postings"),
+                (_offers[1].Title, _offers[1].CompanyName, "21 Sep", "1 posting"),
             ],
             cards);
     }
@@ -88,7 +108,7 @@ public class OfferListTests : BunitContext
     [Fact]
     public void Render_WithOffers_LinksToNewOffer()
     {
-        GivenOffers(FullStack);
+        GivenOffers(_offers[0]);
 
         var cut = Render<OfferList>();
 
@@ -97,16 +117,4 @@ public class OfferListTests : BunitContext
 
     private void GivenOffers(params JobOfferSummaryDto[] offers) =>
         _jobOfferService.ListAsync(Arg.Any<CancellationToken>()).Returns(offers);
-
-    private static JobOfferSummaryDto FullStack { get; } = JobOfferSummaryFactory.New(
-        title: "Full-stack Engineer",
-        postingCount: 3,
-        registerAt: new DateTime(2026, 8, 28, 9, 0, 0, DateTimeKind.Utc));
-
-    private static JobOfferSummaryDto DataEngineer { get; } = JobOfferSummaryFactory.New(
-        title: "Data Engineer",
-        companyName: "Lumen Health",
-        contractType: ContractType.FixedTerm,
-        remotePolicy: RemotePolicy.OnSite,
-        registerAt: new DateTime(2026, 9, 21, 9, 0, 0, DateTimeKind.Utc));
 }

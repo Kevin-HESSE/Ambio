@@ -18,9 +18,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: var(--ambio-space-6);
     min-height: 36px;
-    margin: 0;
     padding: 0 var(--ambio-space-12);
     border-radius: var(--ambio-radius-sm);
     color: var(--ambio-text-secondary);

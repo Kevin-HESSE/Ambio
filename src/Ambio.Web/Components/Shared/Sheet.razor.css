@@ -17,22 +17,22 @@
     transition: transform 200ms cubic-bezier(0.3, 0, 1, 1), opacity 200ms cubic-bezier(0.3, 0, 1, 1), overlay 200ms allow-discrete, display 200ms allow-discrete;
 }
 
-    .sheet[open] {
-        transform: none;
-        transition-duration: 300ms;
-        transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
-    }
+.sheet[open] {
+    transform: none;
+    transition-duration: 300ms;
+    transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
 
-    .sheet::backdrop {
-        background: var(--ambio-scrim);
-        opacity: 0;
-        transition: opacity 200ms, overlay 200ms allow-discrete, display 200ms allow-discrete;
-    }
+.sheet::backdrop {
+    background: var(--ambio-scrim);
+    opacity: 0;
+    transition: opacity 200ms, overlay 200ms allow-discrete, display 200ms allow-discrete;
+}
 
-    .sheet[open]::backdrop {
-        opacity: 1;
-        transition-duration: 300ms;
-    }
+.sheet[open]::backdrop {
+    opacity: 1;
+    transition-duration: 300ms;
+}
 
 @starting-style {
     .sheet[open] {
@@ -50,16 +50,16 @@
     padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-    /* Drag handle of the bottom sheet */
-    .sheet-body::before {
-        content: "";
-        align-self: center;
-        width: 36px;
-        height: 4px;
-        margin-top: var(--ambio-space-8);
-        border-radius: var(--ambio-radius-full);
-        background: var(--ambio-border-strong);
-    }
+/* Drag handle of the bottom sheet */
+.sheet-body::before {
+    content: "";
+    align-self: center;
+    width: 36px;
+    height: 4px;
+    margin-top: var(--ambio-space-8);
+    border-radius: var(--ambio-radius-full);
+    background: var(--ambio-border-strong);
+}
 
 /* Centered modal: a short rise with a fade. */
 @media (min-width: 992px) {
@@ -72,10 +72,10 @@
         opacity: 0;
     }
 
-        .sheet[open] {
-            transform: none;
-            opacity: 1;
-        }
+    .sheet[open] {
+        transform: none;
+        opacity: 1;
+    }
 
     @starting-style {
         .sheet[open] {
@@ -88,9 +88,9 @@
         padding-bottom: 0;
     }
 
-        .sheet-body::before {
-            display: none;
-        }
+    .sheet-body::before {
+        display: none;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {

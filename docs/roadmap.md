@@ -47,7 +47,7 @@ Each item is a vertical slice: domain, persistence, service, page and tests for 
 - [x] Companies: detail and edit
 - [x] Companies: readable URLs such as `/companies/brightwave`, with a unique slug stored from the name (suffix on collision, recomputed on rename)
 - [x] Offers: create and list, `JobOffer` with a plain-text copy of the ad and its first `JobOfferPosting`, offers shown on the company page
-- [ ] Refactor: shared list styles (responsive list, list table, tag row) and test fixtures built with Bogus, before the next lists and detail pages
+- [x] Refactor: shared list styles (responsive list, list table, tag row) and test fixtures built with Bogus, before the next lists and detail pages
 - [ ] Offers: detail with their postings (the same offer seen on several sites), edit
 - [ ] Offers: duplicate suggestion when creating an offer (same company, similar title)
 - [ ] Applications from an offer: create and list, abstract `JobApplication` and `OfferApplication` mapped as TPH, `Channel` (online form, email, referral…), `ShortId` generated with NanoId (numeric for now), `StatusBadge` and `Tag` components

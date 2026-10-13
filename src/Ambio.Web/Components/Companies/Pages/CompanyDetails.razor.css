@@ -15,32 +15,14 @@
 }
 
 .company-detail-main {
+    --gap: var(--ambio-space-16);
     grid-area: main;
-    display: flex;
-    flex-direction: column;
-    gap: var(--ambio-space-16);
     min-width: 0;
 }
 
 .company-description {
-    margin: 0;
     white-space: pre-line;
     overflow-wrap: anywhere;
-}
-
-.company-description-empty {
-    margin: 0;
-    color: var(--ambio-text-muted);
-}
-
-.company-offers {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-
-.company-offers > li + li {
-    border-top: 1px solid var(--ambio-border-default);
 }
 
 @media (min-width: 992px) {

@@ -18,8 +18,6 @@ public class SingleAccountJourneyTests : IClassFixture<AmbioAppFixture>
         _app = app;
     }
 
-    private const string UserEmail = "user@example.com";
-    private const string UserPassword = "Passw0rd!";
     private const string RegisterPath = "Account/Register";
     private const string LoginPath = "Account/Login";
     private const string ConfirmationLinkText = "Click here to confirm your account";
@@ -33,19 +31,19 @@ public class SingleAccountJourneyTests : IClassFixture<AmbioAppFixture>
         var page = await context.NewPageAsync();
 
         await page.GotoAsync(RegisterPath);
-        await page.GetByLabel("Email").FillAsync(UserEmail);
-        await page.GetByLabel("Password", new() { Exact = true }).FillAsync(UserPassword);
-        await page.GetByLabel("Confirm Password").FillAsync(UserPassword);
+        await page.GetByLabel("Email").FillAsync(AmbioAppFixture.UserEmail);
+        await page.GetByLabel("Password", new() { Exact = true }).FillAsync(AmbioAppFixture.UserPassword);
+        await page.GetByLabel("Confirm Password").FillAsync(AmbioAppFixture.UserPassword);
         await page.GetByRole(AriaRole.Button, new() { Name = "Register" }).ClickAsync();
 
         await page.GetByRole(AriaRole.Link, new() { Name = ConfirmationLinkText }).ClickAsync();
         await Expect(page.GetByRole(AriaRole.Alert)).ToHaveTextAsync(EmailConfirmedMessage);
 
         await page.GotoAsync(LoginPath);
-        await page.GetByLabel("Email").FillAsync(UserEmail);
-        await page.GetByLabel("Password").FillAsync(UserPassword);
+        await page.GetByLabel("Email").FillAsync(AmbioAppFixture.UserEmail);
+        await page.GetByLabel("Password").FillAsync(AmbioAppFixture.UserPassword);
         await page.GetByRole(AriaRole.Button, new() { Name = "Log in" }).ClickAsync();
-        await Expect(page.GetByRole(AriaRole.Link, new() { Name = UserEmail })).ToBeVisibleAsync();
+        await Expect(page.GetByRole(AriaRole.Link, new() { Name = AmbioAppFixture.UserEmail })).ToBeVisibleAsync();
 
         await page.GetByRole(AriaRole.Button, new() { Name = "Log out" }).ClickAsync();
         await Expect(page.GetByRole(AriaRole.Link, new() { Name = "Log in" })).ToBeVisibleAsync();

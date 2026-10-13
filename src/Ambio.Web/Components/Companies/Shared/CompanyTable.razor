@@ -1,13 +1,11 @@
 @* The companies list on desktop (≥ 992 px). *@
-<table class="table company-table">
-    <thead>
-        <tr>
-            <th scope="col">Company</th>
-            <th scope="col">Kind</th>
-            <th scope="col">Location</th>
-        </tr>
-    </thead>
-    <tbody>
+<ListTable>
+    <Columns>
+        <th scope="col">Company</th>
+        <th scope="col">Kind</th>
+        <th scope="col">Location</th>
+    </Columns>
+    <Rows>
         @foreach (var company in Companies)
         {
             <tr>
@@ -15,15 +13,15 @@
                     <a class="company-name t-body-strong" href="@CompanyRoutes.Details(company.Slug)">@company.Name</a>
                     @if (!string.IsNullOrWhiteSpace(company.Industry))
                     {
-                        <div class="company-industry t-small">@company.Industry</div>
+                        <div class="company-industry t-small t-secondary">@company.Industry</div>
                     }
                 </th>
                 <td><Tag Icon="building">@company.Kind.ToLabel()</Tag></td>
                 <td>@company.Location</td>
             </tr>
         }
-    </tbody>
-</table>
+    </Rows>
+</ListTable>
 
 @code {
     [Parameter, EditorRequired]

@@ -12,7 +12,7 @@ public static class PageExtensions
     private const string LoginPath = "Account/Login";
 
     /// <summary>Logs in through the Log in page, at any width, and waits until the app has left it.
-    /// The account must exist and be confirmed, see <see cref="AmbioAppFixture.CreateConfirmedUserAsync"/>.</summary>
+    /// The account must exist and be confirmed, see <see cref="AmbioAppFixture.NewLoggedInPageAsync"/>.</summary>
     public static async Task LogInAsync(this IPage page, string email, string password)
     {
         await page.GotoAsync(LoginPath);

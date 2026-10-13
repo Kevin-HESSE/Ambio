@@ -19,8 +19,6 @@ public class OfferJourneyTests : IClassFixture<AmbioAppFixture>
         _app = app;
     }
 
-    private const string UserEmail = "user@example.com";
-    private const string UserPassword = "Passw0rd!";
     private const string OffersPath = "offers";
     private const string CompaniesPath = "companies";
     private const string CompanyName = "Kelvio";
@@ -33,10 +31,7 @@ public class OfferJourneyTests : IClassFixture<AmbioAppFixture>
     [Fact]
     public async Task User_CreatesOfferWithNewCompanyThenFindsItOnTheCompanyPage()
     {
-        await _app.CreateConfirmedUserAsync(UserEmail, UserPassword);
-        await using var context = await _app.Browser.NewContextAsync(new() { BaseURL = _app.BaseUrl });
-        var page = await context.NewPageAsync();
-        await page.LogInAsync(UserEmail, UserPassword);
+        var page = await _app.NewLoggedInPageAsync();
 
         await page.GotoAsync(OffersPath);
         await Expect(page.GetByRole(AriaRole.Heading, new() { Name = "No offers yet" })).ToBeVisibleAsync();

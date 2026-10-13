@@ -5,7 +5,6 @@ using Ambio.Infrastructure.Tests.Fixtures;
 using Ambio.Infrastructure.Users;
 
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -38,9 +37,7 @@ public class UserServiceTests : IAsyncLifetime
 
         Assert.True(result.TryGetValue(out var userId));
         Assert.True(await HasUserAsync());
-
-        await using var context = await _services.CreateDbContextAsync();
-        var user = await context.Users.SingleAsync(TestContext.Current.CancellationToken);
+        var user = await _services.QueryAsync(context => context.Users.SingleAsync(TestContext.Current.CancellationToken));
         Assert.Equal(userId, user.Id);
         Assert.Equal(UserEmail, user.Email);
         Assert.False(user.EmailConfirmed);
@@ -127,32 +124,17 @@ public class UserServiceTests : IAsyncLifetime
         ConfirmPassword = UserPassword,
     };
 
-    private async Task<ServiceResult<string>> RegisterAsync(RegisterInput input)
-    {
-        await using var scope = _services.CreateScope();
-        var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
-        return await userService.RegisterUserAsync(input, TestContext.Current.CancellationToken);
-    }
+    private Task<ServiceResult<string>> RegisterAsync(RegisterInput input) =>
+        _services.CallAsync((IUserService service) => service.RegisterUserAsync(input, TestContext.Current.CancellationToken));
 
-    private async Task<ServiceResult> GenerateConfirmEmailAsync(string userId)
-    {
-        await using var scope = _services.CreateScope();
-        var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
-        return await userService.GenerateConfirmEmailAsync(userId, ConfirmEmailUrl);
-    }
+    private Task<ServiceResult> GenerateConfirmEmailAsync(string userId) =>
+        _services.CallAsync((IUserService service) => service.GenerateConfirmEmailAsync(userId, ConfirmEmailUrl));
 
-    private async Task<bool> HasUserAsync()
-    {
-        await using var scope = _services.CreateScope();
-        var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
-        return await userService.HasUserAsync(TestContext.Current.CancellationToken);
-    }
+    private Task<bool> HasUserAsync() =>
+        _services.CallAsync((IUserService service) => service.HasUserAsync(TestContext.Current.CancellationToken));
 
-    private async Task<int> CountUsersAsync()
-    {
-        await using var context = await _services.CreateDbContextAsync();
-        return await context.Users.CountAsync(TestContext.Current.CancellationToken);
-    }
+    private Task<int> CountUsersAsync() =>
+        _services.QueryAsync(context => context.Users.CountAsync(TestContext.Current.CancellationToken));
 
     public static TheoryData<string> PasswordsRejectedByIdentity =>
     [

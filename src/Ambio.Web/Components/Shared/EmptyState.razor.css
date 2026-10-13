@@ -1,8 +1,6 @@
 .empty {
-    display: flex;
-    flex-direction: column;
+    --gap: var(--ambio-space-12);
     align-items: center;
-    gap: var(--ambio-space-12);
     padding: var(--ambio-space-48) var(--ambio-space-16);
     text-align: center;
 }
@@ -18,20 +16,11 @@
     font-size: 28px;
 }
 
-.empty-title {
-    margin: 0;
-}
-
 .empty-text {
     max-width: 36ch;
-    margin: 0;
-    color: var(--ambio-text-secondary);
 }
 
 .empty-actions {
-    display: flex;
-    flex-wrap: wrap;
     justify-content: center;
-    gap: var(--ambio-space-8);
     margin-top: var(--ambio-space-8);
 }

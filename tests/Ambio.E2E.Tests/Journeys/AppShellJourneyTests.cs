@@ -16,24 +16,18 @@ public class AppShellJourneyTests : IClassFixture<AmbioAppFixture>
         _app = app;
     }
 
-    private const string UserEmail = "user@example.com";
-    private const string UserPassword = "Passw0rd!";
     private const string MoreSheetSelector = "#more-sheet";
 
     [Fact]
     public async Task MobileUser_ChoosesDarkThemeAndLogsOutFromMoreSheet()
     {
-        await _app.CreateConfirmedUserAsync(UserEmail, UserPassword);
-        await using var context = await _app.Browser.NewContextAsync(new()
+        var page = await _app.NewLoggedInPageAsync(new()
         {
-            BaseURL = _app.BaseUrl,
             ViewportSize = new() { Width = 390, Height = 844 },
             ColorScheme = ColorScheme.Light,
         });
-        var page = await context.NewPageAsync();
         var html = page.Locator("html");
 
-        await page.LogInAsync(UserEmail, UserPassword);
         await Expect(page.GetByRole(AriaRole.Navigation).GetByRole(AriaRole.Button, new() { Name = "More" })).ToBeVisibleAsync();
         await Expect(html).ToHaveAttributeAsync("data-bs-theme", "light");
 

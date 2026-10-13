@@ -27,7 +27,7 @@
             <CompanyProfile Company="_company" />
         </div>
 
-        <div class="company-detail-main">
+        <div class="company-detail-main stack">
             <section class="card" aria-label="Description">
                 <div class="card-body">
                     @if (_company.Description is not null)
@@ -36,7 +36,7 @@
                     }
                     else
                     {
-                        <p class="company-description-empty">No description yet.</p>
+                        <p class="company-description-empty t-muted">No description yet.</p>
                     }
                 </div>
             </section>
@@ -55,7 +55,7 @@
                 }
                 else
                 {
-                    <ul class="company-offers">
+                    <ul class="company-offers list-divided">
                         @foreach (var offer in _offers)
                         {
                             <li><OfferListItem Offer="offer" /></li>

@@ -115,7 +115,7 @@ What the mockups are built from, and the Blazor component each becomes. Stock Bo
 | Status badge | `status-badge status-{status}` | `StatusBadge.razor` |
 | Tag | `tag`, `tag-accent`, `tag-archived` | `Tag.razor` |
 | Filter chip | `chip` | `FilterChip.razor` |
-| List card (mobile) / table row (desktop) | `app-card` / `table` | `ApplicationCard.razor`, `ApplicationTable.razor` (same for offers and companies) |
+| List card (mobile) / table row (desktop) | `app-card` / `table` | `ResponsiveList.razor` (cards below 992 px, table above) and `ListTable.razor` (header, rows, `num` cells), filled by each feature's card and table: `CompanyCard.razor` / `CompanyTable.razor`, `OfferCard.razor` / `OfferTable.razor`, then the same for applications |
 | Tabs | `tabs`, `tab` | `TabNav.razor` (links carrying `?tab=`) |
 | Status panel and history | `status-panel`, `timeline` | `StatusPanel.razor`, `StatusTimeline.razor` |
 | Bottom sheet / modal | `overlay`, `dialog` | `Sheet.razor` |
@@ -127,3 +127,17 @@ What the mockups are built from, and the Blazor component each becomes. Stock Bo
 | Dashboard | `pipeline-bar`, `stat` | `PipelineCard.razor`, `FollowUpCard.razor`, `ActivityFeed.razor` |
 
 In the app, the container query of the mockups (`@container app (min-width: 992px)`) becomes a media query (`@media (min-width: 992px)`), and the tokens move from `.pf` to `:root` and `[data-bs-theme="dark"]`.
+
+### Global classes
+
+Layout and text patterns repeated across components are global classes. The markup keeps its own class next to them (`offer-tags cluster`), and the scoped CSS only keeps what is specific to the component (padding, borders, alignment).
+
+| Class | File | Effect |
+|---|---|---|
+| `cluster` | `css/layout.css` | A row that wraps, with centred items: tag rows, action rows |
+| `stack` | `css/layout.css` | A column |
+| `--gap` | `css/layout.css` | The gap of `cluster` and `stack`, 8 px by default, set with a spacing token (`--gap: var(--ambio-space-16)`). Declared with `@property` and `inherits: false`, so a nested stack keeps its own gap |
+| `mobile-only` / `desktop-only` | `css/layout.css` | Hidden from 992 px / below 992 px |
+| `list-divided` | `css/lists.css` | A list without bullets or padding, with a border between items |
+
+`app.css` resets the margins of headings, paragraphs, lists and `figure`/`blockquote`.

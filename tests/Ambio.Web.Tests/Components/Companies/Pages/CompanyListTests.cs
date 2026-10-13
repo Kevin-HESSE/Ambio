@@ -1,8 +1,11 @@
 using Ambio.Application.Companies;
 using Ambio.Application.Companies.Dtos;
-using Ambio.Domain.Companies;
 using Ambio.Web.Components.Companies;
 using Ambio.Web.Components.Companies.Pages;
+using Ambio.Web.Components.Companies.Shared;
+using Ambio.Web.Tests.Fixtures;
+
+using Bogus;
 
 using Bunit;
 
@@ -15,10 +18,12 @@ namespace Ambio.Web.Tests.Components.Companies.Pages;
 public class CompanyListTests : BunitContext
 {
     private readonly ICompanyService _companyService = Substitute.For<ICompanyService>();
+    private readonly Faker<CompanySummaryDto> _companySummaryFactory;
 
     public CompanyListTests()
     {
         Services.AddSingleton(_companyService);
+        _companySummaryFactory = CompanySummaryFactory.GetGenerator();
     }
 
     [Fact]
@@ -35,39 +40,43 @@ public class CompanyListTests : BunitContext
     [Fact]
     public void Render_WithCompanies_ShowsOneTableRowPerCompanyInServiceOrder()
     {
-        GivenCompanies(Brightwave, Talentis);
+        var companies = _companySummaryFactory.Generate(2);
+        GivenCompanies(companies);
 
         var cut = Render<CompanyList>();
 
         var rows = cut.FindAll("tbody tr");
         Assert.Equal(2, rows.Count);
-        Assert.Contains("Brightwave", rows[0].TextContent);
-        Assert.Contains("Software", rows[0].TextContent);
-        Assert.Contains("Employer", rows[0].TextContent);
-        Assert.Contains("Lyon", rows[0].TextContent);
-        Assert.Contains("Recruitment agency", rows[1].TextContent);
+        Assert.Contains(companies[0].Name, rows[0].TextContent);
+        Assert.Contains(companies[0].Industry!, rows[0].TextContent);
+        Assert.Contains(companies[0].Kind.ToLabel(), rows[0].TextContent);
+        Assert.Contains(companies[0].Location!, rows[0].TextContent);
+        Assert.Contains(companies[1].Name, rows[1].TextContent);
         Assert.Empty(cut.FindAll(".empty"));
     }
 
     [Fact]
     public void Render_WithCompanies_ShowsCardsWithIndustryAndLocation()
     {
-        GivenCompanies(Brightwave, Talentis);
+        IReadOnlyList<CompanySummaryDto> companies =
+            [_companySummaryFactory.Generate(), _companySummaryFactory.Generate(CompanySummaryFactory.WithoutIndustryRuleSet)];
+        GivenCompanies(companies);
 
         var cut = Render<CompanyList>();
 
         var details = cut.FindAll(".company-card .company-details").Select(d => d.TextContent);
-        Assert.Equal(["Software · Lyon", "Paris"], details);
+        Assert.Equal([$"{companies[0].Industry} · {companies[0].Location}", companies[1].Location], details);
     }
 
     [Fact]
     public void Render_WithCompanies_LinksEachRowAndCardToItsDetails()
     {
-        GivenCompanies(Brightwave, Talentis);
+        var companies = _companySummaryFactory.Generate(2);
+        GivenCompanies(companies);
 
         var cut = Render<CompanyList>();
 
-        string[] expected = [CompanyRoutes.Details(Brightwave.Slug), CompanyRoutes.Details(Talentis.Slug)];
+        string[] expected = [CompanyRoutes.Details(companies[0].Slug), CompanyRoutes.Details(companies[1].Slug)];
         Assert.Equal(expected, cut.FindAll("tbody a").Select(link => link.GetAttribute("href")));
         Assert.Equal(expected, cut.FindAll("a.company-card").Select(link => link.GetAttribute("href")));
     }
@@ -75,19 +84,14 @@ public class CompanyListTests : BunitContext
     [Fact]
     public void Render_WithCompanies_LinksToNewCompany()
     {
-        GivenCompanies(Brightwave);
+        var company = _companySummaryFactory.Generate();
+        GivenCompanies(company);
 
         var cut = Render<CompanyList>();
 
         Assert.NotNull(cut.Find($".page-header a[href='{CompanyRoutes.New}']"));
     }
 
-    private void GivenCompanies(params CompanySummaryDto[] companies) =>
+    private void GivenCompanies(params IReadOnlyList<CompanySummaryDto> companies) =>
         _companyService.ListAsync(Arg.Any<CancellationToken>()).Returns(companies);
-
-    private static CompanySummaryDto Brightwave { get; } =
-        new(Guid.CreateVersion7(), "brightwave", "Brightwave", CompanyKind.Employer, "Software", "Lyon");
-
-    private static CompanySummaryDto Talentis { get; } =
-        new(Guid.CreateVersion7(), "talentis-recruitment", "Talentis Recruitment", CompanyKind.RecruitmentAgency, null, "Paris");
 }
