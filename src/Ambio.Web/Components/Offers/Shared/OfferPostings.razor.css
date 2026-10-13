@@ -33,3 +33,15 @@
     align-items: center;
     gap: var(--ambio-space-8);
 }
+
+.offer-postings-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ambio-space-8);
+}
+
+.offer-posting-remove {
+    flex: none;
+    color: var(--ambio-text-secondary);
+}

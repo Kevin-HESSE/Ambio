@@ -1,0 +1,15 @@
+@* The sites suggested in a Site field: give its Id to the input's list attribute. Any other site can be typed. *@
+<datalist id="@Id">
+    @foreach (var site in CommonSites)
+    {
+        <option value="@site"></option>
+    }
+</datalist>
+
+@code {
+    public static readonly IReadOnlyList<string> CommonSites =
+        ["LinkedIn", "Indeed", "Welcome to the Jungle", "Company careers page"];
+
+    [Parameter, EditorRequired]
+    public string Id { get; set; } = "";
+}

@@ -6,6 +6,7 @@ using Ambio.Application.Offers.Dtos;
 using Ambio.Domain.Offers;
 using Ambio.Web.Components.Offers;
 using Ambio.Web.Components.Offers.Pages;
+using Ambio.Web.Components.Offers.Shared;
 using Ambio.Web.Tests.Fixtures;
 
 using Bunit;
@@ -65,7 +66,7 @@ public class OfferNewTests : BunitContext
         var cut = Render<OfferNew>();
 
         Assert.Equal("offer-sites", cut.Find("#offer-site").GetAttribute("list"));
-        Assert.Equal(OfferNew.CommonSites, cut.FindAll("#offer-sites option").Select(option => option.GetAttribute("value")));
+        Assert.Equal(SiteSuggestions.CommonSites, cut.FindAll("#offer-sites option").Select(option => option.GetAttribute("value")));
     }
 
     [Fact]

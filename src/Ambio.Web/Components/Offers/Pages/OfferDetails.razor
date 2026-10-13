@@ -29,7 +29,7 @@
         </DetailHeader>
 
         <div class="offer-detail-aside detail-aside">
-            <OfferPostings Postings="_offer.Postings" />
+            <OfferPostings @rendermode="InteractiveServer" OfferId="_offer.Id" Postings="_offer.Postings" />
         </div>
 
         @* The Applications card comes with the applications (#48). *@

@@ -29,6 +29,8 @@ public class OfferDetailsTests : BunitContext
     public OfferDetailsTests()
     {
         Services.AddSingleton(_jobOfferService);
+        // The page is static; its postings card is interactive once the circuit is up.
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
         _jobOfferDetailsFactory = JobOfferDetailsFactory.GetGenerator();
     }
 

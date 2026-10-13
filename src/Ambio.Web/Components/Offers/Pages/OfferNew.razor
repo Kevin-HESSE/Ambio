@@ -56,12 +56,7 @@
         <FormSection Title="Where you saw it">
             <FormField Id="offer-site" Label="Site" For="() => Input.Site">
                 <InputText id="offer-site" @bind-Value="Input.Site" class="form-control" list="offer-sites" aria-required="true" />
-                <datalist id="offer-sites">
-                    @foreach (var site in CommonSites)
-                    {
-                        <option value="@site"></option>
-                    }
-                </datalist>
+                <SiteSuggestions Id="offer-sites" />
             </FormField>
             <FormField Id="offer-url" Label="Link" For="() => Input.Url">
                 <InputText id="offer-url" type="url" @bind-Value="Input.Url" class="form-control" placeholder="https://" aria-required="true" />
@@ -83,10 +78,6 @@
 </section>
 
 @code {
-    /// <summary>Suggested in the Site field; any other site can be typed.</summary>
-    public static readonly IReadOnlyList<string> CommonSites =
-        ["LinkedIn", "Indeed", "Welcome to the Jungle", "Company careers page"];
-
     [SupplyParameterFromForm]
     private NewJobOfferInput Input { get; set; } = default!;
 

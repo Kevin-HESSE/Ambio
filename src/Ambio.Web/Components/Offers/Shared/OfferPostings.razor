@@ -1,13 +1,23 @@
-@* The "Postings" card of the offer page: every site the offer was seen on, from the first seen. *@
+@inject IJobOfferService JobOfferService
+@inject NavigationManager NavigationManager
+
+@* The "Postings" card of the offer page: every site the offer was seen on, from the first seen. Rendered in
+   InteractiveServer mode by the static offer page: a posting is added in a sheet and removed after a
+   confirmation, without reloading the page. Its buttons wait for the circuit. *@
 <section class="card offer-postings" aria-labelledby="offer-postings-title">
     <div class="card-header offer-postings-header">
         <h2 id="offer-postings-title" class="t-h3">
             Postings
-            <CountBadge Count="Postings.Count" class="offer-postings-count" />
+            <CountBadge Count="_postings.Count" class="offer-postings-count" />
         </h2>
+        <button type="button" class="btn btn-sm offer-postings-add" data-sheet-open="@AddSheetId" aria-haspopup="dialog"
+                aria-controls="@AddSheetId" disabled="@(!RendererInfo.IsInteractive)">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i>
+            Add
+        </button>
     </div>
     <ul class="list-divided">
-        @foreach (var posting in Postings)
+        @foreach (var posting in _postings)
         {
             <li class="offer-posting">
                 <i class="offer-posting-icon bi bi-globe" aria-hidden="true"></i>
@@ -16,12 +26,142 @@
                     <span class="offer-posting-link t-small"><ExternalLink Href="@posting.Url" /></span>
                 </div>
                 <time class="offer-posting-date t-small t-muted" datetime="@posting.SeenAt.ToString("yyyy-MM-dd")">@posting.SeenAt.ToShortDisplayDate()</time>
+                @if (CanRemove)
+                {
+                    <button type="button" class="btn btn-icon btn-sm offer-posting-remove" data-sheet-open="@RemoveSheetId(posting)"
+                            aria-haspopup="dialog" aria-controls="@RemoveSheetId(posting)" aria-label="Remove the @posting.Site posting"
+                            disabled="@(!RendererInfo.IsInteractive)">
+                        <i class="bi bi-trash" aria-hidden="true"></i>
+                    </button>
+                }
             </li>
         }
     </ul>
+
+    <Sheet @ref="_addSheet" Id="@AddSheetId" Title="Add a posting">
+        <EditForm EditContext="_editContext" OnValidSubmit="AddPostingAsync" novalidate>
+            <DataAnnotationsValidator />
+            <div class="sheet-content">
+                <FormField Id="posting-site" Label="Site" For="() => _input.Site">
+                    <InputText id="posting-site" @bind-Value="_input.Site" class="form-control" list="posting-sites" aria-required="true" />
+                    <SiteSuggestions Id="posting-sites" />
+                </FormField>
+                <FormField Id="posting-url" Label="Link" For="() => _input.Url">
+                    <InputText id="posting-url" type="url" @bind-Value="_input.Url" class="form-control" placeholder="https://" aria-required="true" />
+                </FormField>
+            </div>
+            <div class="sheet-actions">
+                <button type="button" class="btn btn-secondary" data-sheet-close @onclick="ResetForm">Cancel</button>
+                <button type="submit" class="btn btn-primary">Add posting</button>
+            </div>
+        </EditForm>
+    </Sheet>
+
+    @if (CanRemove)
+    {
+        @foreach (var posting in _postings)
+        {
+            <Sheet @key="posting.Id" @ref="_removeSheets[posting.Id]" Id="@RemoveSheetId(posting)" Title="Remove this posting?">
+                <div class="sheet-content">
+                    <p class="t-secondary">@posting.Site · @ExternalLink.ShortText(posting.Url)</p>
+                </div>
+                <div class="sheet-actions">
+                    <button type="button" class="btn btn-secondary" data-sheet-close>Cancel</button>
+                    <button type="button" class="btn btn-danger" @onclick="() => RemovePostingAsync(posting)">Remove</button>
+                </div>
+            </Sheet>
+        }
+    }
 </section>
 
 @code {
+    /// <summary>Id of the add posting sheet.</summary>
+    public const string AddSheetId = "add-posting";
+
+    [Parameter, EditorRequired]
+    public Guid OfferId { get; set; }
+
+    /// <summary>The postings as read by the static page; the card then keeps its own list up to date.</summary>
     [Parameter, EditorRequired]
     public IReadOnlyList<JobOfferPostingDto> Postings { get; set; } = [];
+
+    private readonly Dictionary<Guid, Sheet> _removeSheets = [];
+    private IReadOnlyList<JobOfferPostingDto> _postings = [];
+    private Sheet _addSheet = null!;
+    private JobOfferPostingInput _input = new();
+    private EditContext _editContext = null!;
+    private ValidationMessageStore _serviceMessages = null!;
+
+    // An offer keeps at least one posting (JobOffer.CanRemovePosting).
+    private bool CanRemove => _postings.Count > 1;
+
+    /// <summary>Id of the sheet that confirms the removal of the posting.</summary>
+    public static string RemoveSheetId(JobOfferPostingDto posting) => $"remove-posting-{posting.Id}";
+
+    protected override void OnInitialized()
+    {
+        _postings = Postings;
+        ResetForm();
+    }
+
+    private void ResetForm()
+    {
+        _input = new();
+        _editContext = new EditContext(_input);
+        _serviceMessages = new ValidationMessageStore(_editContext);
+        // The service's message stays until the field changes: otherwise the form could never be valid again.
+        _editContext.OnFieldChanged += (_, _) => _serviceMessages.Clear();
+    }
+
+    private async Task AddPostingAsync()
+    {
+        var result = await JobOfferService.AddPostingAsync(OfferId, _input);
+
+        if (result.GetMessage == JobOfferErrors.NotFound)
+        {
+            NavigationManager.NotFound();
+            return;
+        }
+
+        if (!result.IsSuccess)
+        {
+            // The other failure is a link the offer already has: the message goes under the Link field.
+            _serviceMessages.Add(() => _input.Url, result.GetMessage);
+            _editContext.NotifyValidationStateChanged();
+            return;
+        }
+
+        await _addSheet.CloseAsync();
+        ResetForm();
+        await ReloadAsync();
+    }
+
+    private async Task RemovePostingAsync(JobOfferPostingDto posting)
+    {
+        var result = await JobOfferService.RemovePostingAsync(OfferId, posting.Id);
+
+        if (result.GetMessage == JobOfferErrors.NotFound)
+        {
+            NavigationManager.NotFound();
+            return;
+        }
+
+        // On another failure (already removed, last posting), the reloaded list shows where things stand.
+        await _removeSheets[posting.Id].CloseAsync();
+        _removeSheets.Remove(posting.Id);
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        var offer = await JobOfferService.GetAsync(OfferId);
+
+        if (offer is null)
+        {
+            NavigationManager.NotFound();
+            return;
+        }
+
+        _postings = offer.Postings;
+    }
 }
