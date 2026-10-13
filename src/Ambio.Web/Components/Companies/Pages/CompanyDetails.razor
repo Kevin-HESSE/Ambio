@@ -13,7 +13,7 @@
         <ButtonLink Href="@CompanyRoutes.Edit(_company.Slug)" Icon="pencil" IconOnly aria-label="Edit company" />
     </AppBarActions>
 
-    <div class="company-detail">
+    <div class="company-detail detail-layout">
         <DetailHeader Title="@_company.Name" ParentTitle="Companies" ParentHref="@CompanyRoutes.List">
             <Tags>
                 <Tag Icon="building">@_company.Kind.ToLabel()</Tag>
@@ -23,16 +23,16 @@
             </Actions>
         </DetailHeader>
 
-        <div class="company-detail-aside">
+        <div class="company-detail-aside detail-aside">
             <CompanyProfile Company="_company" />
         </div>
 
-        <div class="company-detail-main stack">
+        <div class="company-detail-main detail-main stack">
             <section class="card" aria-label="Description">
                 <div class="card-body">
                     @if (_company.Description is not null)
                     {
-                        <p class="company-description">@_company.Description</p>
+                        <p class="company-description prose">@_company.Description</p>
                     }
                     else
                     {

@@ -35,3 +35,37 @@
         display: none !important;
     }
 }
+
+/* The grid of a detail page (docs/ui.md#patterns): header, side column, then content below 992 px; the header
+   above the content and a side column on its right above. The side column holds the company profile or the
+   offer's postings. */
+.detail-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "head" "aside" "main";
+    gap: var(--ambio-space-16);
+}
+
+.detail-layout .detail-head {
+    grid-area: head;
+}
+
+.detail-aside {
+    grid-area: aside;
+}
+
+.detail-main {
+    --gap: var(--ambio-space-16);
+    grid-area: main;
+    min-width: 0;
+}
+
+@media (min-width: 992px) {
+    .detail-layout {
+        grid-template-columns: minmax(0, 1fr) 320px;
+        grid-template-areas: "head head" "main aside";
+        align-items: start;
+        column-gap: var(--ambio-space-32);
+        row-gap: var(--ambio-space-24);
+    }
+}
