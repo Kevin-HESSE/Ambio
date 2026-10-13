@@ -58,6 +58,28 @@ public sealed class SqliteServiceProvider : IAsyncDisposable
     public Task<ApplicationDbContext> CreateDbContextAsync() =>
         _provider.GetRequiredService<IDbContextFactory<ApplicationDbContext>>().CreateDbContextAsync();
 
+    /// <summary>Saves the entities straight through a new context, without any service.</summary>
+    public async Task AddAsync<TEntity>(params TEntity[] entities) where TEntity : class
+    {
+        await using var context = await CreateDbContextAsync();
+        context.Set<TEntity>().AddRange(entities);
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+    }
+
+    /// <summary>Calls a service resolved in its own scope, as a request of the app would.</summary>
+    public async Task<TResult> CallAsync<TService, TResult>(Func<TService, Task<TResult>> call) where TService : notnull
+    {
+        await using var scope = CreateScope();
+        return await call(scope.ServiceProvider.GetRequiredService<TService>());
+    }
+
+    /// <summary>Reads what was saved, on a new context.</summary>
+    public async Task<TResult> QueryAsync<TResult>(Func<ApplicationDbContext, Task<TResult>> query)
+    {
+        await using var context = await CreateDbContextAsync();
+        return await query(context);
+    }
+
     public async ValueTask DisposeAsync()
     {
         await _provider.DisposeAsync();

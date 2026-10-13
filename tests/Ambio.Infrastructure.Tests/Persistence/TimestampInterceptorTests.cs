@@ -9,9 +9,6 @@ namespace Ambio.Infrastructure.Tests.Persistence;
 
 public class TimestampInterceptorTests : IAsyncLifetime
 {
-    private const string CompanyName = "Acme";
-    private const string NewCompanyName = "Acme Corp";
-
     private static readonly DateTimeOffset CreationTime = new(2026, 1, 15, 9, 30, 0, TimeSpan.Zero);
     private static readonly DateTimeOffset UpdateTime = new(2026, 2, 20, 14, 0, 0, TimeSpan.Zero);
 
@@ -35,7 +32,7 @@ public class TimestampInterceptorTests : IAsyncLifetime
     public async Task SaveChanges_NewEntity_SetsCreatedAtAndUpdatedAt()
     {
         SetNow(CreationTime);
-        var company = CompanyFactory.New(CompanyName);
+        var company = CompanyFactory.GetGenerator().Generate();
 
         await using (var context = await _services.CreateDbContextAsync())
         {
@@ -57,7 +54,7 @@ public class TimestampInterceptorTests : IAsyncLifetime
         await using (var context = await _services.CreateDbContextAsync())
         {
             var company = await context.Companies.SingleAsync(c => c.Id == id, TestContext.Current.CancellationToken);
-            company.Name = NewCompanyName;
+            company.Name = $"{company.Name} Group";
             await context.SaveChangesAsync(TestContext.Current.CancellationToken);
         }
 
@@ -88,18 +85,11 @@ public class TimestampInterceptorTests : IAsyncLifetime
     private async Task<Guid> AddCompanyAsync()
     {
         SetNow(CreationTime);
-        var company = CompanyFactory.New(CompanyName);
-
-        await using var context = await _services.CreateDbContextAsync();
-        context.Companies.Add(company);
-        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
-
+        var company = CompanyFactory.GetGenerator().Generate();
+        await _services.AddAsync(company);
         return company.Id;
     }
 
-    private async Task<Company> FindCompanyAsync(Guid id)
-    {
-        await using var context = await _services.CreateDbContextAsync();
-        return await context.Companies.AsNoTracking().SingleAsync(c => c.Id == id, TestContext.Current.CancellationToken);
-    }
+    private Task<Company> FindCompanyAsync(Guid id) =>
+        _services.QueryAsync(context => context.Companies.AsNoTracking().SingleAsync(c => c.Id == id, TestContext.Current.CancellationToken));
 }
