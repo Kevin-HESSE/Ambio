@@ -125,7 +125,7 @@ Every attribute that isn't a status is a **neutral tag**. The icon distinguishes
 | `text/small` | 14 / 20 | Regular 400 | Metadata, help text |
 | `text/badge` | 13 / 16 | SemiBold 600 | Badges and tags |
 
-- In the app, each style is a CSS class in `wwwroot/css/typography.css`: `t-h1`, `t-h3`, `t-body-strong`, `t-small`, `t-badge`. Components use these classes instead of repeating the size, line height and weight. `text/body` is Bootstrap's default and has no class. The other styles get their class with their first use.
+- In the app, `wwwroot/css/typography.css` holds the text color classes `t-secondary` (`text/secondary`) and `t-muted` (`text/muted`)
 - Source Sans reads smaller than most sans-serifs, so body text stays at 16 px (Bootstrap's `1rem`).
 - Tabular figures (`font-variant-numeric: tabular-nums`) are used for dates and counts in tables.
 - The `ShortId` uses the system monospace stack (`ui-monospace, SFMono-Regular, Menlo, monospace`).
@@ -134,13 +134,17 @@ Every attribute that isn't a status is a **neutral tag**. The icon distinguishes
 
 | Spacing | Value |
 |---|---|
+| `space/2` | 2 px |
 | `space/4` | 4 px |
+| `space/6` | 6 px |
 | `space/8` | 8 px |
 | `space/12` | 12 px |
 | `space/16` | 16 px |
 | `space/24` | 24 px |
 | `space/32` | 32 px |
 | `space/48` | 48 px |
+
+`space/2` and `space/6` are off the 4 px grid: they only space tightly related lines, such as a label and its value or a field and its message.
 
 | Radius | Value | Usage |
 |---|---|---|
@@ -208,15 +212,3 @@ Each token becomes a CSS custom property prefixed with `--ambio-`. The `/` in th
   - `.btn-danger`: outlined, as in the mockups (`feedback/danger` text, `bg/surface`, `border/strong`);
   - inputs, selects and checkboxes: `bg/surface` and `border/strong`; their focus: `focus/ring`;
   - checked checkboxes: `accent/default`.
-
-## Figma structure
-
-| Collection | Variables | Notes |
-|---|---|---|
-| `Primitives` | 51 colors | Hidden from pickers (no scope) |
-| `Color Light` | 51 semantic colors, aliased to primitives | Scoped to fills, text or strokes |
-| `Color Dark` | Same names, dark aliases | |
-| `Spacing` | 7 | Gap and padding |
-| `Radius` | 4 | Corner radius |
-
-The Figma file is on the **Starter** plan, where a collection can hold only one mode. Light and dark are therefore two collections with identical variable names, instead of two modes of one collection. The components are bound to `Color Light`, and the dark preview rebinds them to `Color Dark`. With a paid plan, the two collections can be merged into one collection with `Light` and `Dark` modes, without renaming any variable.

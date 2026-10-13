@@ -28,8 +28,8 @@ The content listed below is typical, not exhaustive: each project grows with its
 |---|---|---|
 | `tests/Ambio.Domain.Tests` | Domain rules (status workflow, invariants) — created in Phase 1 | xUnit |
 | `tests/Ambio.Application.Tests` | DTO validation, `ServiceResult`, mapping extensions | xUnit |
-| `tests/Ambio.Infrastructure.Tests` | Service implementations (user management, email sending…), EF Core mappings and queries, file storage, plugin loader, PDF snapshots | xUnit, SQLite in-memory, NSubstitute |
-| `tests/Ambio.Web.Tests` | Blazor components: the app shell, then the interactive pages | bUnit, NSubstitute |
+| `tests/Ambio.Infrastructure.Tests` | Service implementations (user management, email sending…), EF Core mappings and queries, file storage, plugin loader, PDF snapshots | xUnit, SQLite in-memory, NSubstitute, Bogus |
+| `tests/Ambio.Web.Tests` | Blazor components: the app shell, then the interactive pages | bUnit, NSubstitute, Bogus |
 | `tests/Ambio.E2E.Tests` | Critical user journeys in a real browser | xUnit, Playwright |
 
 Shared settings (target framework, xUnit package, global `using Xunit;`) live in `tests/Directory.Build.props`, and package versions in `Directory.Packages.props`.
@@ -40,8 +40,19 @@ Shared settings (target framework, xUnit package, global `using Xunit;`) live in
 - **Names.** `Method_Scenario_Result`, e.g. `RegisterUserAsync_WhenUserExists_Fails`.
 - **Member order.** Tests first, then private helpers (and helper types), then the data sets at the bottom of the class.
 - **Theories.** More than two rows go in a `[MemberData]` backed by a `TheoryData<T>` property. With one or two rows, keep `[InlineData]`.
-- **No magic strings.** Values reused in a class are named constants. Expected messages come from the production constants (e.g. `UserErrors.AlreadyExists`), never retyped. Data set rows can stay literal.
+- **Test data.** Entities, DTOs and form inputs come from Bogus generators ([ADR 0022](adr/0022-test-data-with-bogus.md)), see [Test data](#test-data).
+- **No magic strings.** Expected values are read from the generated data. A named constant is kept only for a value the test relies on: a name whose case or slug is checked, a sort order, a displayed date format. Expected messages come from the production constants (e.g. `UserErrors.AlreadyExists`), never retyped. Data set rows can stay literal.
 - **Mocks.** Use NSubstitute, never hand-written fakes, only for what the test doesn't own (an email sender, an external API, the Application services consumed by a component). Services under test are resolved through the production DI extensions rather than built by hand.
+
+## Test data
+
+The Web and Infrastructure test projects build their data with [Bogus](https://github.com/bchavez/Bogus), in `Fixtures/`. Values are random on every run, without a seed.
+
+- **A generator per type.** Each factory exposes `GetGenerator()`, a `Faker<T>` that fills every field with realistic values. Positional DTOs are built with the `WithRecord()` extension.
+- **Variants are rule sets.** A factory exposes them as constants that include the default rules, such as `CompanyFactory.IsArchivedRuleSet` (`"default,archived"`) or `CompanyDetailsFactory.RequiredOnlyRuleSet`: `generator.Generate(CompanyFactory.IsArchivedRuleSet)`.
+- **Set what the test checks or relies on.** Override a field with `with` on a record, or with a `WithCustom…` extension such as `WithCustomName("Acme Inc.")`, which adds the rule to a copy of the generator. Everything else stays random, and the assertions read it from the generated object.
+- **Unique values.** `Name` and `Slug` are unique in the database. Bogus company names always have several words, so a test that needs two companies distinct by construction gives one of them a single-word name.
+- **Stories for related entities.** Each test creates its own story, so no data is shared between tests.
 
 ## EF Core integration tests
 
@@ -50,6 +61,7 @@ Tests run against a real SQLite engine in memory, so they catch mapping and tran
 - Each test gets its own named in-memory database (`DataSource=file:<guid>?mode=memory&cache=shared`). A keeper `SqliteConnection` stays open for the test's lifetime, so the database survives while contexts open and close their own connections.
 - Services are registered with the production extensions (`AddDatabase()`, `AddApplicationServices()`), so tests use the same `IDbContextFactory<ApplicationDbContext>` and Identity setup as the app. See `tests/Ambio.Infrastructure.Tests/Fixtures/SqliteServiceProvider.cs`.
 - Create the schema with `Database.EnsureCreated()`.
+- `SqliteServiceProvider` has helpers so tests don't open scopes and contexts by hand: `AddAsync(entities)` saves entities on a new context, `CallAsync((ICompanyService service) => …)` calls a service resolved in its own scope, as a request would, and `QueryAsync(context => …)` reads what was saved on a new context. A test opens a context itself only to change an entity it has loaded.
 - Test mapping classes (keys, required fields, relationships, cascade rules) and every LINQ projection to DTOs.
 
 ## Component tests
@@ -68,9 +80,10 @@ Playwright drives a headless Chromium against the real app, hosted in the test p
 - Every E2E test class carries `[Trait("Category", "E2E")]`, so the fast loop can exclude it.
 - Only **critical journeys** get an E2E test, as one test per journey. The current ones are:
   - `Journeys/SingleAccountJourneyTests`: register, confirm the email, log in, log out, then check that registration is closed;
-  - `Journeys/AppShellJourneyTests`: on a phone-sized viewport, open the More sheet, choose the Dark theme, check that it survives a reload, then log out from the sheet. It covers the shell script (`wwwroot/js/shell.js`), which bUnit doesn't run. Its account is created by `AmbioAppFixture.CreateConfirmedUserAsync`;
+  - `Journeys/AppShellJourneyTests`: on a phone-sized viewport, open the More sheet, choose the Dark theme, check that it survives a reload, then log out from the sheet. It covers the shell script (`wwwroot/js/shell.js`), which bUnit doesn't run. It starts from `AmbioAppFixture.NewLoggedInPageAsync` with a phone viewport and the light color scheme;
   - `Journeys/CompanyJourneyTests`: create a company (after a link refused by the validation), check its detail page, edit it, then open it again from the list. It covers the statically rendered forms and their redirects, which bUnit doesn't post;
   - `Journeys/OfferJourneyTests`: create an offer while typing a new company name (after a link refused by the validation), find it in the offers list, then in the Offers tab of the company created with it. It covers the form post and the inline company creation.
+- A journey that doesn't test the account itself starts with `var page = await _app.NewLoggedInPageAsync();`. The fixture creates the confirmed account (`AmbioAppFixture.UserEmail`, `UserPassword`) on the first call, opens a browser context on the app with the given options (viewport, color scheme), and logs in.
 - Steps shared by several journeys are extension methods on Playwright's `IPage` in `Fixtures/PageExtensions.cs`, such as `LogInAsync`, which works at any viewport width.
 - Select elements by role or label (`GetByRole`, `GetByLabel`), and add a `data-testid` only when nothing else is stable. Assert with Playwright's `Expect`, which waits for the page instead of failing at once.
 
