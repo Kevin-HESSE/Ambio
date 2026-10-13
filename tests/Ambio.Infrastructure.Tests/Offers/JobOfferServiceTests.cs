@@ -21,13 +21,13 @@ public class JobOfferServiceTests : IAsyncLifetime
     private static readonly DateTimeOffset Now = new(2026, 9, 28, 10, 0, 0, TimeSpan.Zero);
 
     private readonly Faker<Company> _companyFactory;
-    private readonly Faker<JobOfferInput> _jobOfferInputFactory;
+    private readonly Faker<NewJobOfferInput> _newJobOfferInputFactory;
     private SqliteServiceProvider _services = null!;
 
     public JobOfferServiceTests()
     {
         _companyFactory = CompanyFactory.GetGenerator();
-        _jobOfferInputFactory = JobOfferInputFactory.GetGenerator();
+        _newJobOfferInputFactory = NewJobOfferInputFactory.GetGenerator();
     }
 
     public async ValueTask InitializeAsync()
@@ -115,7 +115,7 @@ public class JobOfferServiceTests : IAsyncLifetime
     public async Task CreateAsync_WithEveryField_SavesTheOfferAndItsFirstPosting()
     {
         var company = await AddCompanyAsync();
-        var input = _jobOfferInputFactory.Generate() with { CompanyName = company.Name };
+        var input = _newJobOfferInputFactory.Generate() with { CompanyName = company.Name };
 
         var id = await CreateAsync(input);
 
@@ -131,7 +131,7 @@ public class JobOfferServiceTests : IAsyncLifetime
     [Fact]
     public async Task CreateAsync_WithPaddedOrBlankFields_TrimsThemAndStoresBlankAsNull()
     {
-        var input = _jobOfferInputFactory.Generate();
+        var input = _newJobOfferInputFactory.Generate();
 
         var id = await CreateAsync(input with { Title = $" {input.Title} ", Location = $" {input.Location} ", Salary = " " });
 
@@ -146,7 +146,7 @@ public class JobOfferServiceTests : IAsyncLifetime
         var company = _companyFactory.WithCustomName(CompanyName).Generate();
         await _services.AddAsync(company);
 
-        var id = await CreateAsync(_jobOfferInputFactory.WithCustomCompanyName(name).Generate());
+        var id = await CreateAsync(_newJobOfferInputFactory.WithCustomCompanyName(name).Generate());
 
         Assert.Equal(company.Id, (await FindAsync(id)).CompanyId);
         Assert.Single(await ListCompaniesAsync());
@@ -158,7 +158,7 @@ public class JobOfferServiceTests : IAsyncLifetime
         var archived = _companyFactory.Generate(CompanyFactory.IsArchivedRuleSet);
         await _services.AddAsync(archived);
 
-        var id = await CreateAsync(_jobOfferInputFactory.WithCustomCompanyName(archived.Name).Generate());
+        var id = await CreateAsync(_newJobOfferInputFactory.WithCustomCompanyName(archived.Name).Generate());
 
         Assert.Equal(archived.Id, (await FindAsync(id)).CompanyId);
     }
@@ -168,7 +168,7 @@ public class JobOfferServiceTests : IAsyncLifetime
     {
         await AddCompanyAsync();
 
-        var id = await CreateAsync(_jobOfferInputFactory.WithCustomCompanyName($" {CompanyName} ").Generate());
+        var id = await CreateAsync(_newJobOfferInputFactory.WithCustomCompanyName($" {CompanyName} ").Generate());
 
         var offer = await FindAsync(id);
         Assert.Equal((CompanyName, CompanySlug, CompanyKind.Employer), (offer.Company.Name, offer.Company.Slug, offer.Company.Kind));
@@ -180,7 +180,7 @@ public class JobOfferServiceTests : IAsyncLifetime
     {
         await _services.AddAsync(_companyFactory.WithCustomName("Acme Inc.").Generate());
 
-        var id = await CreateAsync(_jobOfferInputFactory.WithCustomCompanyName("Acme, Inc").Generate());
+        var id = await CreateAsync(_newJobOfferInputFactory.WithCustomCompanyName("Acme, Inc").Generate());
 
         Assert.Equal("acme-inc-2", (await FindAsync(id)).Company.Slug);
     }
@@ -213,7 +213,7 @@ public class JobOfferServiceTests : IAsyncLifetime
     private Task<IReadOnlyList<JobOfferSummaryDto>> ListByCompanyAsync(Guid companyId) =>
         _services.CallAsync((IJobOfferService service) => service.ListByCompanyAsync(companyId, TestContext.Current.CancellationToken));
 
-    private Task<Guid> CreateAsync(JobOfferInput input) =>
+    private Task<Guid> CreateAsync(NewJobOfferInput input) =>
         _services.CallAsync((IJobOfferService service) => service.CreateAsync(input, TestContext.Current.CancellationToken));
 
     public static TheoryData<string> SameNames =>

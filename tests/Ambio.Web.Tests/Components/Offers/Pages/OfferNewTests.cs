@@ -102,7 +102,7 @@ public class OfferNewTests : BunitContext
         cut.Find("form").Submit();
 
         _jobOfferService.Received(1).CreateAsync(
-            Arg.Is<JobOfferInput>(input =>
+            Arg.Is<NewJobOfferInput>(input =>
                 input.CompanyName == CompanyName
                 && input.Title == Title
                 && input.ContractType == ContractType.Freelance
@@ -149,5 +149,5 @@ public class OfferNewTests : BunitContext
     }
 
     private void AssertNotCreated() =>
-        _jobOfferService.DidNotReceive().CreateAsync(Arg.Any<JobOfferInput>(), Arg.Any<CancellationToken>());
+        _jobOfferService.DidNotReceive().CreateAsync(Arg.Any<NewJobOfferInput>(), Arg.Any<CancellationToken>());
 }

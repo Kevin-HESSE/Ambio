@@ -18,9 +18,9 @@ public static class JobOfferMappingExtensions
             PostingCount: o.Postings.Count,
             RegisterAt: o.CreatedAt));
 
-    /// <summary>A new offer of the company with the fields of the form and its first posting. The optional text
-    /// fields are trimmed, and a blank one is stored as null.</summary>
-    public static JobOffer ToEntity(this JobOfferInput input, Guid companyId)
+    /// <summary>A new offer of the company with the fields of the form, see <see cref="ApplyTo"/>, and its first
+    /// posting.</summary>
+    public static JobOffer ToEntity(this NewJobOfferInput input, Guid companyId)
     {
         var offer = new JobOffer
         {
@@ -28,11 +28,21 @@ public static class JobOfferMappingExtensions
             Title = input.Title,
             ContractType = input.ContractType,
             RemotePolicy = input.RemotePolicy,
-            Location = input.Location.NullIfBlank(),
-            Salary = input.Salary.NullIfBlank(),
-            Description = input.Description.NullIfBlank(),
         };
+        input.ApplyTo(offer);
         offer.AddPosting(input.Site, input.Url);
         return offer;
+    }
+
+    /// <summary>Copies the fields of the form onto the offer, but not its company nor its postings. The optional
+    /// text fields are trimmed, and a blank one is stored as null.</summary>
+    public static void ApplyTo(this JobOfferInput input, JobOffer offer)
+    {
+        offer.Title = input.Title;
+        offer.ContractType = input.ContractType;
+        offer.RemotePolicy = input.RemotePolicy;
+        offer.Location = input.Location.NullIfBlank();
+        offer.Salary = input.Salary.NullIfBlank();
+        offer.Description = input.Description.NullIfBlank();
     }
 }

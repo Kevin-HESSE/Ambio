@@ -41,7 +41,7 @@ internal class JobOfferService : IJobOfferService
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<Guid> CreateAsync(JobOfferInput input, CancellationToken cancellationToken = default)
+    public async Task<Guid> CreateAsync(NewJobOfferInput input, CancellationToken cancellationToken = default)
     {
         await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
 

@@ -12,5 +12,5 @@ public interface IJobOfferService
 
     /// <summary>Creates the offer with its first posting and returns its id. The offer goes to the company with
     /// this name ignoring case, archived or not; when there is none, the company is created as an employer.</summary>
-    public Task<Guid> CreateAsync(JobOfferInput input, CancellationToken cancellationToken = default);
+    public Task<Guid> CreateAsync(NewJobOfferInput input, CancellationToken cancellationToken = default);
 }
