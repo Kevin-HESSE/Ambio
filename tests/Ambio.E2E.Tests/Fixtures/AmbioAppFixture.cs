@@ -20,9 +20,13 @@ namespace Ambio.E2E.Tests.Fixtures;
 /// </summary>
 public sealed class AmbioAppFixture : IAsyncLifetime
 {
+    public const string UserEmail = "user@example.com";
+    public const string UserPassword = "Passw0rd!";
+
     private readonly string _databasePath = Path.Combine(Path.GetTempPath(), $"ambio-e2e-{Guid.NewGuid()}.db");
     private AmbioAppFactory _factory = null!;
     private IPlaywright _playwright = null!;
+    private bool _userCreated;
 
     public IBrowser Browser { get; private set; } = null!;
 
@@ -54,8 +58,25 @@ public sealed class AmbioAppFixture : IAsyncLifetime
         Browser = await _playwright.Chromium.LaunchAsync();
     }
 
+    /// <summary>Opens a page on the app, logged in as <see cref="UserEmail"/>. The account is created on the first
+    /// call. The <paramref name="options"/> (viewport, color scheme) are merged with the base URL of the app; the
+    /// context closes with the browser.</summary>
+    public async Task<IPage> NewLoggedInPageAsync(BrowserNewContextOptions? options = null)
+    {
+        if (!_userCreated)
+        {
+            await CreateConfirmedUserAsync(UserEmail, UserPassword);
+            _userCreated = true;
+        }
+
+        var context = await Browser.NewContextAsync(new BrowserNewContextOptions(options ?? new()) { BaseURL = BaseUrl });
+        var page = await context.NewPageAsync();
+        await page.LogInAsync(UserEmail, UserPassword);
+        return page;
+    }
+
     /// <summary>Creates the account through <see cref="IUserService"/> and confirms its email, ready to log in.</summary>
-    public async Task CreateConfirmedUserAsync(string email, string password)
+    private async Task CreateConfirmedUserAsync(string email, string password)
     {
         await using var scope = _factory.Services.CreateAsyncScope();
         var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
