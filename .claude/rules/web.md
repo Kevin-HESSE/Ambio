@@ -6,7 +6,7 @@ paths: src/Ambio.Web/**
 
 `Ambio.Web` references Application and Infrastructure.
 
-- Blazor Interactive Server only, no WebAssembly.
+- Blazor Interactive Server only, no WebAssembly. Pages are static; only the smallest component that needs interactivity gets `@rendermode InteractiveServer`, set by its page, with serializable parameters and its buttons disabled until `RendererInfo.IsInteractive` ([ADR 0023](../../docs/adr/0023-interactive-islands-in-static-pages.md)).
 - Components consume Application interfaces and DTOs only, never `ApplicationDbContext` or domain entities. The template Identity pages in `Components/Account` are the only exception.
 - Code is organised by feature ([ADR 0018](../../docs/adr/0018-feature-folders-in-every-project.md)): `Components/<Feature>/Pages/` for routable pages and `Components/<Feature>/Shared/` for the feature's components, like the existing `Components/Account/` (the Identity feature). Cross-feature code goes in `Components/Layout/`, `Components/Shared/`, and `Components/Pages/` only for app-level pages (Home, Error, NotFound).
 
@@ -26,5 +26,6 @@ paths: src/Ambio.Web/**
 - The shell is rendered statically; its behaviors (sheets, theme) are in `wwwroot/js/shell.js` and the `<head>` script of `App.razor`. A new page adds its section to `Components/Layout/AppNavigation.cs` and sets its mobile title with `<AppBarTitle>`; a page below a list (detail, new, edit) adds `<AppBarBack>` towards its parent.
 - Each feature lists its base-relative URLs in `Components/<Feature>/<Feature>Routes.cs` (constants, plus builders such as `CompanyRoutes.Details(slug)`). Links, redirects, tests and `AppNavigation` use it; pages keep their `@page` template.
 - Company URLs are `/companies/{slug}`: resolve by the stored slug; a new literal route under `/companies/` adds its segment to the reserved slugs of `CompanySlugs` ([ADR 0021](../../docs/adr/0021-slug-urls-for-companies.md)).
+- Offer URLs are `/offers/{id}` and `/offers/{id}/edit`, with the GUID (`OfferRoutes.Details(id)`).
 - Application URLs are `/applications/{ShortId}-{slug}`: resolve by `ShortId`, redirect to the canonical slug ([ADR 0014](../../docs/adr/0014-short-id-and-slug-urls.md)).
 - Static assets are served by `MapStaticAssets()` and referenced through `@Assets["..."]` in `App.razor`; Bootstrap is vendored in `wwwroot/lib`.

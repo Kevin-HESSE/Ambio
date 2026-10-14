@@ -53,12 +53,34 @@ public class JobOffer : ITimeStampable
     {
         var posting = new JobOfferPosting { JobOfferId = Id, Site = site, Url = url };
 
-        if (_postings.Any(p => p.Url == posting.Url))
+        if (HasPostingWithUrl(posting.Url))
         {
             throw new InvalidOperationException($"The offer already has a posting with the URL {posting.Url}.");
         }
 
         _postings.Add(posting);
         return posting;
+    }
+
+    /// <summary>Whether the offer already has a posting with this URL, compared once trimmed.</summary>
+    public bool HasPostingWithUrl(string url) => _postings.Any(p => p.Url == url.Trim());
+
+    /// <summary>An offer keeps at least one posting: only one of several can be removed.</summary>
+    public bool CanRemovePosting => _postings.Count > 1;
+
+    /// <summary>Removes a posting of the offer.</summary>
+    /// <exception cref="InvalidOperationException">The offer has no posting with this id, or it is its last
+    /// one.</exception>
+    public void RemovePosting(Guid postingId)
+    {
+        var posting = _postings.SingleOrDefault(p => p.Id == postingId)
+                      ?? throw new InvalidOperationException($"The offer has no posting with the id {postingId}.");
+
+        if (!CanRemovePosting)
+        {
+            throw new InvalidOperationException("The last posting of an offer can't be removed.");
+        }
+
+        _postings.Remove(posting);
     }
 }

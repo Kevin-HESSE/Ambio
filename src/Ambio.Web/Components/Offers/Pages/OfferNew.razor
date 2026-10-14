@@ -15,65 +15,31 @@
     <EditForm Model="Input" method="post" OnValidSubmit="CreateOffer" FormName="new-offer" novalidate class="card-body form-sections">
         <DataAnnotationsValidator />
 
-        <FormSection Title="Offer">
-            <FormField Id="offer-company" Label="Company" For="() => Input.CompanyName" Hint="Pick a company or type a new name to create it.">
-                <InputText id="offer-company" @bind-Value="Input.CompanyName" class="form-control" list="offer-companies"
-                           autocomplete="off" aria-required="true" aria-describedby="offer-company-hint" />
-                <datalist id="offer-companies">
-                    @foreach (var name in _companyNames)
-                    {
-                        <option value="@name"></option>
-                    }
-                </datalist>
-            </FormField>
-            <FormField Id="offer-title" Label="Title" For="() => Input.Title">
-                <InputText id="offer-title" @bind-Value="Input.Title" class="form-control" aria-required="true" />
-            </FormField>
-            <FormField Id="offer-contract" Label="Contract" For="() => Input.ContractType">
-                <InputSelect id="offer-contract" @bind-Value="Input.ContractType" class="form-select">
-                    @foreach (var contractType in Enum.GetValues<ContractType>())
-                    {
-                        <option value="@contractType">@contractType.ToLabel()</option>
-                    }
-                </InputSelect>
-            </FormField>
-            <FormField Id="offer-remote" Label="Remote policy" For="() => Input.RemotePolicy">
-                <InputSelect id="offer-remote" @bind-Value="Input.RemotePolicy" class="form-select">
-                    @foreach (var remotePolicy in Enum.GetValues<RemotePolicy>())
-                    {
-                        <option value="@remotePolicy">@remotePolicy.ToLabel()</option>
-                    }
-                </InputSelect>
-            </FormField>
-            <FormField Id="offer-location" Label="Location" For="() => Input.Location" Optional>
-                <InputText id="offer-location" @bind-Value="Input.Location" class="form-control" placeholder="e.g. Nantes" />
-            </FormField>
-            <FormField Id="offer-salary" Label="Salary" For="() => Input.Salary" Optional>
-                <InputText id="offer-salary" @bind-Value="Input.Salary" class="form-control" placeholder="As announced, e.g. 45–55 k€" />
-            </FormField>
-        </FormSection>
-
-        <FormSection Title="Where you saw it">
-            <FormField Id="offer-site" Label="Site" For="() => Input.Site">
-                <InputText id="offer-site" @bind-Value="Input.Site" class="form-control" list="offer-sites" aria-required="true" />
-                <datalist id="offer-sites">
-                    @foreach (var site in CommonSites)
-                    {
-                        <option value="@site"></option>
-                    }
-                </datalist>
-            </FormField>
-            <FormField Id="offer-url" Label="Link" For="() => Input.Url">
-                <InputText id="offer-url" type="url" @bind-Value="Input.Url" class="form-control" placeholder="https://" aria-required="true" />
-            </FormField>
-        </FormSection>
-
-        <FormSection Title="Job ad">
-            <FormField Id="offer-description" Label="Text of the ad" For="() => Input.Description" Optional FullWidth>
-                <InputTextArea id="offer-description" @bind-Value="Input.Description" class="form-control"
-                               placeholder="Paste the ad here: the copy stays when the ad goes offline." />
-            </FormField>
-        </FormSection>
+        <OfferFormFields Input="Input">
+            <Company>
+                <FormField Id="offer-company" Label="Company" For="() => Input.CompanyName" Hint="Pick a company or type a new name to create it.">
+                    <InputText id="offer-company" @bind-Value="Input.CompanyName" class="form-control" list="offer-companies"
+                               autocomplete="off" aria-required="true" aria-describedby="offer-company-hint" />
+                    <datalist id="offer-companies">
+                        @foreach (var name in _companyNames)
+                        {
+                            <option value="@name"></option>
+                        }
+                    </datalist>
+                </FormField>
+            </Company>
+            <ChildContent>
+                <FormSection Title="Where you saw it">
+                    <FormField Id="offer-site" Label="Site" For="() => Input.Site">
+                        <InputText id="offer-site" @bind-Value="Input.Site" class="form-control" list="offer-sites" aria-required="true" />
+                        <SiteSuggestions Id="offer-sites" />
+                    </FormField>
+                    <FormField Id="offer-url" Label="Link" For="() => Input.Url">
+                        <InputText id="offer-url" type="url" @bind-Value="Input.Url" class="form-control" placeholder="https://" aria-required="true" />
+                    </FormField>
+                </FormSection>
+            </ChildContent>
+        </OfferFormFields>
 
         <div class="action-bar">
             <ButtonLink Href="@OfferRoutes.List" Variant="ButtonVariant.Secondary">Cancel</ButtonLink>
@@ -83,12 +49,8 @@
 </section>
 
 @code {
-    /// <summary>Suggested in the Site field; any other site can be typed.</summary>
-    public static readonly IReadOnlyList<string> CommonSites =
-        ["LinkedIn", "Indeed", "Welcome to the Jungle", "Company careers page"];
-
     [SupplyParameterFromForm]
-    private JobOfferInput Input { get; set; } = default!;
+    private NewJobOfferInput Input { get; set; } = default!;
 
     private IReadOnlyList<string> _companyNames = [];
 
@@ -98,10 +60,9 @@
         _companyNames = (await CompanyService.ListAsync()).Select(company => company.Name).ToList();
     }
 
-    // The offer page comes with #46: until then, the new offer is shown in the list.
     private async Task CreateOffer()
     {
-        await JobOfferService.CreateAsync(Input);
-        NavigationManager.NavigateTo(OfferRoutes.List);
+        var id = await JobOfferService.CreateAsync(Input);
+        NavigationManager.NavigateTo(OfferRoutes.Details(id));
     }
 }

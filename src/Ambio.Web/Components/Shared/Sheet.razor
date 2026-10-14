@@ -1,8 +1,21 @@
+@inject IJSRuntime JS
+
 @* Overlay: a bottom sheet below 992 px, a centered modal above (docs/ui.md#patterns).
    Opened by any element with data-sheet-open="<Id>", closed by Escape, the backdrop, a link
-   or an element with data-sheet-close (wwwroot/js/shell.js). *@
-<dialog id="@Id" class="sheet" aria-label="@Label" @attributes="AdditionalAttributes">
+   or an element with data-sheet-close (wwwroot/js/shell.js), or by CloseAsync from an interactive component.
+   With a Title, the content is laid out with the "sheet-content" and "sheet-actions" blocks. *@
+<dialog id="@Id" class="sheet" aria-label="@(Title is null ? Label : null)" aria-labelledby="@(Title is null ? null : TitleId)"
+        @attributes="AdditionalAttributes">
     <div class="sheet-body">
+        @if (Title is not null)
+        {
+            <div class="sheet-head">
+                <h2 id="@TitleId" class="t-h3">@Title</h2>
+                <button type="button" class="btn btn-icon" data-sheet-close aria-label="Close">
+                    <i class="bi bi-x-lg" aria-hidden="true"></i>
+                </button>
+            </div>
+        }
         @ChildContent
     </div>
 </dialog>
@@ -11,13 +24,22 @@
     [Parameter, EditorRequired]
     public string Id { get; set; } = "";
 
-    /// <summary>Accessible name of the dialog.</summary>
-    [Parameter, EditorRequired]
-    public string Label { get; set; } = "";
+    /// <summary>Accessible name of a dialog without <see cref="Title"/>.</summary>
+    [Parameter]
+    public string? Label { get; set; }
+
+    /// <summary>The heading of the dialog, next to a close button. It names the dialog.</summary>
+    [Parameter]
+    public string? Title { get; set; }
 
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
     [Parameter(CaptureUnmatchedValues = true)]
     public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string TitleId => $"{Id}-title";
+
+    /// <summary>Closes the dialog, such as after its form was saved. Only from an interactive component.</summary>
+    public ValueTask CloseAsync() => JS.InvokeVoidAsync("ambio.sheet.close", Id);
 }

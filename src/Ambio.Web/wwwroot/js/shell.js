@@ -7,6 +7,11 @@
         }
     };
 
+    // Called by the Sheet component of an interactive page, such as after its form was saved.
+    window.ambio.sheet = {
+        close: (id) => document.getElementById(id)?.close(),
+    };
+
     document.addEventListener("click", (event) => {
         const opener = event.target.closest("[data-sheet-open]");
         if (opener) {

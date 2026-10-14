@@ -1,0 +1,77 @@
+@page "/offers/{Id:guid}"
+@attribute [Authorize]
+@inject IJobOfferService JobOfferService
+@inject NavigationManager NavigationManager
+
+@if (_offer is not null)
+{
+    <PageTitle>@_offer.Title</PageTitle>
+    <AppBarBack Href="@OfferRoutes.List" />
+    <AppBarTitle>Offer</AppBarTitle>
+    <AppBarActions>
+        <ButtonLink Href="@OfferRoutes.Edit(_offer.Id)" Icon="pencil" IconOnly aria-label="Edit offer" />
+    </AppBarActions>
+
+    <div class="offer-detail detail-layout">
+        <DetailHeader Title="@_offer.Title" ParentTitle="Offers" ParentHref="@OfferRoutes.List">
+            <Subtitle>
+                <a class="offer-company" href="@CompanyRoutes.Details(_offer.CompanySlug)">@_offer.CompanyName</a>
+                @if (_offer.Location is not null)
+                {
+                    @(" · ")<span class="offer-location">@_offer.Location</span>
+                }
+                @(" · ")<span class="offer-published">Published <time datetime="@_offer.RegisterAt.ToString("yyyy-MM-dd")">@_offer.RegisterAt.ToDisplayDate()</time></span>
+            </Subtitle>
+            <Tags>
+                <OfferTags ContractType="_offer.ContractType" RemotePolicy="_offer.RemotePolicy" />
+                @if (_offer.Salary is not null)
+                {
+                    <Tag>@_offer.Salary</Tag>
+                }
+            </Tags>
+            <Actions>
+                <ButtonLink Href="@OfferRoutes.Edit(_offer.Id)" Variant="ButtonVariant.Secondary" Icon="pencil">Edit</ButtonLink>
+            </Actions>
+        </DetailHeader>
+
+        <div class="offer-detail-aside detail-aside">
+            <OfferPostings @rendermode="InteractiveServer" OfferId="_offer.Id" Postings="_offer.Postings" />
+        </div>
+
+        @* The Applications card comes with the applications (#48). *@
+        <div class="offer-detail-main detail-main stack">
+            <section class="card offer-ad" aria-labelledby="offer-ad-title">
+                <div class="card-header offer-ad-header">
+                    <h2 id="offer-ad-title" class="t-h3">Job ad</h2>
+                </div>
+                <div class="card-body">
+                    @if (_offer.Description is not null)
+                    {
+                        <p class="offer-description prose">@_offer.Description</p>
+                    }
+                    else
+                    {
+                        <p class="offer-description-empty t-muted">No copy of the ad yet.</p>
+                    }
+                </div>
+            </section>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Guid Id { get; set; }
+
+    private JobOfferDetailsDto? _offer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _offer = await JobOfferService.GetAsync(Id);
+
+        if (_offer is null)
+        {
+            NavigationManager.NotFound();
+        }
+    }
+}

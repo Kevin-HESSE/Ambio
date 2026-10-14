@@ -1,0 +1,53 @@
+@* The fields of the offer form, shared by the new and edit pages. Place it inside an EditForm whose model is Input.
+   The new offer form puts its company field first in the Offer section (Company), and its first posting between
+   the Offer and Job ad sections (ChildContent). *@
+<FormSection Title="Offer">
+    @Company
+    <FormField Id="offer-title" Label="Title" For="() => Input.Title">
+        <InputText id="offer-title" @bind-Value="Input.Title" class="form-control" aria-required="true" />
+    </FormField>
+    <FormField Id="offer-contract" Label="Contract" For="() => Input.ContractType">
+        <InputSelect id="offer-contract" @bind-Value="Input.ContractType" class="form-select">
+            @foreach (var contractType in Enum.GetValues<ContractType>())
+            {
+                <option value="@contractType">@contractType.ToLabel()</option>
+            }
+        </InputSelect>
+    </FormField>
+    <FormField Id="offer-remote" Label="Remote policy" For="() => Input.RemotePolicy">
+        <InputSelect id="offer-remote" @bind-Value="Input.RemotePolicy" class="form-select">
+            @foreach (var remotePolicy in Enum.GetValues<RemotePolicy>())
+            {
+                <option value="@remotePolicy">@remotePolicy.ToLabel()</option>
+            }
+        </InputSelect>
+    </FormField>
+    <FormField Id="offer-location" Label="Location" For="() => Input.Location" Optional>
+        <InputText id="offer-location" @bind-Value="Input.Location" class="form-control" placeholder="e.g. Nantes" />
+    </FormField>
+    <FormField Id="offer-salary" Label="Salary" For="() => Input.Salary" Optional>
+        <InputText id="offer-salary" @bind-Value="Input.Salary" class="form-control" placeholder="As announced, e.g. 45–55 k€" />
+    </FormField>
+</FormSection>
+
+@ChildContent
+
+<FormSection Title="Job ad">
+    <FormField Id="offer-description" Label="Text of the ad" For="() => Input.Description" Optional FullWidth>
+        <InputTextArea id="offer-description" @bind-Value="Input.Description" class="form-control"
+                       placeholder="Paste the ad here: the copy stays when the ad goes offline." />
+    </FormField>
+</FormSection>
+
+@code {
+    [Parameter, EditorRequired]
+    public JobOfferInput Input { get; set; } = null!;
+
+    /// <summary>A field shown first in the Offer section, such as the company of a new offer.</summary>
+    [Parameter]
+    public RenderFragment? Company { get; set; }
+
+    /// <summary>Sections between the Offer and Job ad sections.</summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

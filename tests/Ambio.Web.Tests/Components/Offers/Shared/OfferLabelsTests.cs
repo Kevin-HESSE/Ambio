@@ -23,15 +23,15 @@ public class OfferLabelsTests
 
     [Theory]
     [MemberData(nameof(PostingCounts))]
-    public void PostingCountLabel_WithCount_ReturnsSingularOrPlural(int count, string expected)
+    public void PostingWord_WithCount_ReturnsSingularOrPlural(int count, string expected)
     {
-        Assert.Equal(expected, OfferLabels.PostingCountLabel(count));
+        Assert.Equal(expected, OfferLabels.PostingWord(count));
     }
 
     public static TheoryData<int, string> PostingCounts => new()
     {
-        { 0, "0 postings" },
-        { 1, "1 posting" },
-        { 3, "3 postings" },
+        { 0, "postings" },
+        { 1, "posting" },
+        { 3, "postings" },
     };
 }

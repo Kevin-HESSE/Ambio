@@ -7,7 +7,7 @@
             @tab.Label
             @if (tab.Count is { } count)
             {
-                <span class="tab-count t-badge">@count</span>
+                <CountBadge Count="count" class="tab-count" />
             }
         </a>
     }

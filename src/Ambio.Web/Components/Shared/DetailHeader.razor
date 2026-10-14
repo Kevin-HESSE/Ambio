@@ -1,5 +1,5 @@
-@* The header of a detail page, shown at every width (docs/ui.md#patterns): breadcrumb (desktop), title, tags
-   and actions (desktop). On mobile the actions go in the app bar (<AppBarActions>). *@
+@* The header of a detail page, shown at every width (docs/ui.md#patterns): breadcrumb (desktop), title, subtitle,
+   tags and actions (desktop). On mobile the actions go in the app bar (<AppBarActions>). *@
 <div class="detail-head">
     <div class="detail-head-text stack">
         <nav class="detail-breadcrumb desktop-only t-small t-muted" aria-label="Breadcrumb">
@@ -8,6 +8,10 @@
             <span aria-current="page">@Title</span>
         </nav>
         <h1 class="detail-title">@Title</h1>
+        @if (Subtitle is not null)
+        {
+            <div class="detail-subtitle t-secondary">@Subtitle</div>
+        }
         @if (Tags is not null)
         {
             <div class="detail-tags cluster">@Tags</div>
@@ -30,6 +34,10 @@
     /// <summary>Base-relative URL of the parent page.</summary>
     [Parameter, EditorRequired]
     public string ParentHref { get; set; } = "";
+
+    /// <summary>A line under the title, such as the company and the date of an offer.</summary>
+    [Parameter]
+    public RenderFragment? Subtitle { get; set; }
 
     /// <summary>Tags under the title, usually <see cref="Tag"/> components.</summary>
     [Parameter]

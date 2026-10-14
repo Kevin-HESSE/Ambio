@@ -1,5 +1,11 @@
 .offer-card {
     padding: var(--ambio-space-12) var(--ambio-space-16);
+    color: inherit;
+    text-decoration: none;
+}
+
+.offer-card:hover {
+    background: var(--ambio-bg-subtle);
 }
 
 .offer-card-head {
@@ -14,5 +20,7 @@
 }
 
 .offer-postings {
-    font-variant-numeric: tabular-nums;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ambio-space-6);
 }

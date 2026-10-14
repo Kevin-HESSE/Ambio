@@ -96,11 +96,12 @@ public class OfferListTests : BunitContext
             card.QuerySelector(".offer-title")!.TextContent,
             card.QuerySelector(".offer-company")!.TextContent,
             card.QuerySelector(".offer-date")!.TextContent,
-            card.QuerySelector(".offer-postings")!.TextContent));
+            card.QuerySelector(".offer-postings .count-badge")!.TextContent,
+            card.QuerySelector(".offer-postings")!.TextContent.Split(' ', StringSplitOptions.RemoveEmptyEntries).Last()));
         Assert.Equal(
             [
-                (_offers[0].Title, _offers[0].CompanyName, "28 Aug", "3 postings"),
-                (_offers[1].Title, _offers[1].CompanyName, "21 Sep", "1 posting"),
+                (_offers[0].Title, _offers[0].CompanyName, "28 Aug", "3", "postings"),
+                (_offers[1].Title, _offers[1].CompanyName, "21 Sep", "1", "posting"),
             ],
             cards);
     }
@@ -113,6 +114,18 @@ public class OfferListTests : BunitContext
         var cut = Render<OfferList>();
 
         Assert.NotNull(cut.Find($".page-header a[href='{OfferRoutes.New}']"));
+    }
+
+    [Fact]
+    public void Render_WithOffers_LinksEachTableRowAndCardToTheOfferPage()
+    {
+        GivenOffers(_offers);
+
+        var cut = Render<OfferList>();
+
+        var expected = _offers.Select(offer => OfferRoutes.Details(offer.Id));
+        Assert.Equal(expected, cut.FindAll("tbody tr a.offer-title").Select(link => link.GetAttribute("href")));
+        Assert.Equal(expected, cut.FindAll("a.offer-card").Select(link => link.GetAttribute("href")));
     }
 
     private void GivenOffers(params JobOfferSummaryDto[] offers) =>

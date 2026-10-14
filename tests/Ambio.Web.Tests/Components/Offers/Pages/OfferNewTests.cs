@@ -6,6 +6,7 @@ using Ambio.Application.Offers.Dtos;
 using Ambio.Domain.Offers;
 using Ambio.Web.Components.Offers;
 using Ambio.Web.Components.Offers.Pages;
+using Ambio.Web.Components.Offers.Shared;
 using Ambio.Web.Tests.Fixtures;
 
 using Bunit;
@@ -65,7 +66,7 @@ public class OfferNewTests : BunitContext
         var cut = Render<OfferNew>();
 
         Assert.Equal("offer-sites", cut.Find("#offer-site").GetAttribute("list"));
-        Assert.Equal(OfferNew.CommonSites, cut.FindAll("#offer-sites option").Select(option => option.GetAttribute("value")));
+        Assert.Equal(SiteSuggestions.CommonSites, cut.FindAll("#offer-sites option").Select(option => option.GetAttribute("value")));
     }
 
     [Fact]
@@ -88,8 +89,10 @@ public class OfferNewTests : BunitContext
     }
 
     [Fact]
-    public void Submit_WithValidInput_CreatesOfferAndNavigatesToOffers()
+    public void Submit_WithValidInput_CreatesOfferAndNavigatesToItsPage()
     {
+        var id = Guid.CreateVersion7();
+        _jobOfferService.CreateAsync(Arg.Any<NewJobOfferInput>(), Arg.Any<CancellationToken>()).Returns(id);
         var cut = Render<OfferNew>();
 
         cut.Find("#offer-company").Change(CompanyName);
@@ -102,7 +105,7 @@ public class OfferNewTests : BunitContext
         cut.Find("form").Submit();
 
         _jobOfferService.Received(1).CreateAsync(
-            Arg.Is<JobOfferInput>(input =>
+            Arg.Is<NewJobOfferInput>(input =>
                 input.CompanyName == CompanyName
                 && input.Title == Title
                 && input.ContractType == ContractType.Freelance
@@ -111,7 +114,7 @@ public class OfferNewTests : BunitContext
                 && input.Url == Url
                 && input.Description == Description),
             Arg.Any<CancellationToken>());
-        Assert.EndsWith($"/{OfferRoutes.List}", Services.GetRequiredService<NavigationManager>().Uri);
+        Assert.EndsWith($"/{OfferRoutes.Details(id)}", Services.GetRequiredService<NavigationManager>().Uri);
     }
 
     [Fact]
@@ -149,5 +152,5 @@ public class OfferNewTests : BunitContext
     }
 
     private void AssertNotCreated() =>
-        _jobOfferService.DidNotReceive().CreateAsync(Arg.Any<JobOfferInput>(), Arg.Any<CancellationToken>());
+        _jobOfferService.DidNotReceive().CreateAsync(Arg.Any<NewJobOfferInput>(), Arg.Any<CancellationToken>());
 }

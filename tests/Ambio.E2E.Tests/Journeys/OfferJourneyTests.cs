@@ -27,9 +27,11 @@ public class OfferJourneyTests : IClassFixture<AmbioAppFixture>
     private const string Site = "LinkedIn";
     private const string Url = "https://www.linkedin.com/jobs/view/4102938475";
     private const string UrlWithoutDomain = "https://linkedin";
+    private const string OtherSite = "Indeed";
+    private const string OtherUrl = "https://fr.indeed.com/viewjob?jk=4a1f9e0c2b7d6e35";
 
     [Fact]
-    public async Task User_CreatesOfferWithNewCompanyThenFindsItOnTheCompanyPage()
+    public async Task User_CreatesOfferThenManagesItsPostingsAndFindsItFromTheCompanyPage()
     {
         var page = await _app.NewLoggedInPageAsync();
 
@@ -46,15 +48,40 @@ public class OfferJourneyTests : IClassFixture<AmbioAppFixture>
 
         await page.GetByLabel("Link", new() { Exact = true }).FillAsync(Url);
         await page.GetByRole(AriaRole.Button, new() { Name = "Create offer" }).ClickAsync();
-        await Expect(page).ToHaveURLAsync(new Regex($"/{OffersPath}$"));
-        var row = page.GetByRole(AriaRole.Row).Filter(new() { HasText = Title });
-        await Expect(row).ToContainTextAsync(CompanyName);
-        await Expect(row).ToContainTextAsync("Freelance");
+        await Expect(page).ToHaveURLAsync(new Regex($"/{OffersPath}/[0-9a-f-]{{36}}$"));
+        var offerUrl = page.Url;
+        await Expect(page.GetByRole(AriaRole.Heading, new() { Name = Title, Level = 1 })).ToBeVisibleAsync();
+        await Expect(page.GetByText(CompanyName).First).ToBeVisibleAsync();
+        var postings = page.Locator(".offer-posting");
+        await Expect(postings).ToHaveCountAsync(1);
+
+        // The postings card is interactive: the Add button is enabled once the circuit is up.
+        await page.GetByRole(AriaRole.Button, new() { Name = "Add", Exact = true }).ClickAsync();
+        var addSheet = page.GetByRole(AriaRole.Dialog, new() { Name = "Add a posting" });
+        await addSheet.GetByLabel("Site", new() { Exact = true }).FillAsync(OtherSite);
+        await addSheet.GetByLabel("Link", new() { Exact = true }).FillAsync(UrlWithoutDomain);
+        await addSheet.GetByRole(AriaRole.Button, new() { Name = "Add posting" }).ClickAsync();
+        await Expect(addSheet.GetByText(new HttpUrlAttribute().FormatErrorMessage("Url"))).ToBeVisibleAsync();
+
+        await addSheet.GetByLabel("Link", new() { Exact = true }).FillAsync(OtherUrl);
+        await addSheet.GetByRole(AriaRole.Button, new() { Name = "Add posting" }).ClickAsync();
+        await Expect(addSheet).ToBeHiddenAsync();
+        await Expect(postings).ToHaveCountAsync(2);
+        await Expect(postings.Nth(1)).ToContainTextAsync(OtherSite);
+
+        await page.GetByRole(AriaRole.Button, new() { Name = $"Remove the {Site} posting" }).ClickAsync();
+        var removeSheet = page.GetByRole(AriaRole.Dialog, new() { Name = "Remove this posting?" });
+        await removeSheet.GetByRole(AriaRole.Button, new() { Name = "Remove", Exact = true }).ClickAsync();
+        await Expect(removeSheet).ToBeHiddenAsync();
+        await Expect(postings).ToHaveCountAsync(1);
+        await Expect(postings.First).ToContainTextAsync(OtherSite);
+        await Expect(page.GetByRole(AriaRole.Button, new() { Name = $"Remove the {OtherSite} posting" })).ToHaveCountAsync(0);
 
         await page.GotoAsync(CompaniesPath);
         await page.GetByRole(AriaRole.Link, new() { Name = CompanyName }).First.ClickAsync();
         await Expect(page).ToHaveURLAsync(new Regex($"/{CompaniesPath}/{CompanySlug}$"));
         await Expect(page.GetByRole(AriaRole.Link, new() { Name = "Offers 1" })).ToHaveAttributeAsync("aria-current", "page");
-        await Expect(page.GetByText(Title)).ToBeVisibleAsync();
+        await page.GetByRole(AriaRole.Link, new() { Name = Title }).ClickAsync();
+        await Expect(page).ToHaveURLAsync(offerUrl);
     }
 }

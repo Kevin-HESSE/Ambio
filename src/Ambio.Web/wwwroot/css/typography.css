@@ -40,3 +40,10 @@
 .t-muted {
     color: var(--ambio-text-muted);
 }
+
+/* Plain text typed or pasted by the user, such as a description or the copy of an ad: its line breaks are kept
+   and a long word or URL wraps. */
+.prose {
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}

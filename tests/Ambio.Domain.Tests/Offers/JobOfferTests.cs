@@ -97,6 +97,68 @@ public class JobOfferTests
         Assert.Empty(offer.Postings);
     }
 
+    [Fact]
+    public void HasPostingWithUrl_WithPaddedUrlOfAPosting_ReturnsTrue()
+    {
+        var offer = NewOffer();
+        offer.AddPosting(Site, Url);
+
+        Assert.True(offer.HasPostingWithUrl($" {Url}\n"));
+        Assert.False(offer.HasPostingWithUrl(OtherUrl));
+    }
+
+    [Fact]
+    public void CanRemovePosting_WithOnePosting_ReturnsFalse()
+    {
+        var offer = NewOffer();
+        offer.AddPosting(Site, Url);
+
+        Assert.False(offer.CanRemovePosting);
+    }
+
+    [Fact]
+    public void CanRemovePosting_WithSeveralPostings_ReturnsTrue()
+    {
+        var offer = NewOffer();
+        offer.AddPosting(Site, Url);
+        offer.AddPosting(Site, OtherUrl);
+
+        Assert.True(offer.CanRemovePosting);
+    }
+
+    [Fact]
+    public void RemovePosting_WithSeveralPostings_RemovesIt()
+    {
+        var offer = NewOffer();
+        var posting = offer.AddPosting(Site, Url);
+        offer.AddPosting(Site, OtherUrl);
+
+        offer.RemovePosting(posting.Id);
+
+        Assert.Equal(OtherUrl, Assert.Single(offer.Postings).Url);
+    }
+
+    [Fact]
+    public void RemovePosting_LastPosting_ThrowsAndKeepsIt()
+    {
+        var offer = NewOffer();
+        var posting = offer.AddPosting(Site, Url);
+
+        Assert.Throws<InvalidOperationException>(() => offer.RemovePosting(posting.Id));
+        Assert.Single(offer.Postings);
+    }
+
+    [Fact]
+    public void RemovePosting_UnknownId_ThrowsAndKeepsThePostings()
+    {
+        var offer = NewOffer();
+        offer.AddPosting(Site, Url);
+        offer.AddPosting(Site, OtherUrl);
+
+        Assert.Throws<InvalidOperationException>(() => offer.RemovePosting(Guid.CreateVersion7()));
+        Assert.Equal(2, offer.Postings.Count);
+    }
+
     private static JobOffer NewOffer(string title = Title) => new()
     {
         CompanyId = Guid.CreateVersion7(),
