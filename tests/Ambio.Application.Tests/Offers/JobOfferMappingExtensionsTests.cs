@@ -60,6 +60,14 @@ public class JobOfferMappingExtensionsTests
     }
 
     [Fact]
+    public void ToPostingInput_CopiesTheSiteAndTheLink()
+    {
+        var posting = new NewJobOfferInput { CompanyName = CompanyName, Title = Title, Site = Site, Url = Url }.ToPostingInput();
+
+        Assert.Equal((Site, Url), (posting.Site, posting.Url));
+    }
+
+    [Fact]
     public void ApplyTo_ReplacesTheFieldsButKeepsTheCompanyAndThePostings()
     {
         var offer = new NewJobOfferInput { CompanyName = CompanyName, Title = Title, Site = Site, Url = Url }.ToEntity(CompanyId);
