@@ -18,6 +18,9 @@ public class JobOfferServiceTests : IAsyncLifetime
 {
     private const string CompanyName = "Kelvio";
     private const string CompanySlug = "kelvio";
+    private const string Title = "Full-stack Engineer";
+    private const string SimilarTitle = "full stack engineer";
+    private const string DifferentTitle = "Frontend Developer";
 
     private static readonly DateTimeOffset Now = new(2026, 9, 28, 10, 0, 0, TimeSpan.Zero);
     private static readonly DateTimeOffset Later = Now.AddDays(2);
@@ -115,6 +118,76 @@ public class JobOfferServiceTests : IAsyncLifetime
         var summary = Assert.Single(await ListByCompanyAsync(story.Company.Id));
 
         Assert.Equal(story.JobOffers[0].Id, summary.Id);
+    }
+
+    [Fact]
+    public async Task FindSimilarAsync_WithSimilarTitle_ReturnsTheOfferSummary()
+    {
+        var story = new JobOfferStory().WithJobOffers(1, numberOfPosting: 2);
+        var (company, offer) = (story.Company, story.JobOffers[0]);
+        offer.Title = Title;
+        await story.SaveAsync(_services);
+
+        var summary = Assert.Single(await FindSimilarAsync(company.Name, SimilarTitle));
+
+        Assert.Equal(
+            new JobOfferSummaryDto(offer.Id, Title, company.Name, company.Slug, offer.ContractType, offer.RemotePolicy, 2, Now.UtcDateTime),
+            summary);
+    }
+
+    [Fact]
+    public async Task FindSimilarAsync_WithCompanyNameInAnotherCase_ReturnsTheOffer()
+    {
+        var story = new JobOfferStory().WithJobOffers(1);
+        story.JobOffers[0].Title = Title;
+        await story.SaveAsync(_services);
+
+        var summary = Assert.Single(await FindSimilarAsync($" {story.Company.Name.ToUpperInvariant()} ", Title));
+
+        Assert.Equal(story.JobOffers[0].Id, summary.Id);
+    }
+
+    [Fact]
+    public async Task FindSimilarAsync_WithDifferentTitleArchivedOfferOrOtherCompany_LeavesThemOut()
+    {
+        var story = new JobOfferStory()
+            .WithJobOffers(2)
+            .WithJobOffers(1, ruleSet: JobOfferFactory.IsArchivedRuleSet);
+        var (similar, different, archived) = (story.JobOffers[0], story.JobOffers[1], story.JobOffers[2]);
+        (similar.Title, different.Title, archived.Title) = (Title, DifferentTitle, Title);
+        await story.SaveAsync(_services);
+        var otherStory = new JobOfferStory().WithJobOffers(1);
+        otherStory.JobOffers[0].Title = Title;
+        await otherStory.SaveAsync(_services);
+
+        var summary = Assert.Single(await FindSimilarAsync(story.Company.Name, SimilarTitle));
+
+        Assert.Equal(similar.Id, summary.Id);
+    }
+
+    [Fact]
+    public async Task FindSimilarAsync_WithUnknownCompany_ReturnsEmpty()
+    {
+        var story = new JobOfferStory().WithJobOffers(1);
+        story.JobOffers[0].Title = Title;
+        await story.SaveAsync(_services);
+
+        Assert.Empty(await FindSimilarAsync(CompanyName, Title));
+    }
+
+    [Fact]
+    public async Task FindSimilarAsync_WithSeveralSimilarOffers_SortsNewestFirst()
+    {
+        var story = new JobOfferStory().WithJobOffers(2);
+        var (oldest, newest) = (story.JobOffers[0], story.JobOffers[1]);
+        (oldest.Title, newest.Title) = (Title, SimilarTitle);
+        await _services.AddAsync(story.Company);
+        await AddAtAsync(Now.AddDays(-1), oldest);
+        await AddAtAsync(Now, newest);
+
+        var ids = (await FindSimilarAsync(story.Company.Name, Title)).Select(o => o.Id);
+
+        Assert.Equal([newest.Id, oldest.Id], ids);
     }
 
     [Fact]
@@ -396,6 +469,9 @@ public class JobOfferServiceTests : IAsyncLifetime
 
     private Task<IReadOnlyList<JobOfferSummaryDto>> ListByCompanyAsync(Guid companyId) =>
         _services.CallAsync((IJobOfferService service) => service.ListByCompanyAsync(companyId, TestContext.Current.CancellationToken));
+
+    private Task<IReadOnlyList<JobOfferSummaryDto>> FindSimilarAsync(string companyName, string title) =>
+        _services.CallAsync((IJobOfferService service) => service.FindSimilarAsync(companyName, title, TestContext.Current.CancellationToken));
 
     private Task<Guid> CreateAsync(NewJobOfferInput input) =>
         _services.CallAsync((IJobOfferService service) => service.CreateAsync(input, TestContext.Current.CancellationToken));

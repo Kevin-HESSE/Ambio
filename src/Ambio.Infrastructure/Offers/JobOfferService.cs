@@ -2,6 +2,7 @@ using Ambio.Application.Common;
 using Ambio.Application.Offers;
 using Ambio.Application.Offers.Dtos;
 using Ambio.Domain.Companies;
+using Ambio.Domain.Offers;
 using Ambio.Infrastructure.Companies;
 using Ambio.Infrastructure.Persistence;
 
@@ -40,6 +41,23 @@ internal class JobOfferService : IJobOfferService
             .OrderByDescending(o => o.CreatedAt)
             .ToSummaryDto()
             .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<JobOfferSummaryDto>> FindSimilarAsync(string companyName, string title, CancellationToken cancellationToken = default)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
+
+        // The Name column is COLLATE NOCASE, as in CreateAsync. A company has few offers: the titles are compared
+        // once loaded.
+        var name = companyName.Trim();
+        var offers = await db.JobOffers
+            .AsNoTracking()
+            .Where(o => o.Company.Name == name && o.ArchivedAt == null)
+            .OrderByDescending(o => o.CreatedAt)
+            .ToSummaryDto()
+            .ToListAsync(cancellationToken);
+
+        return offers.Where(o => JobOfferTitles.AreSimilar(o.Title, title)).ToList();
     }
 
     public async Task<Guid> CreateAsync(NewJobOfferInput input, CancellationToken cancellationToken = default)
