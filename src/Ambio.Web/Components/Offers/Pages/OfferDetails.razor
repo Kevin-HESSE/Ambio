@@ -8,6 +8,9 @@
     <PageTitle>@_offer.Title</PageTitle>
     <AppBarBack Href="@OfferRoutes.List" />
     <AppBarTitle>Offer</AppBarTitle>
+    <AppBarActions>
+        <ButtonLink Href="@OfferRoutes.Edit(_offer.Id)" Icon="pencil" IconOnly aria-label="Edit offer" />
+    </AppBarActions>
 
     <div class="offer-detail detail-layout">
         <DetailHeader Title="@_offer.Title" ParentTitle="Offers" ParentHref="@OfferRoutes.List">
@@ -26,6 +29,9 @@
                     <Tag>@_offer.Salary</Tag>
                 }
             </Tags>
+            <Actions>
+                <ButtonLink Href="@OfferRoutes.Edit(_offer.Id)" Variant="ButtonVariant.Secondary" Icon="pencil">Edit</ButtonLink>
+            </Actions>
         </DetailHeader>
 
         <div class="offer-detail-aside detail-aside">

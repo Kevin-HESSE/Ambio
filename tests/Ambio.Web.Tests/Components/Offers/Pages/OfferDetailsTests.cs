@@ -123,6 +123,17 @@ public class OfferDetailsTests : BunitContext
     }
 
     [Fact]
+    public void Render_WithOffer_LinksToEditPage()
+    {
+        var offer = _jobOfferDetailsFactory.Generate();
+        GivenOffer(offer);
+
+        var cut = RenderDetails(offer.Id);
+
+        Assert.Equal("Edit", cut.Find($".detail-actions a[href='{OfferRoutes.Edit(offer.Id)}']").TextContent.Trim());
+    }
+
+    [Fact]
     public void Render_WithUnknownId_RequestsNotFound()
     {
         var notFound = false;

@@ -8,4 +8,6 @@ public static class OfferRoutes
     public const string New = "offers/new";
 
     public static string Details(Guid id) => $"offers/{id}";
+
+    public static string Edit(Guid id) => $"offers/{id}/edit";
 }
