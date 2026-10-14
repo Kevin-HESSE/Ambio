@@ -172,6 +172,8 @@ The same offer is often published on several sites. Each place it was seen is a 
 - A dead link doesn't lose the offer.
 - An offer keeps at least one posting: `JobOffer.RemovePosting` refuses the last one (`CanRemovePosting`), and the offer page only offers to remove a posting when there are several.
 - Before an offer is created, the UI suggests existing offers from the same company with a similar title, so a new posting can be added to an existing offer instead of creating a duplicate.
+- The company is matched by name ignoring case, archived or not, as when the offer is created; only its active offers are suggested.
+- Two titles are similar when they share at least half of all their words, compared ignoring case, accents and punctuation (`JobOfferTitles.AreSimilar`): "Full-stack Engineer" and "full stack engineer", or "Senior Backend Developer" and "Backend Developer", are similar; "Backend Developer" and "Frontend Developer" aren't.
 
 ### Application hierarchy
 

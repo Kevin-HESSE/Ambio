@@ -70,6 +70,8 @@ bUnit renders components with NSubstitute mocks of the Application services, reg
 
 An interactive component ([ADR 0023](adr/0023-interactive-islands-in-static-pages.md)) reads `RendererInfo`: the test sets it with `SetRendererInfo(new RendererInfo("Server", isInteractive: true))`, or `("Static", false)` for a static page that renders one. A JavaScript call such as `ambio.sheet.close` is mocked with `JSInterop.SetupVoid(...).SetVoidResult()`, then checked with `JSInterop.VerifyInvoke`.
 
+bUnit doesn't bind `[SupplyParameterFromForm]` from a post: a static form whose submit buttons carry a `name` and a `value`, or whose values come from hidden fields, is checked on its markup in bUnit and through the end-to-end tests, such as the duplicate suggestion of a new offer.
+
 The Identity pages under `Components/Account` are rendered statically on the server and read `HttpContext`, which bUnit doesn't provide. They are covered by the end-to-end tests instead.
 
 ## End-to-end tests

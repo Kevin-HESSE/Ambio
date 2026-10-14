@@ -56,6 +56,13 @@ public static class JobOfferMappingExtensions
         return offer;
     }
 
+    /// <summary>The site and the link of the new offer form, to add them as a posting of an existing offer.</summary>
+    public static JobOfferPostingInput ToPostingInput(this NewJobOfferInput input) => new()
+    {
+        Site = input.Site,
+        Url = input.Url,
+    };
+
     /// <summary>Copies the fields of the form onto the offer, but not its company nor its postings. The optional
     /// text fields are trimmed, and a blank one is stored as null.</summary>
     public static void ApplyTo(this JobOfferInput input, JobOffer offer)

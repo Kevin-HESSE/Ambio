@@ -90,7 +90,7 @@ The screens of the MVP ([Phase 1](roadmap.md#phase-1--application-tracking-mvp))
 | 10 | Change status | modal / sheet | Allowed transitions with their badges, date when sending, comment. | — |
 | 11 | Offers — list | `/offers` | Contract, remote policy, postings and applications counts, "Apply" when there is none. "Published" is the day the offer was recorded. | Recruiter (2b) |
 | 12 | Offer — detail | `/offers/{id}`, edit at `/offers/{id}/edit` | Company, location and publication date under the title; postings (site, link, day recorded), added in a sheet and removed after a confirmation, without reloading the page (the last one stays); applications (#48); plain-text copy of the ad. The edit form doesn't change the company. | — |
-| 13 | New offer | `/offers/new` | Offer (company picked from the existing ones or typed to create it), first posting (site and link, no date), ad text. **Duplicate suggestion** banner when the company and a similar title match. | Recruiter company (2b) |
+| 13 | New offer | `/offers/new` | Offer (company picked from the existing ones or typed to create it), first posting (site and link, no date), ad text. **Duplicate suggestion** banner after "Create offer" when the company and a similar title match: "Add this posting to this offer" adds the site and link to an existing offer and opens it, "Create a new offer anyway" creates it. The form keeps its values. | Recruiter company (2b) |
 | 14 | Companies — list | `/companies` | Kind, industry, location, offers and applications counts. | — |
 | 15 | Company — detail | `/companies/{slug}` | Profile, description, Offers and Applications tabs. | Notes and Contacts tabs (2b) |
 | 16 | More sheet | mobile only | Settings, Account, Theme, Log out. | Profile, My CVs, Templates, Export |
@@ -121,7 +121,7 @@ What the mockups are built from, and the Blazor component each becomes. Stock Bo
 | Status panel and history | `status-panel`, `timeline` | `StatusPanel.razor`, `StatusTimeline.razor` |
 | Bottom sheet / modal | `overlay`, `dialog` | `Sheet.razor` (optional title with a close button; `sheet-content` and `sheet-actions` blocks; `CloseAsync()` from an interactive component) |
 | Toast | `toast` | `ToastHost.razor` + a scoped `ToastService` |
-| Banner | `banner` | `Banner.razor` |
+| Banner | `banner` | `Banner.razor` (icon, title, text, actions; `Neutral` or `Info` icon color) |
 | Empty state | `empty` | `EmptyState.razor` |
 | Segmented control | `segmented` | `SegmentedControl.razor` (theme, application kind) |
 | File drop zone | `dropzone` | `PdfUpload.razor` (`InputFile`) |

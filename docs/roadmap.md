@@ -49,7 +49,7 @@ Each item is a vertical slice: domain, persistence, service, page and tests for 
 - [x] Offers: create and list, `JobOffer` with a plain-text copy of the ad and its first `JobOfferPosting`, offers shown on the company page
 - [x] Refactor: shared list styles (responsive list, list table, tag row) and test fixtures built with Bogus, before the next lists and detail pages
 - [x] Offers: detail with their postings (the same offer seen on several sites), edit
-- [ ] Offers: duplicate suggestion when creating an offer (same company, similar title)
+- [x] Offers: duplicate suggestion when creating an offer (same company, similar title)
 - [ ] Applications from an offer: create and list, abstract `JobApplication` and `OfferApplication` mapped as TPH, `Channel` (online form, email, referral…), `ShortId` generated with NanoId (numeric for now), `StatusBadge` and `Tag` components
 - [ ] Spontaneous applications: `SpontaneousApplication`, TPH check constraint, "From an offer / Spontaneous" toggle
 - [ ] Application detail and edit, with readable URLs `/applications/482913-backend-developer-acme` (`ShortId` + slug) and a redirect to the canonical slug ([ADR 0014](adr/0014-short-id-and-slug-urls.md))

@@ -29,6 +29,7 @@ public class OfferNewTests : BunitContext
     private readonly IJobOfferService _jobOfferService = Substitute.For<IJobOfferService>();
     private readonly ICompanyService _companyService = Substitute.For<ICompanyService>();
     private readonly IReadOnlyList<CompanySummaryDto> _companies;
+    private readonly IReadOnlyList<JobOfferSummaryDto> _similarOffers;
 
     public OfferNewTests()
     {
@@ -37,6 +38,8 @@ public class OfferNewTests : BunitContext
         var companySummaryFactory = CompanySummaryFactory.GetGenerator();
         _companies = companySummaryFactory.Generate(2);
         _companyService.ListAsync(Arg.Any<CancellationToken>()).Returns(_companies);
+        _jobOfferService.FindSimilarAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns([]);
+        _similarOffers = JobOfferSummaryFactory.GetGenerator().Generate(2);
     }
 
     [Fact]
@@ -81,6 +84,15 @@ public class OfferNewTests : BunitContext
     }
 
     [Fact]
+    public void Render_Default_ShowsNoBanner()
+    {
+        var cut = Render<OfferNew>();
+
+        Assert.Empty(cut.FindAll(".banner"));
+        Assert.Empty(cut.FindAll("input[name=CreateAnyway]"));
+    }
+
+    [Fact]
     public void Render_Default_CancelLinksToOffers()
     {
         var cut = Render<OfferNew>();
@@ -104,6 +116,7 @@ public class OfferNewTests : BunitContext
         cut.Find("#offer-description").Change(Description);
         cut.Find("form").Submit();
 
+        _jobOfferService.Received(1).FindSimilarAsync(CompanyName, Title, Arg.Any<CancellationToken>());
         _jobOfferService.Received(1).CreateAsync(
             Arg.Is<NewJobOfferInput>(input =>
                 input.CompanyName == CompanyName
@@ -114,6 +127,7 @@ public class OfferNewTests : BunitContext
                 && input.Url == Url
                 && input.Description == Description),
             Arg.Any<CancellationToken>());
+        Assert.Empty(cut.FindAll(".banner"));
         Assert.EndsWith($"/{OfferRoutes.Details(id)}", Services.GetRequiredService<NavigationManager>().Uri);
     }
 
@@ -149,6 +163,55 @@ public class OfferNewTests : BunitContext
 
         Assert.Equal(new HttpUrlAttribute().FormatErrorMessage("Url"), cut.Find("#offer-url + .validation-message").TextContent);
         AssertNotCreated();
+    }
+
+    [Fact]
+    public void Submit_WithSimilarOffers_ShowsThemInABannerWithoutCreating()
+    {
+        var cut = RenderAndSubmitWithSimilarOffers();
+
+        Assert.Equal("This offer may already exist", cut.Find(".offer-duplicates .banner-title").TextContent);
+        Assert.Contains($"add this {Site} link to one of them", cut.Find(".offer-duplicates-text").TextContent);
+        var links = cut.FindAll(".offer-duplicate a");
+        Assert.Equal(_similarOffers.Select(offer => OfferRoutes.Details(offer.Id)), links.Select(link => link.GetAttribute("href")));
+        Assert.Equal(_similarOffers.Select(offer => $"{offer.Title} · {offer.CompanyName}"), links.Select(link => link.TextContent));
+        AssertNotCreated();
+    }
+
+    [Fact]
+    public void Submit_WithSimilarOffers_OffersToAddThePostingToEachOfThemFromAFormOfItsOwn()
+    {
+        var cut = RenderAndSubmitWithSimilarOffers();
+
+        var form = cut.Find(".offer-duplicates form");
+        Assert.Equal([Site, Url], form.QuerySelectorAll("input[type=hidden]").Select(input => input.GetAttribute("value")));
+        var buttons = form.QuerySelectorAll("button[type=submit]");
+        Assert.All(buttons, button => Assert.Equal("ExistingOfferId", button.GetAttribute("name")));
+        Assert.Equal(_similarOffers.Select(offer => offer.Id.ToString()), buttons.Select(button => button.GetAttribute("value")));
+    }
+
+    [Fact]
+    public void Submit_WithSimilarOffers_LetsTheNextSubmissionCreateTheOffer()
+    {
+        var cut = RenderAndSubmitWithSimilarOffers();
+
+        var createAnyway = cut.Find(".offer-duplicates .banner-actions button");
+        Assert.Equal(("submit", OfferNew.FormId), (createAnyway.GetAttribute("type"), createAnyway.GetAttribute("form")));
+        Assert.Equal("true", cut.Find($"#{OfferNew.FormId} input[type=hidden][name=CreateAnyway]").GetAttribute("value"));
+    }
+
+    private IRenderedComponent<OfferNew> RenderAndSubmitWithSimilarOffers()
+    {
+        _jobOfferService.FindSimilarAsync(CompanyName, Title, Arg.Any<CancellationToken>()).Returns(_similarOffers);
+        var cut = Render<OfferNew>();
+
+        cut.Find("#offer-company").Change(CompanyName);
+        cut.Find("#offer-title").Change(Title);
+        cut.Find("#offer-site").Change(Site);
+        cut.Find("#offer-url").Change(Url);
+        cut.Find("form").Submit();
+
+        return cut;
     }
 
     private void AssertNotCreated() =>
