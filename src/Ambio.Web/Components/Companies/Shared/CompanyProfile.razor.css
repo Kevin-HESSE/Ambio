@@ -1,8 +1,3 @@
-.company-profile-header {
-    padding: var(--ambio-space-12) var(--ambio-space-16);
-    background: none;
-}
-
 .company-profile-list > div {
     --gap: var(--ambio-space-2);
     padding: var(--ambio-space-12) 0;
