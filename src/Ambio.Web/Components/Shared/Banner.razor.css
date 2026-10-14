@@ -1,0 +1,24 @@
+.banner {
+    display: flex;
+    gap: var(--ambio-space-12);
+    align-items: flex-start;
+    padding: var(--ambio-space-12) var(--ambio-space-16);
+    border: 1px solid var(--ambio-border-default);
+    border-radius: var(--ambio-radius-lg);
+    background: var(--ambio-bg-subtle);
+}
+
+.banner-icon {
+    margin-top: var(--ambio-space-2);
+    color: var(--ambio-text-secondary);
+    font-size: 20px;
+}
+
+.banner-info .banner-icon {
+    color: var(--ambio-feedback-info);
+}
+
+.banner-body {
+    flex: 1;
+    min-width: 0;
+}
