@@ -24,15 +24,20 @@ public sealed class SqliteServiceProvider : IAsyncDisposable
 
     public TimeProvider TimeProvider { get; } = Substitute.For<TimeProvider>();
 
-    private SqliteServiceProvider(string connectionString)
+    private SqliteServiceProvider(string connectionString, IReadOnlyDictionary<string, string?>? settings)
     {
         _keeperConnection = new SqliteConnection(connectionString);
         _keeperConnection.Open();
 
         var configuration = new ConfigurationManager();
         configuration["ConnectionStrings:DefaultConnection"] = connectionString;
+        foreach (var (key, value) in settings ?? new Dictionary<string, string?>())
+        {
+            configuration[key] = value;
+        }
 
         var services = new ServiceCollection();
+        services.AddSingleton<IConfiguration>(configuration);
         services.AddLogging();
         services.AddDataProtection();
         services.AddSingleton(TimeProvider);
@@ -43,9 +48,11 @@ public sealed class SqliteServiceProvider : IAsyncDisposable
         _provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
     }
 
-    public static async Task<SqliteServiceProvider> CreateAsync()
+    /// <summary>A provider over a new empty database. <paramref name="settings"/> override the app configuration,
+    /// such as <c>Ambio:ShortId:Alphabet</c>.</summary>
+    public static async Task<SqliteServiceProvider> CreateAsync(IReadOnlyDictionary<string, string?>? settings = null)
     {
-        var provider = new SqliteServiceProvider($"DataSource=file:{Guid.NewGuid()}?mode=memory&cache=shared");
+        var provider = new SqliteServiceProvider($"DataSource=file:{Guid.NewGuid()}?mode=memory&cache=shared", settings);
 
         await using var context = await provider.CreateDbContextAsync();
         await context.Database.EnsureCreatedAsync();

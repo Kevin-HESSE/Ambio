@@ -48,6 +48,11 @@ public static class InfrastructureExtensions
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
         services.AddSingleton<SemaphoreContainer>();
+        services.AddOptions<ShortIdOptions>()
+            .BindConfiguration(ShortIdOptions.Section)
+            .Validate(options => options.IsValid(), $"{ShortIdOptions.Section}: the alphabet must be lowercase, without '-', and the size positive.")
+            .ValidateOnStart();
+        services.AddSingleton<ShortIdGenerator>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ICompanyService, CompanyService>();
         services.AddScoped<IJobOfferService, JobOfferService>();
