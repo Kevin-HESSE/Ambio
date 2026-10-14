@@ -16,6 +16,10 @@ public interface IJobOfferService
     /// already exist. Empty when no company has this name.</summary>
     public Task<IReadOnlyList<JobOfferSummaryDto>> FindSimilarAsync(string companyName, string title, CancellationToken cancellationToken = default);
 
+    /// <summary>Active offers whose title and company name contain every word of <paramref name="text"/>, ignoring
+    /// case and accents (<see cref="TextSearch.Matches"/>), newest first. Empty for a text without any word.</summary>
+    public Task<IReadOnlyList<JobOfferSummaryDto>> SearchAsync(string text, CancellationToken cancellationToken = default);
+
     /// <summary>Creates the offer with its first posting and returns its id. The offer goes to the company with
     /// this name ignoring case, archived or not; when there is none, the company is created as an employer.</summary>
     public Task<Guid> CreateAsync(NewJobOfferInput input, CancellationToken cancellationToken = default);

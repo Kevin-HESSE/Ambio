@@ -21,6 +21,8 @@ public class JobOfferServiceTests : IAsyncLifetime
     private const string Title = "Full-stack Engineer";
     private const string SimilarTitle = "full stack engineer";
     private const string DifferentTitle = "Frontend Developer";
+    private const string AccentedTitle = "Développeur backend";
+    private const string UnaccentedSearch = "developpeur kelvio";
 
     private static readonly DateTimeOffset Now = new(2026, 9, 28, 10, 0, 0, TimeSpan.Zero);
     private static readonly DateTimeOffset Later = Now.AddDays(2);
@@ -118,6 +120,62 @@ public class JobOfferServiceTests : IAsyncLifetime
         var summary = Assert.Single(await ListByCompanyAsync(story.Company.Id));
 
         Assert.Equal(story.JobOffers[0].Id, summary.Id);
+    }
+
+    [Fact]
+    public async Task SearchAsync_WithWordsOfTitleAndCompany_ReturnsTheOfferSummary()
+    {
+        var story = new JobOfferStory().WithJobOffers(1, numberOfPosting: 1);
+        var (company, offer) = (story.Company, story.JobOffers[0]);
+        company.Name = CompanyName;
+        offer.Title = AccentedTitle;
+        await story.SaveAsync(_services);
+
+        var summary = Assert.Single(await SearchAsync(UnaccentedSearch));
+
+        Assert.Equal(
+            new JobOfferSummaryDto(offer.Id, AccentedTitle, CompanyName, company.Slug, offer.ContractType, offer.RemotePolicy, 1, Now.UtcDateTime),
+            summary);
+    }
+
+    [Fact]
+    public async Task SearchAsync_WithOtherTitleOrArchivedOffer_LeavesThemOut()
+    {
+        var story = new JobOfferStory()
+            .WithJobOffers(2)
+            .WithJobOffers(1, ruleSet: JobOfferFactory.IsArchivedRuleSet);
+        story.JobOffers[0].Title = Title;
+        story.JobOffers[1].Title = DifferentTitle;
+        story.JobOffers[2].Title = Title;
+        await story.SaveAsync(_services);
+
+        var summary = Assert.Single(await SearchAsync(Title));
+
+        Assert.Equal(story.JobOffers[0].Id, summary.Id);
+    }
+
+    [Fact]
+    public async Task SearchAsync_WithSeveralMatches_SortsNewestFirst()
+    {
+        var story = new JobOfferStory().WithJobOffers(2);
+        var (older, newer) = (story.JobOffers[0], story.JobOffers[1]);
+        older.Title = Title;
+        newer.Title = Title;
+        await _services.AddAsync(story.Company);
+        await AddAtAsync(Now.AddDays(-1), older);
+        await AddAtAsync(Now, newer);
+
+        var ids = (await SearchAsync(Title)).Select(o => o.Id);
+
+        Assert.Equal([newer.Id, older.Id], ids);
+    }
+
+    [Fact]
+    public async Task SearchAsync_WithBlankText_ReturnsEmpty()
+    {
+        await new JobOfferStory().WithJobOffers(1).SaveAsync(_services);
+
+        Assert.Empty(await SearchAsync(" "));
     }
 
     [Fact]
@@ -472,6 +530,9 @@ public class JobOfferServiceTests : IAsyncLifetime
 
     private Task<IReadOnlyList<JobOfferSummaryDto>> FindSimilarAsync(string companyName, string title) =>
         _services.CallAsync((IJobOfferService service) => service.FindSimilarAsync(companyName, title, TestContext.Current.CancellationToken));
+
+    private Task<IReadOnlyList<JobOfferSummaryDto>> SearchAsync(string text) =>
+        _services.CallAsync((IJobOfferService service) => service.SearchAsync(text, TestContext.Current.CancellationToken));
 
     private Task<Guid> CreateAsync(NewJobOfferInput input) =>
         _services.CallAsync((IJobOfferService service) => service.CreateAsync(input, TestContext.Current.CancellationToken));

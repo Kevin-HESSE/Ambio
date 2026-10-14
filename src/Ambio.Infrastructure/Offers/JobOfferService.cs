@@ -60,6 +60,26 @@ internal class JobOfferService : IJobOfferService
         return offers.Where(o => JobOfferTitles.AreSimilar(o.Title, title)).ToList();
     }
 
+    public async Task<IReadOnlyList<JobOfferSummaryDto>> SearchAsync(string text, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return [];
+        }
+
+        await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
+
+        // SQLite compares neither ignoring accents nor word by word: the few offers are matched once loaded.
+        var offers = await db.JobOffers
+            .AsNoTracking()
+            .Where(o => o.ArchivedAt == null)
+            .OrderByDescending(o => o.CreatedAt)
+            .ToSummaryDto()
+            .ToListAsync(cancellationToken);
+
+        return offers.Where(o => TextSearch.Matches($"{o.Title} {o.CompanyName}", text)).ToList();
+    }
+
     public async Task<Guid> CreateAsync(NewJobOfferInput input, CancellationToken cancellationToken = default)
     {
         await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
