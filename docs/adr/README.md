@@ -26,5 +26,6 @@ Each significant decision is recorded as a short ADR: context, decision, consequ
 | [0020](0020-ci-and-protected-branches.md) | CI checks and protected `dev` and `main` branches | Accepted |
 | [0021](0021-slug-urls-for-companies.md) | Slug URLs for companies | Accepted |
 | [0022](0022-test-data-with-bogus.md) | Test data built with Bogus, random on every run | Accepted |
+| [0023](0023-interactive-islands-in-static-pages.md) | Interactive islands in static pages | Accepted |
 
 New ADRs copy the structure of an existing one and take the next number. An ADR is never edited once accepted: a new ADR supersedes it.

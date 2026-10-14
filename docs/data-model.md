@@ -170,6 +170,7 @@ The same offer is often published on several sites. Each place it was seen is a 
 
 - `Url` is unique per offer: `JobOffer.AddPosting` refuses a URL the offer already has, and a unique index on (`JobOfferId`, `Url`) is the final guard.
 - A dead link doesn't lose the offer.
+- An offer keeps at least one posting: `JobOffer.RemovePosting` refuses the last one (`CanRemovePosting`), and the offer page only offers to remove a posting when there are several.
 - Before an offer is created, the UI suggests existing offers from the same company with a similar title, so a new posting can be added to an existing offer instead of creating a duplicate.
 
 ### Application hierarchy
