@@ -1,6 +1,9 @@
+using Ambio.Application.JobApplications;
 using Ambio.Application.Offers;
 using Ambio.Application.Offers.Dtos;
 using Ambio.Web.Components.Companies;
+using Ambio.Web.Components.JobApplications;
+using Ambio.Web.Components.JobApplications.Shared;
 using Ambio.Web.Components.Offers;
 using Ambio.Web.Components.Offers.Pages;
 using Ambio.Web.Components.Offers.Shared;
@@ -23,12 +26,17 @@ public class OfferDetailsTests : BunitContext
     private static readonly DateTime FirstSeen = new(2026, 8, 28, 9, 0, 0, DateTimeKind.Utc);
     private static readonly DateTime LastSeen = new(2026, 9, 2, 9, 0, 0, DateTimeKind.Utc);
 
+    private static readonly DateOnly SentOn = new(2026, 9, 3);
+
     private readonly IJobOfferService _jobOfferService = Substitute.For<IJobOfferService>();
+    private readonly IJobApplicationService _jobApplicationService = Substitute.For<IJobApplicationService>();
     private readonly Faker<JobOfferDetailsDto> _jobOfferDetailsFactory;
 
     public OfferDetailsTests()
     {
         Services.AddSingleton(_jobOfferService);
+        Services.AddSingleton(_jobApplicationService);
+        _jobApplicationService.ListByOfferAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns([]);
         // The page is static; its postings card is interactive once the circuit is up.
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
         _jobOfferDetailsFactory = JobOfferDetailsFactory.GetGenerator();
@@ -143,6 +151,44 @@ public class OfferDetailsTests : BunitContext
 
         Assert.True(notFound);
         Assert.Empty(cut.FindAll("h1"));
+    }
+
+    [Fact]
+    public void Render_WithApplications_ListsThemWithTheirStatusAndSending()
+    {
+        var offer = _jobOfferDetailsFactory.Generate();
+        var factory = JobApplicationSummaryFactory.GetGenerator();
+        var sent = factory.Generate() with { SentOn = SentOn };
+        var draft = factory.Generate(JobApplicationSummaryFactory.IsDraftRuleSet);
+        GivenOffer(offer);
+        _jobApplicationService.ListByOfferAsync(offer.Id, Arg.Any<CancellationToken>()).Returns([sent, draft]);
+
+        var cut = RenderDetails(offer.Id);
+
+        Assert.Equal("2", cut.Find(".offer-applications-count").TextContent);
+        var items = cut.FindAll(".offer-applications .application-item").Select(item => (
+            item.QuerySelector(".status-badge")!.TextContent.Trim(),
+            item.QuerySelector(".application-item-meta")!.TextContent.Trim()));
+        Assert.Equal(
+            [
+                (sent.Status.ToLabel(), $"Sent 3 Sep 2026 via {sent.AppliedVia}"),
+                (draft.Status.ToLabel(), "Not sent yet"),
+            ],
+            items);
+        Assert.Empty(cut.FindAll(".offer-applications .application-item-title"));
+    }
+
+    [Fact]
+    public void Render_WithoutApplications_SaysSoAndLinksToApply()
+    {
+        var offer = _jobOfferDetailsFactory.Generate();
+        GivenOffer(offer);
+
+        var cut = RenderDetails(offer.Id);
+
+        Assert.Equal("0", cut.Find(".offer-applications-count").TextContent);
+        Assert.Equal("No application yet.", cut.Find(".offer-applications-empty").TextContent);
+        Assert.Equal(JobApplicationRoutes.NewForOffer(offer.Id), cut.Find("a.offer-applications-new").GetAttribute("href"));
     }
 
     private void GivenOffer(JobOfferDetailsDto offer) =>

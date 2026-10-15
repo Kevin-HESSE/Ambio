@@ -2,6 +2,7 @@
 @attribute [Authorize]
 @inject ICompanyService CompanyService
 @inject IJobOfferService JobOfferService
+@inject IJobApplicationService JobApplicationService
 @inject NavigationManager NavigationManager
 
 @if (_company is not null)
@@ -41,28 +42,53 @@
                 </div>
             </section>
 
-            @* The Applications tab comes with the applications (#48). *@
-            <TabNav Label="Company sections" Tabs="Tabs" Active="@CompanyRoutes.OffersTab" />
-            <section class="card" aria-label="Offers">
-                @if (_offers is { Count: 0 })
-                {
-                    <EmptyState Icon="briefcase" Title="No offers yet">
-                        <ChildContent>The offers you save for this company show up here.</ChildContent>
-                        <Actions>
-                            <ButtonLink Href="@OfferRoutes.New" Variant="ButtonVariant.Primary" Icon="plus-lg">New offer</ButtonLink>
-                        </Actions>
-                    </EmptyState>
-                }
-                else
-                {
-                    <ul class="company-offers list-divided">
-                        @foreach (var offer in _offers)
-                        {
-                            <li><OfferListItem Offer="offer" /></li>
-                        }
-                    </ul>
-                }
-            </section>
+            <TabNav Label="Company sections" Tabs="Tabs" Active="@ActiveTab" />
+            @if (ActiveTab == CompanyRoutes.ApplicationsTab)
+            {
+                <section class="card" aria-label="Applications">
+                    @if (_applications.Count == 0)
+                    {
+                        <EmptyState Icon="inbox" Title="No applications yet">
+                            <ChildContent>The applications to this company's offers show up here.</ChildContent>
+                            <Actions>
+                                <ButtonLink Href="@JobApplicationRoutes.New" Variant="ButtonVariant.Primary" Icon="plus-lg">New application</ButtonLink>
+                            </Actions>
+                        </EmptyState>
+                    }
+                    else
+                    {
+                        <ul class="company-applications list-divided">
+                            @foreach (var application in _applications)
+                            {
+                                <li><JobApplicationListItem Application="application" ShowTitle /></li>
+                            }
+                        </ul>
+                    }
+                </section>
+            }
+            else
+            {
+                <section class="card" aria-label="Offers">
+                    @if (_offers is { Count: 0 })
+                    {
+                        <EmptyState Icon="briefcase" Title="No offers yet">
+                            <ChildContent>The offers you save for this company show up here.</ChildContent>
+                            <Actions>
+                                <ButtonLink Href="@OfferRoutes.New" Variant="ButtonVariant.Primary" Icon="plus-lg">New offer</ButtonLink>
+                            </Actions>
+                        </EmptyState>
+                    }
+                    else
+                    {
+                        <ul class="company-offers list-divided">
+                            @foreach (var offer in _offers)
+                            {
+                                <li><OfferListItem Offer="offer" /></li>
+                            }
+                        </ul>
+                    }
+                </section>
+            }
         </div>
     </div>
 }
@@ -73,11 +99,20 @@
 
     private CompanyDetailsDto? _company;
 
+    /// <summary>The tab shown, from <c>?tab=</c>: Offers unless it is Applications.</summary>
+    [SupplyParameterFromQuery(Name = "tab")]
+    public string? Tab { get; set; }
+
     private IReadOnlyList<JobOfferSummaryDto> _offers = [];
+
+    private IReadOnlyList<JobApplicationSummaryDto> _applications = [];
+
+    private string ActiveTab => Tab == CompanyRoutes.ApplicationsTab ? CompanyRoutes.ApplicationsTab : CompanyRoutes.OffersTab;
 
     private IReadOnlyList<TabNavItem> Tabs =>
     [
         new(CompanyRoutes.OffersTab, "Offers", CompanyRoutes.Details(_company!.Slug, CompanyRoutes.OffersTab), _offers.Count),
+        new(CompanyRoutes.ApplicationsTab, "Applications", CompanyRoutes.Details(_company!.Slug, CompanyRoutes.ApplicationsTab), _applications.Count),
     ];
 
     protected override async Task OnInitializedAsync()
@@ -91,5 +126,6 @@
         }
 
         _offers = await JobOfferService.ListByCompanyAsync(_company.Id);
+        _applications = await JobApplicationService.ListByCompanyAsync(_company.Id);
     }
 }

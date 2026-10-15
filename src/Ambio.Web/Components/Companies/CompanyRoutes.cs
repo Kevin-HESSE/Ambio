@@ -10,6 +10,9 @@ public static class CompanyRoutes
     /// <summary>Value of the Offers tab of the company page.</summary>
     public const string OffersTab = "offers";
 
+    /// <summary>Value of the Applications tab of the company page.</summary>
+    public const string ApplicationsTab = "applications";
+
     public static string Details(string slug) => $"companies/{slug}";
 
     /// <summary>The company page showing one of its tabs, such as <see cref="OffersTab"/>.</summary>

@@ -1,0 +1,33 @@
+@* The "Applications" card of the offer page, with a link to apply to the offer. *@
+<section class="card offer-applications" aria-labelledby="offer-applications-title">
+    <div class="card-header">
+        <h2 id="offer-applications-title" class="t-h3 cluster">
+            Applications
+            <CountBadge Count="Applications.Count" class="offer-applications-count" />
+        </h2>
+        <ButtonLink Href="@JobApplicationRoutes.NewForOffer(OfferId)" Icon="plus-lg" class="btn-sm offer-applications-new">New</ButtonLink>
+    </div>
+    @if (Applications.Count == 0)
+    {
+        <div class="card-body">
+            <p class="offer-applications-empty t-muted">No application yet.</p>
+        </div>
+    }
+    else
+    {
+        <ul class="list-divided">
+            @foreach (var application in Applications)
+            {
+                <li><JobApplicationListItem Application="application" /></li>
+            }
+        </ul>
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired]
+    public Guid OfferId { get; set; }
+
+    [Parameter, EditorRequired]
+    public IReadOnlyList<JobApplicationSummaryDto> Applications { get; set; } = [];
+}
