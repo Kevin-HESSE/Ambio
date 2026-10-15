@@ -1,0 +1,11 @@
+@* The status of an application: its icon and label in the status colors (docs/design-system.md#application-statuses).
+   The label is always shown, so the color is never the only signal. *@
+<span class="status-badge status-@Status.ToString().ToLowerInvariant() t-badge">
+    <i class="bi bi-@Status.ToIcon()" aria-hidden="true"></i>
+    @Status.ToLabel()
+</span>
+
+@code {
+    [Parameter, EditorRequired]
+    public ApplicationStatus Status { get; set; }
+}

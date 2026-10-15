@@ -1,0 +1,41 @@
+@page "/applications"
+@attribute [Authorize]
+@inject IJobApplicationService JobApplicationService
+
+<PageTitle>Applications</PageTitle>
+<AppBarTitle>Applications</AppBarTitle>
+
+<PageHeader Title="Applications" Subtitle="The jobs you applied to, or are about to">
+    <Actions>
+        <ButtonLink Href="@JobApplicationRoutes.New" Variant="ButtonVariant.Primary" Icon="plus-lg">New application</ButtonLink>
+    </Actions>
+</PageHeader>
+
+@if (_applications is { Count: 0 })
+{
+    <section class="card">
+        <EmptyState Icon="inbox" Title="No applications yet">
+            <ChildContent>Log the jobs you apply to and follow each one from draft to offer. Start from a job ad you saved.</ChildContent>
+            <Actions>
+                <ButtonLink Href="@JobApplicationRoutes.New" Variant="ButtonVariant.Primary" Icon="plus-lg">New application</ButtonLink>
+                <ButtonLink Href="@OfferRoutes.New" Variant="ButtonVariant.Secondary">Add an offer</ButtonLink>
+            </Actions>
+        </EmptyState>
+    </section>
+}
+else if (_applications is not null)
+{
+    <ResponsiveList Items="_applications">
+        <Card Context="application"><JobApplicationCard Application="application" /></Card>
+        <Table><JobApplicationTable Applications="_applications" /></Table>
+    </ResponsiveList>
+}
+
+@* On mobile, the page's main action floats above the tab bar (docs/ui.md#layout). *@
+<ButtonLink Href="@JobApplicationRoutes.New" Variant="ButtonVariant.Primary" Icon="plus-lg" class="btn-fab mobile-only" aria-label="New application" />
+
+@code {
+    private IReadOnlyList<JobApplicationSummaryDto>? _applications;
+
+    protected override async Task OnInitializedAsync() => _applications = await JobApplicationService.ListAsync();
+}

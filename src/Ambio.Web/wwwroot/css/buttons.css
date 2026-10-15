@@ -84,3 +84,19 @@
         height: 40px;
     }
 }
+
+/* Floating action button, below 992 px: the page's main action, above the tab bar (docs/ui.md#layout). Give it the
+   btn-primary variant, the mobile-only class and an aria-label. */
+.btn-fab {
+    --bs-btn-padding-x: 0;
+    --bs-btn-padding-y: 0;
+    --bs-btn-font-size: 24px;
+    position: fixed;
+    right: var(--ambio-space-16);
+    bottom: calc(64px + env(safe-area-inset-bottom, 0px) + var(--ambio-space-16));
+    z-index: 5;
+    width: 56px;
+    height: 56px;
+    border-radius: var(--ambio-radius-full);
+    box-shadow: var(--ambio-shadow-md);
+}

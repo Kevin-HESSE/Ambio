@@ -1,0 +1,19 @@
+@* An application in the mobile list (< 992 px). It links to its page with #50. *@
+<ListCard Title="@Application.Title" Subtitle="@Application.CompanyName">
+    <Aside>
+        @if (Application.SentOn is { } sentOn)
+        {
+            <time datetime="@sentOn.ToString("yyyy-MM-dd")">@sentOn.ToShortDisplayDate()</time>
+        }
+        else
+        {
+            @("Not sent")
+        }
+    </Aside>
+    <Tags><StatusBadge Status="Application.Status" /></Tags>
+</ListCard>
+
+@code {
+    [Parameter, EditorRequired]
+    public JobApplicationSummaryDto Application { get; set; } = null!;
+}
