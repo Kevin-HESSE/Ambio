@@ -1,18 +1,14 @@
 @* An offer in the mobile list (< 992 px), linking to its page. *@
-<a class="offer-card stack" href="@OfferRoutes.Details(Offer.Id)">
-    <div class="offer-card-head">
-        <span class="offer-title t-body-strong">@Offer.Title</span>
-        <time class="offer-date t-small t-muted" datetime="@Offer.RegisterAt.ToString("yyyy-MM-dd")">@Offer.RegisterAt.ToShortDisplayDate()</time>
-    </div>
-    <div class="offer-company t-small t-secondary">@Offer.CompanyName</div>
-    <div class="offer-tags cluster">
+<ListCard Title="@Offer.Title" Href="@OfferRoutes.Details(Offer.Id)" Subtitle="@Offer.CompanyName">
+    <Aside><time datetime="@Offer.RegisterAt.ToString("yyyy-MM-dd")">@Offer.RegisterAt.ToShortDisplayDate()</time></Aside>
+    <Tags>
         <OfferTags ContractType="Offer.ContractType" RemotePolicy="Offer.RemotePolicy" />
         <span class="offer-postings t-small t-muted">
             <CountBadge Count="Offer.PostingCount" class="offer-postings-count" />
             @OfferLabels.PostingWord(Offer.PostingCount)
         </span>
-    </div>
-</a>
+    </Tags>
+</ListCard>
 
 @code {
     [Parameter, EditorRequired]
