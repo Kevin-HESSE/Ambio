@@ -15,7 +15,15 @@
                     <div class="application-company t-small t-secondary">@application.CompanyName</div>
                 </th>
                 <td><StatusBadge Status="application.Status" /></td>
-                <td><Tag Icon="@application.Channel.ToIcon()">@application.Channel.ToLabel()</Tag></td>
+                <td>
+                    <div class="cluster">
+                        <Tag Icon="@application.Channel.ToIcon()">@application.Channel.ToLabel()</Tag>
+                        @if (application.Kind == ApplicationKind.Spontaneous)
+                        {
+                            <SpontaneousTag />
+                        }
+                    </div>
+                </td>
                 <td class="application-date">
                     @if (application.SentOn is { } sentOn)
                     {

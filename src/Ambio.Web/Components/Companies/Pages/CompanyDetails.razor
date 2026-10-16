@@ -49,7 +49,7 @@
                     @if (_applications.Count == 0)
                     {
                         <EmptyState Icon="inbox" Title="No applications yet">
-                            <ChildContent>The applications to this company's offers show up here.</ChildContent>
+                            <ChildContent>The applications to this company, from its offers or spontaneous, show up here.</ChildContent>
                             <Actions>
                                 <ButtonLink Href="@JobApplicationRoutes.NewForCompany(_company.Slug)" Variant="ButtonVariant.Primary" Icon="plus-lg">New application</ButtonLink>
                             </Actions>

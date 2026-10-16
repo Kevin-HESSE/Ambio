@@ -1,5 +1,6 @@
-@* A neutral label, such as the kind of a company (docs/ui.md#components). *@
-<span class="tag t-badge">
+@* A label, such as the kind of a company (docs/ui.md#components): neutral, or accent for a spontaneous
+   application. *@
+<span class="@ComponentClass">
     @if (Icon is not null)
     {
         <i class="bi bi-@Icon" aria-hidden="true"></i>
@@ -13,5 +14,12 @@
     public string? Icon { get; set; }
 
     [Parameter]
+    public TagVariant Variant { get; set; } = TagVariant.Neutral;
+
+    [Parameter]
     public RenderFragment? ChildContent { get; set; }
+
+    private string ComponentClass => CssClassHelper.Serialize(
+        ["tag", "t-badge"],
+        new() { ["tag-accent"] = Variant == TagVariant.Accent });
 }

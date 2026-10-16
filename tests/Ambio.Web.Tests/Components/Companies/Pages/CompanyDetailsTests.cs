@@ -220,6 +220,22 @@ public class CompanyDetailsTests : BunitContext
     }
 
     [Fact]
+    public void Render_OnApplicationsTabWithSpontaneousApplication_TagsIt()
+    {
+        var company = _companyDetailsFactory.Generate();
+        var factory = JobApplicationSummaryFactory.GetGenerator();
+        GivenCompany(company);
+        GivenApplications(company, factory.Generate(), factory.Generate(JobApplicationSummaryFactory.IsSpontaneousRuleSet));
+        NavigateToTab(company, CompanyRoutes.ApplicationsTab);
+
+        var cut = RenderDetails(company.Slug);
+
+        Assert.Equal(
+            [false, true],
+            cut.FindAll(".application-item").Select(item => item.QuerySelector(".tag-accent") is not null));
+    }
+
+    [Fact]
     public void Render_OnApplicationsTabWithoutApplications_ShowsEmptyStateWithNewApplicationToTheCompanyLink()
     {
         var company = _companyDetailsFactory.Generate();

@@ -14,3 +14,9 @@
 .tag .bi {
     font-size: 12px;
 }
+
+.tag-accent {
+    border-color: var(--ambio-tag-accent-border);
+    background: var(--ambio-tag-accent-bg);
+    color: var(--ambio-tag-accent-fg);
+}
