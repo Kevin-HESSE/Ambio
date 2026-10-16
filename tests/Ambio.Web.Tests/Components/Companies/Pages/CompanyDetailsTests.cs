@@ -220,7 +220,7 @@ public class CompanyDetailsTests : BunitContext
     }
 
     [Fact]
-    public void Render_OnApplicationsTabWithoutApplications_ShowsEmptyStateWithNewApplicationLink()
+    public void Render_OnApplicationsTabWithoutApplications_ShowsEmptyStateWithNewApplicationToTheCompanyLink()
     {
         var company = _companyDetailsFactory.Generate();
         GivenCompany(company);
@@ -228,7 +228,7 @@ public class CompanyDetailsTests : BunitContext
 
         var cut = RenderDetails(company.Slug);
 
-        Assert.NotNull(cut.Find($".empty a[href='{JobApplicationRoutes.New}']"));
+        Assert.NotNull(cut.Find($".empty a[href='{JobApplicationRoutes.NewForCompany(company.Slug)}']"));
     }
 
     [Fact]

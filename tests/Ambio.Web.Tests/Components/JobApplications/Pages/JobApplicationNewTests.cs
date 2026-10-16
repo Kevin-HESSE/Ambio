@@ -1,3 +1,5 @@
+using Ambio.Application.Companies;
+using Ambio.Application.Companies.Dtos;
 using Ambio.Application.JobApplications;
 using Ambio.Application.Offers;
 using Ambio.Application.Offers.Dtos;
@@ -18,11 +20,14 @@ namespace Ambio.Web.Tests.Components.JobApplications.Pages;
 public class JobApplicationNewTests : BunitContext
 {
     private readonly IJobOfferService _jobOfferService = Substitute.For<IJobOfferService>();
+    private readonly ICompanyService _companyService = Substitute.For<ICompanyService>();
     private readonly JobOfferDetailsDto _offer = JobOfferDetailsFactory.GetGenerator().Generate();
+    private readonly CompanyDetailsDto _company = CompanyDetailsFactory.GetGenerator().Generate();
 
     public JobApplicationNewTests()
     {
         Services.AddSingleton(_jobOfferService);
+        Services.AddSingleton(_companyService);
         Services.AddSingleton(Substitute.For<IJobApplicationService>());
         // The page is static; its form is interactive once the circuit is up.
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
@@ -58,5 +63,26 @@ public class JobApplicationNewTests : BunitContext
 
         Assert.NotNull(cut.Find("input#application-offer[type='search']"));
         _jobOfferService.DidNotReceive().GetAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public void Render_WithCompanyInTheUrl_StartsSpontaneousWithIt()
+    {
+        _companyService.GetAsync(_company.Slug, Arg.Any<CancellationToken>()).Returns(_company);
+        Services.GetRequiredService<BunitNavigationManager>().NavigateTo(JobApplicationRoutes.NewForCompany(_company.Slug));
+
+        var cut = Render<JobApplicationNew>();
+
+        Assert.Equal(_company.Name, cut.Find(".application-company-name").TextContent.Trim());
+    }
+
+    [Fact]
+    public void Render_WithUnknownCompanyInTheUrl_ShowsTheOfferSearch()
+    {
+        Services.GetRequiredService<BunitNavigationManager>().NavigateTo(JobApplicationRoutes.NewForCompany(_company.Slug));
+
+        var cut = Render<JobApplicationNew>();
+
+        Assert.NotNull(cut.Find("input#application-offer[type='search']"));
     }
 }

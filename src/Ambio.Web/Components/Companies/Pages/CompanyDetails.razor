@@ -51,7 +51,7 @@
                         <EmptyState Icon="inbox" Title="No applications yet">
                             <ChildContent>The applications to this company's offers show up here.</ChildContent>
                             <Actions>
-                                <ButtonLink Href="@JobApplicationRoutes.New" Variant="ButtonVariant.Primary" Icon="plus-lg">New application</ButtonLink>
+                                <ButtonLink Href="@JobApplicationRoutes.NewForCompany(_company.Slug)" Variant="ButtonVariant.Primary" Icon="plus-lg">New application</ButtonLink>
                             </Actions>
                         </EmptyState>
                     }

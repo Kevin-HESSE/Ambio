@@ -2,99 +2,184 @@
 @inject IJobApplicationService JobApplicationService
 @inject NavigationManager NavigationManager
 
-@* The new application form. Rendered in InteractiveServer mode by the static page: the offer is searched as the user
-   types, and its postings fill the "Applied via" field once it is chosen. Its buttons wait for the circuit. *@
-<EditForm EditContext="_editContext" OnValidSubmit="CreateAsync" novalidate class="card-body form-sections">
-    <DataAnnotationsValidator />
+@* The new application form. Rendered in InteractiveServer mode by the static page: the toggle picks an application to
+   an offer or a spontaneous one; the offer or the company is searched as the user types, and the offer's postings fill
+   the "Applied via" field once it is chosen. The Application section keeps its values when the kind changes. Its
+   buttons wait for the circuit. *@
+<div class="card-body form-sections">
+    <SegmentedControl Name="application-kind" Label="Kind" Options="KindOptions" Value="@_kind.ToString()"
+                      ValueChanged="ChangeKind" Disabled="!RendererInfo.IsInteractive" />
 
-    <FormSection Title="Offer">
-        <FormField Id="application-offer" Label="Job offer" For="() => _input.JobOfferId" FullWidth>
-            @if (_offer is null)
-            {
-                <OfferSearch Id="application-offer" OnSelect="SelectAsync" />
-            }
-            else
-            {
-                <div class="application-offer">
-                    <span class="application-offer-name"><span class="t-body-strong">@_offer.Title</span> · @_offer.CompanyName</span>
-                    <button type="button" class="btn btn-secondary btn-sm application-offer-change" @onclick="ChangeOffer"
-                            disabled="@(!RendererInfo.IsInteractive)">
-                        Change
-                    </button>
-                </div>
-            }
-        </FormField>
-    </FormSection>
+    @* DataAnnotationsValidator doesn't accept another EditContext: each kind gets its own form. *@
+    <EditForm @key="_kind" EditContext="EditContext" OnValidSubmit="CreateAsync" novalidate class="form-sections">
+        <DataAnnotationsValidator />
 
-    <FormSection Title="Application">
-        <FormField Id="application-via" Label="Applied via" For="() => _input.AppliedViaPostingId" Optional>
-            <InputSelect id="application-via" @bind-Value="_input.AppliedViaPostingId" class="form-select">
-                <option value="">Not specified</option>
-                @foreach (var posting in _offer?.Postings ?? [])
-                {
-                    <option value="@posting.Id">@posting.Site · seen @posting.SeenAt.ToShortDisplayDate()</option>
-                }
-            </InputSelect>
-        </FormField>
-        <FormField Id="application-channel" Label="Channel" For="() => _input.Channel">
-            <InputSelect id="application-channel" @bind-Value="_input.Channel" class="form-select">
-                @foreach (var channel in Enum.GetValues<Channel>())
-                {
-                    <option value="@channel">@channel.ToLabel()</option>
-                }
-            </InputSelect>
-        </FormField>
-        <FormField Id="application-channel-detail" Label="Channel detail" For="() => _input.ChannelDetail" Optional FullWidth>
-            <InputText id="application-channel-detail" @bind-Value="_input.ChannelDetail" class="form-control"
-                       placeholder="@("An address like jobs@…, or who referred you")" />
-        </FormField>
-        <div class="field">
-            <div class="form-check">
-                <InputCheckbox id="application-already-sent" @bind-Value="_input.AlreadySent" class="form-check-input" />
-                <label class="form-check-label" for="application-already-sent">Already sent</label>
-            </div>
-        </div>
-        @if (_input.AlreadySent)
+        @if (_kind == ApplicationKind.Offer)
         {
-            <FormField Id="application-sent-on" Label="Sent on" For="() => _input.SentOn">
-                <InputDate id="application-sent-on" @bind-Value="_input.SentOn" class="form-control" aria-required="true" />
-            </FormField>
+            <FormSection Title="Offer">
+                <FormField Id="application-offer" Label="Job offer" For="() => _offerInput.JobOfferId" FullWidth>
+                    @if (_offer is null)
+                    {
+                        <OfferSearch Id="application-offer" OnSelect="SelectOfferAsync" />
+                    }
+                    else
+                    {
+                        <div class="application-choice">
+                            <span class="application-offer-name"><span class="t-body-strong">@_offer.Title</span> · @_offer.CompanyName</span>
+                            <button type="button" class="btn btn-secondary btn-sm application-offer-change" @onclick="ChangeOffer"
+                                    disabled="@(!RendererInfo.IsInteractive)">
+                                Change
+                            </button>
+                        </div>
+                    }
+                </FormField>
+            </FormSection>
         }
-        <FormField Id="application-notes" Label="Notes" For="() => _input.Notes" Optional FullWidth>
-            <InputTextArea id="application-notes" @bind-Value="_input.Notes" class="form-control" />
-        </FormField>
-    </FormSection>
+        else
+        {
+            <FormSection Title="Company">
+                <FormField Id="application-company" Label="Company" For="() => _spontaneousInput.CompanyName" FullWidth>
+                    @if (string.IsNullOrEmpty(_spontaneousInput.CompanyName))
+                    {
+                        <CompanySearch Id="application-company" OnSelect="SelectCompany" OnCreate="CreateCompany" />
+                    }
+                    else
+                    {
+                        <div class="application-choice">
+                            <span class="application-company-name">
+                                <span class="t-body-strong">@_spontaneousInput.CompanyName</span>@(_isNewCompany ? " · new company" : null)
+                            </span>
+                            <button type="button" class="btn btn-secondary btn-sm application-company-change" @onclick="ChangeCompany"
+                                    disabled="@(!RendererInfo.IsInteractive)">
+                                Change
+                            </button>
+                        </div>
+                    }
+                </FormField>
+                <FormField Id="application-position" Label="Target position" For="() => _spontaneousInput.TargetPosition" FullWidth>
+                    <InputText id="application-position" @bind-Value="_spontaneousInput.TargetPosition" class="form-control"
+                               placeholder="e.g. Backend Developer" aria-required="true" />
+                </FormField>
+            </FormSection>
+        }
 
-    <div class="action-bar">
-        <ButtonLink Href="@JobApplicationRoutes.List" Variant="ButtonVariant.Secondary">Cancel</ButtonLink>
-        <button type="submit" class="btn btn-primary" disabled="@(!RendererInfo.IsInteractive)">Create application</button>
-    </div>
-</EditForm>
+        <FormSection Title="Application">
+            @if (_kind == ApplicationKind.Offer)
+            {
+                <FormField Id="application-via" Label="Applied via" For="() => _offerInput.AppliedViaPostingId" Optional>
+                    <InputSelect id="application-via" @bind-Value="_offerInput.AppliedViaPostingId" class="form-select">
+                        <option value="">Not specified</option>
+                        @foreach (var posting in _offer?.Postings ?? [])
+                        {
+                            <option value="@posting.Id">@posting.Site · seen @posting.SeenAt.ToShortDisplayDate()</option>
+                        }
+                    </InputSelect>
+                </FormField>
+            }
+            <FormField Id="application-channel" Label="Channel" For="() => Input.Channel">
+                <InputSelect id="application-channel" @bind-Value="Input.Channel" class="form-select">
+                    @foreach (var channel in Enum.GetValues<Channel>())
+                    {
+                        <option value="@channel">@channel.ToLabel()</option>
+                    }
+                </InputSelect>
+            </FormField>
+            <FormField Id="application-channel-detail" Label="Channel detail" For="() => Input.ChannelDetail" Optional FullWidth>
+                <InputText id="application-channel-detail" @bind-Value="Input.ChannelDetail" class="form-control"
+                           placeholder="@("An address like jobs@…, or who referred you")" />
+            </FormField>
+            <div class="field">
+                <div class="form-check">
+                    <InputCheckbox id="application-already-sent" @bind-Value="Input.AlreadySent" class="form-check-input" />
+                    <label class="form-check-label" for="application-already-sent">Already sent</label>
+                </div>
+            </div>
+            @if (Input.AlreadySent)
+            {
+                <FormField Id="application-sent-on" Label="Sent on" For="() => Input.SentOn">
+                    <InputDate id="application-sent-on" @bind-Value="Input.SentOn" class="form-control" aria-required="true" />
+                </FormField>
+            }
+            <FormField Id="application-notes" Label="Notes" For="() => Input.Notes" Optional FullWidth>
+                <InputTextArea id="application-notes" @bind-Value="Input.Notes" class="form-control" />
+            </FormField>
+        </FormSection>
+
+        <div class="action-bar">
+            <ButtonLink Href="@JobApplicationRoutes.List" Variant="ButtonVariant.Secondary">Cancel</ButtonLink>
+            <button type="submit" class="btn btn-primary" disabled="@(!RendererInfo.IsInteractive)">Create application</button>
+        </div>
+    </EditForm>
+</div>
 
 @code {
+    private static readonly IReadOnlyList<SegmentedOption> KindOptions =
+        Enum.GetValues<ApplicationKind>()
+            .Select(kind => new SegmentedOption(kind.ToString(), kind.ToLabel(), kind.ToIcon()))
+            .ToList();
+
     /// <summary>The offer already chosen by the page, or null to start with the search.</summary>
     [Parameter]
     public JobOfferDetailsDto? Offer { get; set; }
 
-    private readonly NewOfferApplicationInput _input = new();
+    /// <summary>The company already chosen by the page, such as from the company page: the form starts spontaneous.
+    /// Ignored when <see cref="Offer"/> is given.</summary>
+    [Parameter]
+    public string? CompanyName { get; set; }
+
+    private readonly NewOfferApplicationInput _offerInput = new();
+    private readonly NewSpontaneousApplicationInput _spontaneousInput = new();
+    private ApplicationKind _kind = ApplicationKind.Offer;
     private JobOfferDetailsDto? _offer;
-    private EditContext _editContext = null!;
+    private bool _isNewCompany;
+    private EditContext _offerContext = null!;
+    private EditContext _spontaneousContext = null!;
     private ValidationMessageStore _serviceMessages = null!;
+
+    /// <summary>The fields of the kind shown, for the Application section.</summary>
+    private NewJobApplicationInput Input => _kind == ApplicationKind.Offer ? _offerInput : _spontaneousInput;
+
+    private EditContext EditContext => _kind == ApplicationKind.Offer ? _offerContext : _spontaneousContext;
 
     protected override void OnInitialized()
     {
-        _editContext = new EditContext(_input);
-        _serviceMessages = new ValidationMessageStore(_editContext);
-        // The service's message stays until a field changes: otherwise the form could never be valid again.
-        _editContext.OnFieldChanged += (_, _) => _serviceMessages.Clear();
+        _offerContext = new EditContext(_offerInput);
+        _spontaneousContext = new EditContext(_spontaneousInput);
+        // Only an application to an offer can be refused by the service. Its message stays until a field changes:
+        // otherwise the form could never be valid again.
+        _serviceMessages = new ValidationMessageStore(_offerContext);
+        _offerContext.OnFieldChanged += (_, _) => _serviceMessages.Clear();
 
         if (Offer is not null)
         {
-            Choose(Offer);
+            ChooseOffer(Offer);
+        }
+        else if (!string.IsNullOrWhiteSpace(CompanyName))
+        {
+            _kind = ApplicationKind.Spontaneous;
+            _spontaneousInput.CompanyName = CompanyName;
         }
     }
 
-    private async Task SelectAsync(JobOfferSummaryDto summary)
+    /// <summary>Shows the other kind, with the values of the Application section.</summary>
+    private void ChangeKind(string value)
+    {
+        var kind = Enum.Parse<ApplicationKind>(value);
+        if (kind == _kind)
+        {
+            return;
+        }
+
+        var shown = Input;
+        _kind = kind;
+        Input.Channel = shown.Channel;
+        Input.ChannelDetail = shown.ChannelDetail;
+        Input.AlreadySent = shown.AlreadySent;
+        Input.SentOn = shown.SentOn;
+        Input.Notes = shown.Notes;
+    }
+
+    private async Task SelectOfferAsync(JobOfferSummaryDto summary)
     {
         var offer = await JobOfferService.GetAsync(summary.Id);
 
@@ -104,29 +189,55 @@
             return;
         }
 
-        Choose(offer);
+        ChooseOffer(offer);
     }
 
     /// <summary>Sets the offer; its only posting, if it has one, is the one used to apply.</summary>
-    private void Choose(JobOfferDetailsDto offer)
+    private void ChooseOffer(JobOfferDetailsDto offer)
     {
         _offer = offer;
-        _input.JobOfferId = offer.Id;
-        _input.AppliedViaPostingId = offer.Postings is [var single] ? single.Id : null;
+        _offerInput.JobOfferId = offer.Id;
+        _offerInput.AppliedViaPostingId = offer.Postings is [var single] ? single.Id : null;
         _serviceMessages.Clear();
-        _editContext.NotifyFieldChanged(_editContext.Field(nameof(NewOfferApplicationInput.JobOfferId)));
+        _offerContext.NotifyFieldChanged(_offerContext.Field(nameof(NewOfferApplicationInput.JobOfferId)));
     }
 
     private void ChangeOffer()
     {
         _offer = null;
-        _input.JobOfferId = null;
-        _input.AppliedViaPostingId = null;
+        _offerInput.JobOfferId = null;
+        _offerInput.AppliedViaPostingId = null;
+    }
+
+    private void SelectCompany(CompanySummaryDto company) => ChooseCompany(company.Name, isNew: false);
+
+    /// <summary>A company to create with the application: the service creates it, unless one already has the
+    /// name.</summary>
+    private void CreateCompany(string name) => ChooseCompany(name, isNew: true);
+
+    private void ChooseCompany(string name, bool isNew)
+    {
+        _spontaneousInput.CompanyName = name;
+        _isNewCompany = isNew;
+        _spontaneousContext.NotifyFieldChanged(_spontaneousContext.Field(nameof(NewSpontaneousApplicationInput.CompanyName)));
+    }
+
+    private void ChangeCompany()
+    {
+        _spontaneousInput.CompanyName = "";
+        _isNewCompany = false;
     }
 
     private async Task CreateAsync()
     {
-        var result = await JobApplicationService.CreateAsync(_input);
+        if (_kind == ApplicationKind.Spontaneous)
+        {
+            await JobApplicationService.CreateAsync(_spontaneousInput);
+            NavigationManager.NavigateTo(JobApplicationRoutes.List);
+            return;
+        }
+
+        var result = await JobApplicationService.CreateAsync(_offerInput);
 
         if (result.IsSuccess)
         {
@@ -144,10 +255,10 @@
         }
     }
 
-    /// <summary>Shows the service's message under the field of the input named <paramref name="fieldName"/>.</summary>
+    /// <summary>Shows the service's message under the field of the offer input named <paramref name="fieldName"/>.</summary>
     private void ShowError(string fieldName, string message)
     {
-        _serviceMessages.Add(_editContext.Field(fieldName), message);
-        _editContext.NotifyValidationStateChanged();
+        _serviceMessages.Add(_offerContext.Field(fieldName), message);
+        _offerContext.NotifyValidationStateChanged();
     }
 }
