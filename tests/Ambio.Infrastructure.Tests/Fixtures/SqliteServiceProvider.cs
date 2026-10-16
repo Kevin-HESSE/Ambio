@@ -80,6 +80,13 @@ public sealed class SqliteServiceProvider : IAsyncDisposable
         return await call(scope.ServiceProvider.GetRequiredService<TService>());
     }
 
+    /// <summary>Calls a service that returns nothing, resolved in its own scope, as a request of the app would.</summary>
+    public async Task CallAsync<TService>(Func<TService, Task> call) where TService : notnull
+    {
+        await using var scope = CreateScope();
+        await call(scope.ServiceProvider.GetRequiredService<TService>());
+    }
+
     /// <summary>Reads what was saved, on a new context.</summary>
     public async Task<TResult> QueryAsync<TResult>(Func<ApplicationDbContext, Task<TResult>> query)
     {

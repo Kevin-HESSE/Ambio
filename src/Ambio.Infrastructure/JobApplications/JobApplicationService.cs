@@ -5,6 +5,7 @@ using Ambio.Application.JobApplications;
 using Ambio.Application.JobApplications.Dtos;
 using Ambio.Domain.JobApplications;
 using Ambio.Infrastructure.Common;
+using Ambio.Infrastructure.Companies;
 using Ambio.Infrastructure.Persistence;
 
 using Microsoft.EntityFrameworkCore;
@@ -26,10 +27,14 @@ internal class JobApplicationService : IJobApplicationService
         ListWhereAsync(_ => true, cancellationToken);
 
     public Task<IReadOnlyList<JobApplicationSummaryDto>> ListByOfferAsync(Guid offerId, CancellationToken cancellationToken = default) =>
-        ListWhereAsync(a => a.JobOfferId == offerId, cancellationToken);
+        ListWhereAsync(a => a is OfferApplication && ((OfferApplication)a).JobOfferId == offerId, cancellationToken);
 
     public Task<IReadOnlyList<JobApplicationSummaryDto>> ListByCompanyAsync(Guid companyId, CancellationToken cancellationToken = default) =>
-        ListWhereAsync(a => a.JobOffer.CompanyId == companyId, cancellationToken);
+        ListWhereAsync(
+            a => a is OfferApplication
+                ? ((OfferApplication)a).JobOffer.CompanyId == companyId
+                : ((SpontaneousApplication)a).CompanyId == companyId,
+            cancellationToken);
 
     public async Task<ServiceResult> CreateAsync(NewOfferApplicationInput input, CancellationToken cancellationToken = default)
     {
@@ -60,14 +65,27 @@ internal class JobApplicationService : IJobApplicationService
         return ServiceResult.Success();
     }
 
-    /// <summary>The active applications to an offer that match <paramref name="predicate"/>, newest first: by
-    /// sending day, or by creation day for a draft, then by creation time.</summary>
-    private async Task<IReadOnlyList<JobApplicationSummaryDto>> ListWhereAsync(
-        Expression<Func<OfferApplication, bool>> predicate, CancellationToken cancellationToken)
+    public async Task CreateAsync(NewSpontaneousApplicationInput input, CancellationToken cancellationToken = default)
     {
         await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
 
-        return await db.Set<OfferApplication>()
+        var companyId = await CompanyLookup.FindOrAddAsync(db, input.CompanyName, cancellationToken);
+        var shortId = await _shortIds.FreeAsync(candidate =>
+            db.JobApplications.AnyAsync(a => a.ShortId == candidate, cancellationToken));
+
+        // Saved with the new company, if any, in a single transaction.
+        db.JobApplications.Add(input.ToEntity(companyId, shortId));
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>The active applications of every kind that match <paramref name="predicate"/>, newest first: by
+    /// sending day, or by creation day for a draft, then by creation time.</summary>
+    private async Task<IReadOnlyList<JobApplicationSummaryDto>> ListWhereAsync(
+        Expression<Func<JobApplication, bool>> predicate, CancellationToken cancellationToken)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
+
+        return await db.JobApplications
             .AsNoTracking()
             .Where(a => a.ArchivedAt == null)
             .Where(predicate)

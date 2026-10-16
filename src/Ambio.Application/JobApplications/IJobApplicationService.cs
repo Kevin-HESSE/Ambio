@@ -11,11 +11,16 @@ public interface IJobApplicationService
     /// <summary>Active applications to the offer, newest first.</summary>
     public Task<IReadOnlyList<JobApplicationSummaryDto>> ListByOfferAsync(Guid offerId, CancellationToken cancellationToken = default);
 
-    /// <summary>Active applications to the offers of the company, newest first.</summary>
+    /// <summary>Active applications to the company, to its offers or spontaneous, newest first.</summary>
     public Task<IReadOnlyList<JobApplicationSummaryDto>> ListByCompanyAsync(Guid companyId, CancellationToken cancellationToken = default);
 
     /// <summary>Creates an application to the offer, as a draft or already sent, with a free short id. Fails with
     /// <see cref="JobApplicationErrors.OfferNotFound"/>, or with <see cref="JobApplicationErrors.PostingNotFound"/>
     /// when the posting isn't one of the offer's.</summary>
     public Task<ServiceResult> CreateAsync(NewOfferApplicationInput input, CancellationToken cancellationToken = default);
+
+    /// <summary>Creates a spontaneous application, as a draft or already sent, with a free short id. Its company is
+    /// the one with this name, compared ignoring case and archived or not, or a new employer created in the same
+    /// save.</summary>
+    public Task CreateAsync(NewSpontaneousApplicationInput input, CancellationToken cancellationToken = default);
 }
