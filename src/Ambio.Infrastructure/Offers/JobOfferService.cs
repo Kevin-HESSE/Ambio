@@ -1,7 +1,6 @@
 using Ambio.Application.Common;
 using Ambio.Application.Offers;
 using Ambio.Application.Offers.Dtos;
-using Ambio.Domain.Companies;
 using Ambio.Domain.Offers;
 using Ambio.Infrastructure.Companies;
 using Ambio.Infrastructure.Persistence;
@@ -84,28 +83,10 @@ internal class JobOfferService : IJobOfferService
     {
         await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
 
-        // The Name column is COLLATE NOCASE: the comparison ignores case, like the unique index. An archived
-        // company keeps its name, so it is matched too.
-        var name = input.CompanyName.Trim();
-        var companyId = await db.Companies
-            .Where(c => c.Name == name)
-            .Select(c => (Guid?)c.Id)
-            .SingleOrDefaultAsync(cancellationToken);
-
-        if (companyId is null)
-        {
-            var company = new Company
-            {
-                Name = name,
-                Slug = await CompanySlugs.FreeSlugAsync(db, name, companyId: null, cancellationToken),
-                Kind = CompanyKind.Employer,
-            };
-            db.Companies.Add(company);
-            companyId = company.Id;
-        }
+        var companyId = await CompanyLookup.FindOrAddAsync(db, input.CompanyName, cancellationToken);
 
         // Saved with the new company, if any, in a single transaction.
-        var offer = input.ToEntity(companyId.Value);
+        var offer = input.ToEntity(companyId);
         db.JobOffers.Add(offer);
         await db.SaveChangesAsync(cancellationToken);
 
