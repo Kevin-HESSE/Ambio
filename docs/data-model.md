@@ -181,7 +181,7 @@ The same offer is often published on several sites. Each place it was seen is a 
 
 | Type | Specific fields | Meaning |
 |---|---|---|
-| `OfferApplication` | `JobOfferId` (required), `AppliedViaPostingId` (optional) | Answer to a job offer. The company comes from the offer. The posting records which site's form was used, and must belong to the offer. |
+| `OfferApplication` | `JobOfferId` (required), `AppliedViaPostingId` (optional) | Answer to a job offer. The company comes from the offer. The posting records which site's form was used, and must belong to the offer: `OfferApplication.ApplyVia` refuses another offer's posting. A removed posting sets it back to null. |
 | `SpontaneousApplication` | `CompanyId` (required), `TargetPosition` (required) | Application sent to a company without any offer. |
 
 The base class carries everything they share:
@@ -210,8 +210,8 @@ The base class carries everything they share:
 - The **slug** makes the URL readable. It isn't stored: it's computed from the title (offer title or `TargetPosition`) and the effective company name. A `Slug.From(...)` helper in Application keeps lowercase ASCII letters and digits only: it removes accents, spells out `œ`, `æ` and `ß`, replaces any other run of characters with one `-`, truncates to 60 characters, and returns a fallback given by the caller when nothing is left.
 - The page looks the application up by `ShortId` only. When the slug in the URL doesn't match the current one (the title changed, the link was mistyped), the page redirects to the canonical URL, so old links keep working.
 - The short id is **random rather than sequential**, so the URL doesn't reveal how many applications exist ([ADR 0013](adr/0013-guid-v7-primary-keys.md)).
-- **Generation**: the creating service in Infrastructure calls `Nanoid.Generate(alphabet, size)`. The domain doesn't depend on the library: it receives the value. The service retries while the id is already taken, and the unique index is the final guard.
-- **Alphabet and size** are a single setting (`ShortIdOptions`):
+- **Generation**: the creating service in Infrastructure draws it through `Common/ShortIdGenerator`, which calls `Nanoid.Generate(alphabet, size)`. The domain doesn't depend on the library: it receives the value. The generator draws again while the id is already taken, up to 100 times before failing, and the unique index is the final guard.
+- **Alphabet and size** are a single setting (`ShortIdOptions`, section `Ambio:ShortId`, validated at startup):
   - It starts **numeric**: alphabet `0123456789`, size 6, so 10⁶ values.
   - It can move to **alphanumeric** (`0123456789abcdefghijklmnopqrstuvwxyz`, 36⁶ ≈ 2 billion values) without a migration, because the column is already text and existing ids stay valid.
   - The alphabet must **never contain `-`**, because the first `-` separates the short id from the slug. This is why NanoId's default alphabet (which contains `-` and `_`) isn't used. Lowercase only, so URLs stay consistent.
@@ -332,12 +332,13 @@ At the data volume of a single user, both costs are negligible.
 
 ### DTOs
 
-- **Lists** use one flat `JobApplicationSummaryDto` (`Id`, `Kind`, `Title`, `CompanyName`, `RecruiterName`, `Status`, `AppliedOn`), projected in LINQ so EF builds a single query:
+- **Lists** use one flat `JobApplicationSummaryDto`, projected in LINQ so EF builds a single query. It holds `Id`, `Title`, `CompanyName`, `Status`, `Channel`, `AppliedVia` (the site of the posting) and `SentOn` (`AppliedOn`); `Kind` comes with spontaneous applications, `RecruiterName` in Phase 2b:
 
   ```csharp
   Title = a is OfferApplication o ? o.JobOffer.Title : ((SpontaneousApplication)a).TargetPosition
   ```
 
+- Lists are sorted newest first: by sending day, or by creation day for a draft, then by creation time.
 - Summary and detail DTOs carry `ShortId` and the computed `Slug`, so links are built without another query.
 - **Details** use one DTO per subtype: `OfferApplicationDetailsDto` and `SpontaneousApplicationDetailsDto`.
 

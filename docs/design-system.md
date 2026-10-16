@@ -211,4 +211,5 @@ Each token becomes a CSS custom property prefixed with `--ambio-`. The `/` in th
   - `.btn-primary`: the `accent/*` tokens;
   - `.btn-danger`: outlined, as in the mockups (`feedback/danger` text, `bg/surface`, `border/strong`);
   - inputs, selects and checkboxes: `bg/surface` and `border/strong`; their focus: `focus/ring`;
-  - checked checkboxes: `accent/default`.
+  - checked checkboxes: `accent/default`;
+  - card headers: no tint, `space/12` and `space/16` padding, and a flex row with the title on the left and its actions on the right.
