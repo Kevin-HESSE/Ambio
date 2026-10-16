@@ -86,13 +86,13 @@ The screens of the MVP ([Phase 1](roadmap.md#phase-1--application-tracking-mvp))
 | 6 | Application — Cover letters | `…?tab=letters` | Letter list, plain-text editor, Copy and Save. | — |
 | 7 | Application — CV | `…?tab=cv` | PDF upload (drop zone or file picker), sent CVs with preview and download. | Generate a CV (3) |
 | 8 | Application — archived | same | Restore banner, Undo toast. | — |
-| 9 | New application | `/applications/new`, `?offer={id}` to start with an offer | "From an offer / Spontaneous" toggle. Offer search with inline creation, or company and target position. "Already sent" + date, otherwise Draft. The form is an interactive island: the offer is searched by title or company as the user types (once typing stops for 300 ms, ignoring case and accents), with a "Create a new offer" link, and its postings fill "Applied via" once it is chosen. | — |
+| 9 | New application | `/applications/new`, `?offer={id}` to start with an offer, `?company={slug}` to start spontaneous with a company (the link of the company page) | "From an offer / Spontaneous" toggle; the Application section keeps its values when the kind changes. Offer search with a "Create a new offer" link, or company and target position. "Already sent" + date, otherwise Draft. The form is an interactive island: the offer is searched by title or company, and the company by name, as the user types (once typing stops for 300 ms, ignoring case and accents). The offer's postings fill "Applied via" once it is chosen; the company search ends with "Create the company “…”", which creates it with the application, unless a result already has the typed name. | — |
 | 10 | Change status | modal / sheet | Allowed transitions with their badges, date when sending, comment. | — |
 | 11 | Offers — list | `/offers` | Contract, remote policy, postings and applications counts, "Apply" when there is none. "Published" is the day the offer was recorded. | Recruiter (2b) |
 | 12 | Offer — detail | `/offers/{id}`, edit at `/offers/{id}/edit` | Company, location and publication date under the title; postings (site, link, day recorded), added in a sheet and removed after a confirmation, without reloading the page (the last one stays); applications (status, sending day and site) with a "New" link to apply; plain-text copy of the ad. The edit form doesn't change the company. | — |
 | 13 | New offer | `/offers/new` | Offer (company picked from the existing ones or typed to create it), first posting (site and link, no date), ad text. **Duplicate suggestion** banner after "Create offer" when the company and a similar title match: "Add this posting to this offer" adds the site and link to an existing offer and opens it, "Create a new offer anyway" creates it. The form keeps its values. | Recruiter company (2b) |
 | 14 | Companies — list | `/companies` | Kind, industry, location, offers and applications counts. | — |
-| 15 | Company — detail | `/companies/{slug}` | Profile, description, Offers and Applications tabs (`?tab=applications`), each with its count. | Notes and Contacts tabs (2b) |
+| 15 | Company — detail | `/companies/{slug}` | Profile, description, Offers and Applications tabs (`?tab=applications`), each with its count. The Applications tab lists the applications to its offers and the spontaneous ones; its empty state opens a spontaneous application to the company. | Notes and Contacts tabs (2b) |
 | 16 | More sheet | mobile only | Settings, Account, Theme, Log out. | Profile, My CVs, Templates, Export |
 | 17 | Settings | `/settings` | Follow-up delay (days), theme. | Language (5) |
 | 18 | Account | `/Account/Manage` | Identity management: section list on desktop, scrolling tabs on mobile. | External logins (5) |
@@ -113,9 +113,9 @@ What the mockups are built from, and the Blazor component each becomes. Stock Bo
 | Detail header | `detail-head`, `breadcrumb` | `DetailHeader.razor` (title, subtitle, tags, actions) |
 | Link to another site | `box-arrow-up-right` icon | `ExternalLink.razor` (new tab, short text) |
 | Floating action button | `fab` | `ButtonLink` with `btn-primary btn-fab mobile-only` and an `aria-label` (applications list, then dashboard) |
-| Offer search | — | `Offers/Shared/OfferSearch.razor` (search as you type, inside an interactive component) |
+| Search as you type | — | `Shared/SearchField.razor` (generic: waits 300 ms after the last keystroke, results as buttons, optional empty line and last line), inside an interactive component; wrapped by `Offers/Shared/OfferSearch.razor` and `Companies/Shared/CompanySearch.razor` |
 | Status badge | `status-badge status-{status}` | `JobApplications/Shared/StatusBadge.razor` |
-| Tag | `tag`, `tag-accent`, `tag-archived` | `Tag.razor` |
+| Tag | `tag`, `tag-accent`, `tag-archived` | `Tag.razor` (`TagVariant.Neutral` or `Accent`); `JobApplications/Shared/SpontaneousTag.razor` for spontaneous applications |
 | Filter chip | `chip` | `FilterChip.razor` |
 | List card (mobile) / table row (desktop) | `app-card` / `table` | `ResponsiveList.razor` (cards below 992 px, table above) and `ListTable.razor` (header, rows, `num` cells), filled by each feature's card and table: `CompanyCard.razor` / `CompanyTable.razor`, `OfferCard.razor` / `OfferTable.razor`, `JobApplicationCard.razor` / `JobApplicationTable.razor`. Each card is a `ListCard.razor` (title, aside such as a date, subtitle, tags; a link with `Href`) |
 | Tabs | `tabs`, `tab` | `TabNav.razor` (links carrying `?tab=`) |
@@ -125,7 +125,7 @@ What the mockups are built from, and the Blazor component each becomes. Stock Bo
 | Toast | `toast` | `ToastHost.razor` + a scoped `ToastService` |
 | Banner | `banner` | `Banner.razor` (icon, title, text, actions; `Neutral` or `Info` icon color) |
 | Empty state | `empty` | `EmptyState.razor` |
-| Segmented control | `segmented` | `SegmentedControl.razor` (theme, application kind) |
+| Segmented control | `segmented` | `SegmentedControl.razor` (theme, read by `shell.js`; application kind, bound with `@bind-Value` and `Disabled` until the circuit) |
 | File drop zone | `dropzone` | `PdfUpload.razor` (`InputFile`) |
 | Dashboard | `pipeline-bar`, `stat` | `PipelineCard.razor`, `FollowUpCard.razor`, `ActivityFeed.razor` |
 

@@ -51,7 +51,7 @@ Each item is a vertical slice: domain, persistence, service, page and tests for 
 - [x] Offers: detail with their postings (the same offer seen on several sites), edit
 - [x] Offers: duplicate suggestion when creating an offer (same company, similar title)
 - [x] Applications from an offer: create and list, abstract `JobApplication` and `OfferApplication` mapped as TPH, `Channel` (online form, email, referral…), `ShortId` generated with NanoId (numeric for now), `StatusBadge` and `Tag` components
-- [ ] Spontaneous applications: `SpontaneousApplication`, TPH check constraint, "From an offer / Spontaneous" toggle
+- [x] Spontaneous applications: `SpontaneousApplication`, TPH check constraint, "From an offer / Spontaneous" toggle
 - [ ] Application detail and edit, with readable URLs `/applications/482913-backend-developer-acme` (`ShortId` + slug) and a redirect to the canonical slug ([ADR 0014](adr/0014-short-id-and-slug-urls.md))
 - [ ] Status change and history: `Draft → Applied → Interview → Offer / Rejected / Withdrawn`, every change recorded as a timestamped `StatusChange`, and an end-to-end journey from a company to a status change
 - [ ] Applications list: filters by status, company and kind, search, sort by date
