@@ -10,12 +10,24 @@ public class JobApplicationConfiguration : IEntityTypeConfiguration<JobApplicati
 {
     public const string Discriminator = "Kind";
 
+    public const string KindConstraint = "CK_JobApplications_Kind";
+
     public void Configure(EntityTypeBuilder<JobApplication> builder)
     {
-        builder.ToTable("JobApplications");
+        // The columns of each kind are nullable, as the other kind leaves them empty: the constraint requires those
+        // of the row's kind and forbids the others.
+        builder.ToTable("JobApplications", table => table.HasCheckConstraint(
+            KindConstraint,
+            $"""
+             ("{Discriminator}" = '{nameof(ApplicationKind.Offer)}' AND "JobOfferId" IS NOT NULL
+                 AND "CompanyId" IS NULL AND "TargetPosition" IS NULL)
+             OR ("{Discriminator}" = '{nameof(ApplicationKind.Spontaneous)}' AND "CompanyId" IS NOT NULL
+                 AND "TargetPosition" IS NOT NULL AND "JobOfferId" IS NULL AND "AppliedViaPostingId" IS NULL)
+             """));
 
         builder.HasDiscriminator<string>(Discriminator)
-            .HasValue<OfferApplication>("Offer");
+            .HasValue<OfferApplication>(nameof(ApplicationKind.Offer))
+            .HasValue<SpontaneousApplication>(nameof(ApplicationKind.Spontaneous));
 
         builder.HasKey(a => a.Id);
 

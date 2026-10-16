@@ -10,7 +10,13 @@
             @("Not sent")
         }
     </Aside>
-    <Tags><StatusBadge Status="Application.Status" /></Tags>
+    <Tags>
+        <StatusBadge Status="Application.Status" />
+        @if (Application.Kind == ApplicationKind.Spontaneous)
+        {
+            <SpontaneousTag />
+        }
+    </Tags>
 </ListCard>
 
 @code {

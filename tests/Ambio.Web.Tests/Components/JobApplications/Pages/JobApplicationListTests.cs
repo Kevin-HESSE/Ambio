@@ -1,5 +1,6 @@
 using Ambio.Application.JobApplications;
 using Ambio.Application.JobApplications.Dtos;
+using Ambio.Domain.JobApplications;
 using Ambio.Web.Components.JobApplications;
 using Ambio.Web.Components.JobApplications.Pages;
 using Ambio.Web.Components.JobApplications.Shared;
@@ -86,6 +87,23 @@ public class JobApplicationListTests : BunitContext
                 (_applications[1].Title, _applications[1].CompanyName, "3 Sep", _applications[1].Status.ToLabel()),
             ],
             cards);
+    }
+
+    [Fact]
+    public void Render_WithSpontaneousApplication_TagsItsRowAndCardOnly()
+    {
+        var spontaneous = JobApplicationSummaryFactory.GetGenerator().Generate(JobApplicationSummaryFactory.IsSpontaneousRuleSet);
+        GivenApplications(_applications[1], spontaneous);
+
+        var cut = Render<JobApplicationList>();
+
+        Assert.Equal(
+            [false, true],
+            cut.FindAll("tbody tr").Select(row => row.QuerySelector(".tag-accent") is not null));
+        Assert.Equal(
+            [false, true],
+            cut.FindAll(".list-card").Select(card => card.QuerySelector(".tag-accent") is not null));
+        Assert.Equal(ApplicationKind.Spontaneous.ToLabel(), cut.Find("tbody .tag-accent").TextContent.Trim());
     }
 
     [Theory]

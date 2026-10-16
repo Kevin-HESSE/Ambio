@@ -28,6 +28,19 @@ internal class CompanyService : ICompanyService
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<CompanySummaryDto>> SearchAsync(string text, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return [];
+        }
+
+        // SQLite compares neither ignoring accents nor word by word: the few companies are matched once loaded.
+        var companies = await ListAsync(cancellationToken);
+
+        return companies.Where(c => TextSearch.Matches(c.Name, text)).ToList();
+    }
+
     public async Task<CompanyDetailsDto?> GetAsync(string slug, CancellationToken cancellationToken = default)
     {
         await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);

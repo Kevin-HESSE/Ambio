@@ -7,6 +7,10 @@
     }
     <div class="cluster">
         <StatusBadge Status="Application.Status" />
+        @if (Application.Kind == ApplicationKind.Spontaneous)
+        {
+            <SpontaneousTag />
+        }
         <span class="application-item-meta t-small t-secondary">
             @if (Application.SentOn is { } sentOn)
             {

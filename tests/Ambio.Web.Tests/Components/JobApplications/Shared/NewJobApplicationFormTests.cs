@@ -1,4 +1,6 @@
 using Ambio.Application.Common;
+using Ambio.Application.Companies;
+using Ambio.Application.Companies.Dtos;
 using Ambio.Application.JobApplications;
 using Ambio.Application.JobApplications.Dtos;
 using Ambio.Application.Offers;
@@ -23,17 +25,26 @@ public class NewJobApplicationFormTests : BunitContext
     private const string OfferError = "Choose the offer you apply to.";
     private const string SentOnError = "Enter the day you sent it.";
     private const string SentOnText = "2026-09-03";
+    private const string CompanyError = "Choose the company you apply to.";
+    private const string PositionError = "Enter the position you apply for.";
+    private const string NewCompanyName = "Lumen Health";
+    private const string TargetPosition = "Backend Developer";
+    private const string Notes = "Sent with the English CV.";
 
     private static readonly DateOnly SentOn = new(2026, 9, 3);
 
     private readonly IJobOfferService _jobOfferService = Substitute.For<IJobOfferService>();
     private readonly IJobApplicationService _jobApplicationService = Substitute.For<IJobApplicationService>();
+    private readonly ICompanyService _companyService = Substitute.For<ICompanyService>();
+    private readonly CompanySummaryDto _company = CompanySummaryFactory.GetGenerator().Generate();
     private readonly JobOfferDetailsDto _offer = JobOfferDetailsFactory.GetGenerator().Generate();
 
     public NewJobApplicationFormTests()
     {
         Services.AddSingleton(_jobOfferService);
         Services.AddSingleton(_jobApplicationService);
+        Services.AddSingleton(_companyService);
+        _companyService.SearchAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns([_company]);
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));
         _jobApplicationService.CreateAsync(Arg.Any<NewOfferApplicationInput>(), Arg.Any<CancellationToken>())
             .Returns(ServiceResult.Success());
@@ -48,6 +59,7 @@ public class NewJobApplicationFormTests : BunitContext
 
         Assert.True(cut.Find("button[type='submit']").HasAttribute("disabled"));
         Assert.True(cut.Find(".application-offer-change").HasAttribute("disabled"));
+        Assert.All(cut.FindAll("input[name='application-kind']"), radio => Assert.True(radio.HasAttribute("disabled")));
     }
 
     [Fact]
@@ -90,7 +102,7 @@ public class NewJobApplicationFormTests : BunitContext
         var cut = RenderForm(offer: null);
 
         cut.Find("#application-offer").Input(summary.Title);
-        cut.WaitForElement("button.offer-search-result").Click();
+        cut.WaitForElement("button.search-field-result").Click();
 
         Assert.Equal($"{_offer.Title} · {_offer.CompanyName}", cut.WaitForElement(".application-offer-name").TextContent);
         Assert.Equal(_offer.Postings.Count + 1, cut.FindAll("#application-via option").Count);
@@ -176,6 +188,109 @@ public class NewJobApplicationFormTests : BunitContext
         Assert.Equal(JobApplicationErrors.PostingNotFound, cut.Find("#application-via + .validation-message").TextContent);
     }
 
-    private IRenderedComponent<NewJobApplicationForm> RenderForm(JobOfferDetailsDto? offer) =>
-        Render<NewJobApplicationForm>(parameters => parameters.Add(p => p.Offer, offer));
+    [Fact]
+    public void Spontaneous_WhenChosen_ShowsTheCompanySearchAndThePositionInsteadOfTheOffer()
+    {
+        var cut = RenderForm(_offer);
+
+        ChooseSpontaneous(cut);
+
+        Assert.NotNull(cut.Find("input#application-company[type='search']"));
+        Assert.NotNull(cut.Find("#application-position"));
+        Assert.Empty(cut.FindAll("#application-offer"));
+        Assert.Empty(cut.FindAll("#application-via"));
+    }
+
+    [Fact]
+    public void Spontaneous_WhenChosen_KeepsTheValuesOfTheApplicationSection()
+    {
+        var cut = RenderForm(_offer);
+        cut.Find("#application-channel").Change(nameof(Channel.Email));
+        cut.Find("#application-already-sent").Change(true);
+        cut.Find("#application-sent-on").Change(SentOnText);
+        cut.Find("#application-notes").Change(Notes);
+
+        ChooseSpontaneous(cut);
+
+        Assert.Equal(
+            (nameof(Channel.Email), SentOnText, Notes),
+            (cut.Find("#application-channel").GetAttribute("value"), cut.Find("#application-sent-on").GetAttribute("value"),
+                cut.Find("#application-notes").GetAttribute("value")));
+    }
+
+    [Fact]
+    public void Render_WithCompanyName_StartsSpontaneousWithIt()
+    {
+        var cut = RenderForm(offer: null, companyName: _company.Name);
+
+        Assert.True(cut.Find($"#application-kind-{nameof(ApplicationKind.Spontaneous)}").HasAttribute("checked"));
+        Assert.Equal(_company.Name, cut.Find(".application-company-name").TextContent.Trim());
+    }
+
+    [Fact]
+    public void ChangeCompany_BringsTheCompanySearchBack()
+    {
+        var cut = RenderForm(offer: null, companyName: _company.Name);
+
+        cut.Find(".application-company-change").Click();
+
+        Assert.NotNull(cut.Find("input#application-company[type='search']"));
+    }
+
+    [Fact]
+    public void Submit_SpontaneousWithoutCompanyNorPosition_ShowsBothErrorsWithoutCreating()
+    {
+        var cut = RenderForm(offer: null);
+        ChooseSpontaneous(cut);
+
+        cut.Find("form").Submit();
+
+        Assert.Equal([CompanyError, PositionError], cut.FindAll(".validation-message").Select(message => message.TextContent));
+        _jobApplicationService.DidNotReceive().CreateAsync(Arg.Any<NewSpontaneousApplicationInput>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public void Submit_SpontaneousToAFoundCompany_CreatesItAndOpensTheList()
+    {
+        var cut = RenderForm(offer: null);
+        ChooseSpontaneous(cut);
+        cut.Find("#application-company").Input(_company.Name);
+        cut.WaitForElement("button.search-field-result").Click();
+        cut.WaitForElement(".application-company-name");
+
+        cut.Find("#application-position").Change(TargetPosition);
+        cut.Find("form").Submit();
+
+        _jobApplicationService.Received(1).CreateAsync(
+            Arg.Is<NewSpontaneousApplicationInput>(input =>
+                input.CompanyName == _company.Name && input.TargetPosition == TargetPosition),
+            Arg.Any<CancellationToken>());
+        Assert.EndsWith(JobApplicationRoutes.List, Services.GetRequiredService<BunitNavigationManager>().Uri);
+    }
+
+    [Fact]
+    public void Submit_SpontaneousToANewCompany_CreatesItWithTheTypedName()
+    {
+        _companyService.SearchAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns([]);
+        var cut = RenderForm(offer: null);
+        ChooseSpontaneous(cut);
+        cut.Find("#application-company").Input(NewCompanyName);
+        cut.WaitForElement(".company-search-new").Click();
+
+        Assert.Contains("new company", cut.WaitForElement(".application-company-name").TextContent);
+        cut.Find("#application-position").Change(TargetPosition);
+        cut.Find("form").Submit();
+
+        _jobApplicationService.Received(1).CreateAsync(
+            Arg.Is<NewSpontaneousApplicationInput>(input => input.CompanyName == NewCompanyName),
+            Arg.Any<CancellationToken>());
+    }
+
+    private static void ChooseSpontaneous(IRenderedComponent<NewJobApplicationForm> cut) =>
+        cut.Find($"#application-kind-{nameof(ApplicationKind.Spontaneous)}").Change(true);
+
+    private IRenderedComponent<NewJobApplicationForm> RenderForm(JobOfferDetailsDto? offer, string? companyName = null) =>
+        Render<NewJobApplicationForm>(parameters => parameters
+            .Add(p => p.Offer, offer)
+            .Add(p => p.CompanyName, companyName));
 }

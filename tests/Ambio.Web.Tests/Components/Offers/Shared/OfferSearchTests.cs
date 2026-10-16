@@ -30,30 +30,6 @@ public class OfferSearchTests : BunitContext
     }
 
     [Fact]
-    public void Render_BeforeTheCircuit_DisablesTheField()
-    {
-        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-
-        var cut = RenderSearch();
-
-        Assert.True(cut.Find($"#{Id}").HasAttribute("disabled"));
-    }
-
-    [Fact]
-    public void Input_SeveralQuickKeystrokes_SearchesOnceWithTheLastText()
-    {
-        var cut = RenderSearch();
-
-        var field = cut.Find($"#{Id}");
-        field.Input(Text[..1]);
-        field.Input(Text[..2]);
-        field.Input(Text);
-
-        cut.WaitForAssertion(() => _jobOfferService.Received(1).SearchAsync(Text, Arg.Any<CancellationToken>()));
-        _jobOfferService.Received(1).SearchAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
     public void Input_Text_ShowsTheMatchingOffersAndTheNewOfferLink()
     {
         var cut = RenderSearch();
@@ -74,19 +50,7 @@ public class OfferSearchTests : BunitContext
 
         cut.Find($"#{Id}").Input(Text);
 
-        cut.WaitForAssertion(() => Assert.Contains(Text, cut.Find(".offer-search-empty").TextContent));
-    }
-
-    [Fact]
-    public async Task Input_BlankText_DoesNotSearch()
-    {
-        var cut = RenderSearch();
-
-        cut.Find($"#{Id}").Input(" ");
-        await Task.Delay(OfferSearch.SearchDelay * 2, Xunit.TestContext.Current.CancellationToken);
-
-        await _jobOfferService.DidNotReceive().SearchAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
-        Assert.Empty(cut.FindAll(".offer-search-results"));
+        cut.WaitForAssertion(() => Assert.Contains(Text, cut.Find(".search-field-empty").TextContent));
     }
 
     [Fact]
@@ -95,11 +59,12 @@ public class OfferSearchTests : BunitContext
         JobOfferSummaryDto? selected = null;
         var cut = RenderSearch(offer => selected = offer);
         cut.Find($"#{Id}").Input(Text);
-        cut.WaitForElement(".offer-search-result");
+        cut.WaitForElement("button.search-field-result");
 
-        cut.FindAll("button.offer-search-result")[1].Click();
+        cut.FindAll("button.search-field-result")[1].Click();
 
-        Assert.Equal(_offers[1], selected);
+        // The pick goes through SearchField first.
+        cut.WaitForAssertion(() => Assert.Equal(_offers[1], selected));
     }
 
     private IRenderedComponent<OfferSearch> RenderSearch(Action<JobOfferSummaryDto>? onSelect = null) =>

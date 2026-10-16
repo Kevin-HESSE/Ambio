@@ -182,7 +182,7 @@ The same offer is often published on several sites. Each place it was seen is a 
 | Type | Specific fields | Meaning |
 |---|---|---|
 | `OfferApplication` | `JobOfferId` (required), `AppliedViaPostingId` (optional) | Answer to a job offer. The company comes from the offer. The posting records which site's form was used, and must belong to the offer: `OfferApplication.ApplyVia` refuses another offer's posting. A removed posting sets it back to null. |
-| `SpontaneousApplication` | `CompanyId` (required), `TargetPosition` (required) | Application sent to a company without any offer. |
+| `SpontaneousApplication` | `CompanyId` (required), `TargetPosition` (required) | Application sent to a company without any offer. The company is searched by name in the form, or typed to create it: a name matching a company, ignoring case and archived or not, links the application to it; any other name creates the company as an `Employer`, in the same save as the application, as for an offer. |
 
 The base class carries everything they share:
 
@@ -272,20 +272,21 @@ Rows are **archived** (`ArchivedAt`) instead of deleted ([ADR 0012](adr/0012-arc
 The application hierarchy is mapped as **table-per-hierarchy** (EF Core's default).
 
 - There is a single `JobApplications` table with a `Kind` discriminator column (`Offer` | `Spontaneous`).
-- `JobApplicationConfiguration` declares the discriminator:
+- `JobApplicationConfiguration` declares the discriminator, whose values are the names of the `ApplicationKind` enum:
 
   ```csharp
   builder.HasDiscriminator<string>("Kind")
-      .HasValue<OfferApplication>("Offer")
-      .HasValue<SpontaneousApplication>("Spontaneous");
+      .HasValue<OfferApplication>(nameof(ApplicationKind.Offer))
+      .HasValue<SpontaneousApplication>(nameof(ApplicationKind.Spontaneous));
   ```
 
 - `OfferApplicationConfiguration` and `SpontaneousApplicationConfiguration` configure the specific columns. The domain classes stay plain C#.
-- The subtype columns are nullable in SQL, so a check constraint restores integrity:
+- The subtype columns are nullable in SQL, so a check constraint, `CK_JobApplications_Kind`, restores integrity: each row has the columns of its kind and none of the other's.
 
   ```sql
-  (Kind = 'Offer' AND JobOfferId IS NOT NULL AND CompanyId IS NULL)
-  OR (Kind = 'Spontaneous' AND CompanyId IS NOT NULL AND JobOfferId IS NULL AND TargetPosition IS NOT NULL)
+  (Kind = 'Offer' AND JobOfferId IS NOT NULL AND CompanyId IS NULL AND TargetPosition IS NULL)
+  OR (Kind = 'Spontaneous' AND CompanyId IS NOT NULL AND TargetPosition IS NOT NULL
+      AND JobOfferId IS NULL AND AppliedViaPostingId IS NULL)
   ```
 
 EF Core supports three inheritance mapping strategies ([docs](https://learn.microsoft.com/ef/core/modeling/inheritance)):
@@ -332,10 +333,12 @@ At the data volume of a single user, both costs are negligible.
 
 ### DTOs
 
-- **Lists** use one flat `JobApplicationSummaryDto`, projected in LINQ so EF builds a single query. It holds `Id`, `Title`, `CompanyName`, `Status`, `Channel`, `AppliedVia` (the site of the posting) and `SentOn` (`AppliedOn`); `Kind` comes with spontaneous applications, `RecruiterName` in Phase 2b:
+- **Lists** use one flat `JobApplicationSummaryDto`, projected in LINQ so EF builds a single query over both kinds. It holds `Id`, `Kind` (`ApplicationKind.Offer` or `Spontaneous`), `Title`, `CompanyName`, `Status`, `Channel`, `AppliedVia` (the site of the posting, null for a spontaneous application) and `SentOn` (`AppliedOn`); `RecruiterName` comes in Phase 2b. An expression tree accepts neither a `switch` expression nor a pattern that declares a variable (`a is OfferApplication o`), so each member tests the kind and casts:
 
   ```csharp
-  Title = a is OfferApplication o ? o.JobOffer.Title : ((SpontaneousApplication)a).TargetPosition
+  Title: a is OfferApplication
+      ? ((OfferApplication)a).JobOffer.Title
+      : ((SpontaneousApplication)a).TargetPosition
   ```
 
 - Lists are sorted newest first: by sending day, or by creation day for a draft, then by creation time.
@@ -344,6 +347,6 @@ At the data volume of a single user, both costs are negligible.
 
 ## Common queries
 
-- **Everything about a company**: its offers (as client or recruiter), their applications, its spontaneous applications, its notes and contacts. Applications are found with `a is OfferApplication o ? (o.JobOffer.CompanyId == id || o.JobOffer.RecruiterCompanyId == id) : ((SpontaneousApplication)a).CompanyId == id`.
+- **Everything about a company**: its offers (as client or recruiter), their applications, its spontaneous applications, its notes and contacts. Applications are found with `a is OfferApplication ? ((OfferApplication)a).JobOffer.CompanyId == id : ((SpontaneousApplication)a).CompanyId == id`; the offer's `RecruiterCompanyId` joins the test in Phase 2b.
 - **Upcoming interviews**: `Interactions` where `OccursAt >= now`, ordered by `OccursAt`, for applications that aren't archived.
 - **Applications per site**: `OfferApplication` grouped by `AppliedViaPosting.Site`.

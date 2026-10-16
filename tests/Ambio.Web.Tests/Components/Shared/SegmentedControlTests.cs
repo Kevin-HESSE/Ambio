@@ -52,13 +52,35 @@ public class SegmentedControlTests : BunitContext
         });
     }
 
-    private IRenderedComponent<SegmentedControl> RenderControl(string? value = null, bool iconsOnly = false) =>
+    [Fact]
+    public void Change_OnAnOption_GivesItsValue()
+    {
+        string? changed = null;
+        var cut = RenderControl(value: "offer", valueChanged: value => changed = value);
+
+        cut.Find($"#{GroupName}-spontaneous").Change(true);
+
+        Assert.Equal("spontaneous", changed);
+    }
+
+    [Fact]
+    public void Render_Disabled_DisablesEveryOption()
+    {
+        var cut = RenderControl(disabled: true);
+
+        Assert.All(cut.FindAll("input[type='radio']"), radio => Assert.True(radio.HasAttribute("disabled")));
+    }
+
+    private IRenderedComponent<SegmentedControl> RenderControl(
+        string? value = null, bool iconsOnly = false, bool disabled = false, Action<string>? valueChanged = null) =>
         Render<SegmentedControl>(parameters => parameters
             .Add(control => control.Name, GroupName)
             .Add(control => control.Label, GroupLabel)
             .Add(control => control.Options, Options)
             .Add(control => control.Value, value)
-            .Add(control => control.IconsOnly, iconsOnly));
+            .Add(control => control.IconsOnly, iconsOnly)
+            .Add(control => control.Disabled, disabled)
+            .Add(control => control.ValueChanged, valueChanged ?? (_ => { })));
 
     private static readonly IReadOnlyList<SegmentedOption> Options =
     [

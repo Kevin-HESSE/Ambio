@@ -1,8 +1,9 @@
-.offer-search-results {
+.search-field-results {
     box-shadow: var(--ambio-shadow-md);
 }
 
-.offer-search-result {
+/* The last line comes from the caller: ::deep reaches its link or button. */
+.search-field-results ::deep .search-field-result {
     --gap: var(--ambio-space-2);
     width: 100%;
     padding: var(--ambio-space-12) var(--ambio-space-16);
@@ -13,11 +14,12 @@
     text-decoration: none;
 }
 
-.offer-search-result:hover {
+.search-field-results ::deep .search-field-result:hover {
     background: var(--ambio-bg-subtle);
 }
 
-.offer-search-new {
+/* A line that creates what wasn't found, in the accent color. */
+.search-field-results ::deep .search-field-action {
     display: flex;
     align-items: center;
     gap: var(--ambio-space-8);
@@ -25,6 +27,6 @@
     font-weight: 600;
 }
 
-.offer-search-empty {
+.search-field-empty {
     padding: var(--ambio-space-12) var(--ambio-space-16);
 }

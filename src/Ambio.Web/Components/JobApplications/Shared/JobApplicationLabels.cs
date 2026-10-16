@@ -49,4 +49,19 @@ public static class JobApplicationLabels
         Channel.Other => "three-dots",
         _ => throw new ArgumentOutOfRangeException(nameof(channel), channel, null),
     };
+
+    public static string ToLabel(this ApplicationKind kind) => kind switch
+    {
+        ApplicationKind.Offer => "From an offer",
+        ApplicationKind.Spontaneous => "Spontaneous",
+        _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
+    };
+
+    /// <summary>Bootstrap Icons name, without the <c>bi-</c> prefix.</summary>
+    public static string ToIcon(this ApplicationKind kind) => kind switch
+    {
+        ApplicationKind.Offer => "briefcase",
+        ApplicationKind.Spontaneous => "lightning-charge",
+        _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
+    };
 }

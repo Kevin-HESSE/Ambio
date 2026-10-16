@@ -36,4 +36,20 @@ public class JobApplicationLabelsTests
 
         Assert.Equal(icons.Count, icons.Distinct().Count());
     }
+
+    [Fact]
+    public void ToLabel_EveryKind_ReturnsDistinctLabels()
+    {
+        var labels = Enum.GetValues<ApplicationKind>().Select(kind => kind.ToLabel()).ToList();
+
+        Assert.Equal(labels.Count, labels.Distinct().Count());
+    }
+
+    [Fact]
+    public void ToIcon_EveryKind_ReturnsDistinctIcons()
+    {
+        var icons = Enum.GetValues<ApplicationKind>().Select(kind => kind.ToIcon()).ToList();
+
+        Assert.Equal(icons.Count, icons.Distinct().Count());
+    }
 }

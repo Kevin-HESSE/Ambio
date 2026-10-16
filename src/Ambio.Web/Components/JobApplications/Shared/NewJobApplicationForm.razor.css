@@ -1,4 +1,5 @@
-.application-offer {
+/* The offer or the company chosen, with its Change button. */
+.application-choice {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -6,7 +7,8 @@
     min-width: 0;
 }
 
-.application-offer-name {
+.application-offer-name,
+.application-company-name {
     min-width: 0;
     overflow-wrap: anywhere;
 }

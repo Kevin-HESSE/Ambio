@@ -9,4 +9,7 @@ public static class JobApplicationRoutes
 
     /// <summary>The new application page with this offer already chosen.</summary>
     public static string NewForOffer(Guid offerId) => $"applications/new?offer={offerId}";
+
+    /// <summary>The new application page, spontaneous, with this company already chosen.</summary>
+    public static string NewForCompany(string companySlug) => $"applications/new?company={companySlug}";
 }

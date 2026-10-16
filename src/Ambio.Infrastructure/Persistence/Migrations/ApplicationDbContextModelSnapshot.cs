@@ -118,7 +118,10 @@ namespace Ambio.Infrastructure.Persistence.Migrations
                     b.HasIndex("ShortId")
                         .IsUnique();
 
-                    b.ToTable("JobApplications", (string)null);
+                    b.ToTable("JobApplications", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_JobApplications_Kind", "(\"Kind\" = 'Offer' AND \"JobOfferId\" IS NOT NULL\n    AND \"CompanyId\" IS NULL AND \"TargetPosition\" IS NULL)\nOR (\"Kind\" = 'Spontaneous' AND \"CompanyId\" IS NOT NULL\n    AND \"TargetPosition\" IS NOT NULL AND \"JobOfferId\" IS NULL AND \"AppliedViaPostingId\" IS NULL)");
+                        });
 
                     b.HasDiscriminator<string>("Kind").HasValue("JobApplication");
 
@@ -428,7 +431,33 @@ namespace Ambio.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("JobOfferId");
 
+                    b.ToTable(t =>
+                        {
+                            t.HasCheckConstraint("CK_JobApplications_Kind", "(\"Kind\" = 'Offer' AND \"JobOfferId\" IS NOT NULL\n    AND \"CompanyId\" IS NULL AND \"TargetPosition\" IS NULL)\nOR (\"Kind\" = 'Spontaneous' AND \"CompanyId\" IS NOT NULL\n    AND \"TargetPosition\" IS NOT NULL AND \"JobOfferId\" IS NULL AND \"AppliedViaPostingId\" IS NULL)");
+                        });
+
                     b.HasDiscriminator().HasValue("Offer");
+                });
+
+            modelBuilder.Entity("Ambio.Domain.JobApplications.SpontaneousApplication", b =>
+                {
+                    b.HasBaseType("Ambio.Domain.JobApplications.JobApplication");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TargetPosition")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasIndex("CompanyId");
+
+                    b.ToTable(t =>
+                        {
+                            t.HasCheckConstraint("CK_JobApplications_Kind", "(\"Kind\" = 'Offer' AND \"JobOfferId\" IS NOT NULL\n    AND \"CompanyId\" IS NULL AND \"TargetPosition\" IS NULL)\nOR (\"Kind\" = 'Spontaneous' AND \"CompanyId\" IS NOT NULL\n    AND \"TargetPosition\" IS NOT NULL AND \"JobOfferId\" IS NULL AND \"AppliedViaPostingId\" IS NULL)");
+                        });
+
+                    b.HasDiscriminator().HasValue("Spontaneous");
                 });
 
             modelBuilder.Entity("Ambio.Domain.Offers.JobOffer", b =>
@@ -569,6 +598,17 @@ namespace Ambio.Infrastructure.Persistence.Migrations
                     b.Navigation("AppliedViaPosting");
 
                     b.Navigation("JobOffer");
+                });
+
+            modelBuilder.Entity("Ambio.Domain.JobApplications.SpontaneousApplication", b =>
+                {
+                    b.HasOne("Ambio.Domain.Companies.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Company");
                 });
 
             modelBuilder.Entity("Ambio.Domain.Offers.JobOffer", b =>
