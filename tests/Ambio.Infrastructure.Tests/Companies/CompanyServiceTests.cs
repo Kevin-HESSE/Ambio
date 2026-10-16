@@ -73,6 +73,41 @@ public class CompanyServiceTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task SearchAsync_WithWordsInAnotherOrderWithoutAccents_ReturnsTheMatchingCompaniesByName()
+    {
+        var lumen = _companyFactory.WithCustomName("Lumen Santé").Generate();
+        var another = _companyFactory.WithCustomName("Atelier Santé Lumen").Generate();
+        var other = _companyFactory.WithCustomName("Brightwave").Generate();
+        await _services.AddAsync(lumen, another, other);
+
+        var names = (await SearchAsync("sante LUMEN")).Select(c => c.Name);
+
+        Assert.Equal([another.Name, lumen.Name], names);
+    }
+
+    [Fact]
+    public async Task SearchAsync_WithArchivedCompany_LeavesItOut()
+    {
+        var company = _companyFactory.Generate();
+        var archivedCompany = _companyFactory.WithCustomName($"{company.Name} Archived").Generate(CompanyFactory.IsArchivedRuleSet);
+        await _services.AddAsync(company, archivedCompany);
+
+        var summary = Assert.Single(await SearchAsync(company.Name));
+
+        Assert.Equal(company.Id, summary.Id);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("  ")]
+    public async Task SearchAsync_WithBlankText_ReturnsEmpty(string text)
+    {
+        await _services.AddAsync(_companyFactory.Generate());
+
+        Assert.Empty(await SearchAsync(text));
+    }
+
+    [Fact]
     public async Task GetAsync_WithUnknownSlug_ReturnsNull()
     {
         var company = _companyFactory.Generate();
@@ -389,6 +424,9 @@ public class CompanyServiceTests : IAsyncLifetime
 
     private Task<IReadOnlyList<CompanySummaryDto>> ListAsync() =>
         _services.CallAsync((ICompanyService service) => service.ListAsync(TestContext.Current.CancellationToken));
+
+    private Task<IReadOnlyList<CompanySummaryDto>> SearchAsync(string text) =>
+        _services.CallAsync((ICompanyService service) => service.SearchAsync(text, TestContext.Current.CancellationToken));
 
     private Task<CompanyDetailsDto?> GetAsync(string slug) =>
         _services.CallAsync((ICompanyService service) => service.GetAsync(slug, TestContext.Current.CancellationToken));

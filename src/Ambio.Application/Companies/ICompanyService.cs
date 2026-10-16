@@ -8,6 +8,10 @@ public interface ICompanyService
     /// <summary>Active companies (not archived), sorted by name.</summary>
     public Task<IReadOnlyList<CompanySummaryDto>> ListAsync(CancellationToken cancellationToken = default);
 
+    /// <summary>Active companies whose name contains every word of <paramref name="text"/>, ignoring case and accents,
+    /// sorted by name; none for a blank text.</summary>
+    public Task<IReadOnlyList<CompanySummaryDto>> SearchAsync(string text, CancellationToken cancellationToken = default);
+
     /// <summary>The company, archived or not, or null when no company has this slug.</summary>
     public Task<CompanyDetailsDto?> GetAsync(string slug, CancellationToken cancellationToken = default);
 

@@ -3,8 +3,9 @@
 
 @* Searches as the user types, once the typing has stopped for SearchDelay, and lists the results: each one is a button
    that calls OnSelect. The caller gives the search and the content of a result, and optionally the line shown when
-   nothing matches and a last line, such as a link to create what wasn't found: give its link or button the
-   search-field-result class. Render it inside an interactive component; its field waits for the circuit. *@
+   nothing matches and a last line, such as a link to create what wasn't found: the caller renders its li, and gives
+   its link or button the search-field-result class. Render it inside an interactive component; its field waits for
+   the circuit. *@
 <div class="search-field stack">
     <input id="@Id" type="search" class="form-control" value="@_text" @oninput="SearchAsync" autocomplete="off"
            placeholder="@Placeholder" disabled="@(!RendererInfo.IsInteractive)" />
@@ -24,10 +25,7 @@
                 {
                     <li class="search-field-empty t-small t-muted">@EmptyContent(_text)</li>
                 }
-                @if (Footer is not null)
-                {
-                    <li>@Footer(_text)</li>
-                }
+                @Footer?.Invoke(_text)
             </ul>
         </div>
     }
@@ -64,7 +62,7 @@
     [Parameter]
     public RenderFragment<string>? EmptyContent { get; set; }
 
-    /// <summary>The last line of the results, with the typed text as context.</summary>
+    /// <summary>The last line of the results, its <c>li</c> included, with the typed text as context.</summary>
     [Parameter]
     public RenderFragment<string>? Footer { get; set; }
 

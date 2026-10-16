@@ -58,7 +58,7 @@ public class SearchFieldTests : BunitContext
         cut.WaitForAssertion(() => Assert.Equal(
             Results,
             cut.FindAll("button.search-field-result").Select(button => button.TextContent.Trim())));
-        Assert.Equal($"Footer {Text}", cut.Find(".search-field-results li:last-child").TextContent);
+        Assert.Equal($"Footer {Text}", cut.Find(".search-field-results li:last-child.footer").TextContent);
     }
 
     [Fact]
@@ -104,6 +104,6 @@ public class SearchFieldTests : BunitContext
             .Add(p => p.Search, _search)
             .Add(p => p.ResultContent, result => result)
             .Add(p => p.EmptyContent, text => $"Empty {text}")
-            .Add(p => p.Footer, text => $"Footer {text}")
+            .Add(p => p.Footer, text => $"<li class=\"footer\">Footer {text}</li>")
             .Add(p => p.OnSelect, onSelect ?? (_ => { })));
 }
