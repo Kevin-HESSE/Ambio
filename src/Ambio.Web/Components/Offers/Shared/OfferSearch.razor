@@ -1,44 +1,23 @@
-@implements IDisposable
 @inject IJobOfferService JobOfferService
 
-@* Finds an offer by its title or company as the user types, such as on the new application page. It searches once
-   the typing has stopped for SearchDelay, ignoring case and accents. Render it inside an interactive component; its
-   field waits for the circuit. *@
-<div class="offer-search stack">
-    <input id="@Id" type="search" class="form-control" value="@_text" @oninput="SearchAsync" autocomplete="off"
-           placeholder="Search by title or company" disabled="@(!RendererInfo.IsInteractive)" />
-    @if (_results is not null)
-    {
-        <div class="offer-search-results card" aria-label="Matching offers">
-            <ul class="list-divided">
-                @foreach (var offer in _results)
-                {
-                    <li>
-                        <button type="button" class="offer-search-result stack" @onclick="() => OnSelect.InvokeAsync(offer)">
-                            <span class="offer-search-title t-body-strong">@offer.Title</span>
-                            <span class="offer-search-meta t-small t-secondary">@offer.CompanyName · @offer.ContractType.ToLabel()</span>
-                        </button>
-                    </li>
-                }
-                @if (_results.Count == 0)
-                {
-                    <li class="offer-search-empty t-small t-muted">No offer matches “@_text”.</li>
-                }
-                <li>
-                    <a class="offer-search-result offer-search-new" href="@OfferRoutes.New">
-                        <i class="bi bi-plus-lg" aria-hidden="true"></i>
-                        Create a new offer
-                    </a>
-                </li>
-            </ul>
-        </div>
-    }
-</div>
+@* Finds an offer by its title or company as the user types, such as on the new application page, ignoring case and
+   accents. Render it inside an interactive component; its field waits for the circuit. *@
+<SearchField TItem="JobOfferSummaryDto" Id="@Id" Placeholder="Search by title or company" ResultsLabel="Matching offers"
+             Search="JobOfferService.SearchAsync" OnSelect="OnSelect">
+    <ResultContent Context="offer">
+        <span class="offer-search-title t-body-strong">@offer.Title</span>
+        <span class="offer-search-meta t-small t-secondary">@offer.CompanyName · @offer.ContractType.ToLabel()</span>
+    </ResultContent>
+    <EmptyContent Context="text">No offer matches “@text”.</EmptyContent>
+    <Footer>
+        <a class="search-field-result search-field-action offer-search-new" href="@OfferRoutes.New">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i>
+            Create a new offer
+        </a>
+    </Footer>
+</SearchField>
 
 @code {
-    /// <summary>The wait after the last keystroke before searching, so a search doesn't run at each one.</summary>
-    public static readonly TimeSpan SearchDelay = TimeSpan.FromMilliseconds(300);
-
     /// <summary>Id of the search field, for its label.</summary>
     [Parameter, EditorRequired]
     public string Id { get; set; } = "";
@@ -46,42 +25,4 @@
     /// <summary>Called with the offer the user picks among the results.</summary>
     [Parameter]
     public EventCallback<JobOfferSummaryDto> OnSelect { get; set; }
-
-    private string _text = "";
-    private IReadOnlyList<JobOfferSummaryDto>? _results;
-    private CancellationTokenSource? _pending;
-
-    private async Task SearchAsync(ChangeEventArgs args)
-    {
-        _text = args.Value?.ToString() ?? "";
-
-        // Each keystroke cancels the search waiting for the previous one.
-        CancelPending();
-
-        if (string.IsNullOrWhiteSpace(_text))
-        {
-            _results = null;
-            return;
-        }
-
-        var pending = _pending = new CancellationTokenSource();
-        try
-        {
-            await Task.Delay(SearchDelay, pending.Token);
-            _results = await JobOfferService.SearchAsync(_text, pending.Token);
-        }
-        catch (OperationCanceledException)
-        {
-            // Another keystroke came in: its own search shows the results.
-        }
-    }
-
-    private void CancelPending()
-    {
-        _pending?.Cancel();
-        _pending?.Dispose();
-        _pending = null;
-    }
-
-    public void Dispose() => CancelPending();
 }

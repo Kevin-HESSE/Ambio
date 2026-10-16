@@ -1,0 +1,108 @@
+@typeparam TItem
+@implements IDisposable
+
+@* Searches as the user types, once the typing has stopped for SearchDelay, and lists the results: each one is a button
+   that calls OnSelect. The caller gives the search and the content of a result, and optionally the line shown when
+   nothing matches and a last line, such as a link to create what wasn't found: give its link or button the
+   search-field-result class. Render it inside an interactive component; its field waits for the circuit. *@
+<div class="search-field stack">
+    <input id="@Id" type="search" class="form-control" value="@_text" @oninput="SearchAsync" autocomplete="off"
+           placeholder="@Placeholder" disabled="@(!RendererInfo.IsInteractive)" />
+    @if (_results is not null)
+    {
+        <div class="search-field-results card" aria-label="@ResultsLabel">
+            <ul class="list-divided">
+                @foreach (var item in _results)
+                {
+                    <li>
+                        <button type="button" class="search-field-result stack" @onclick="() => OnSelect.InvokeAsync(item)">
+                            @ResultContent(item)
+                        </button>
+                    </li>
+                }
+                @if (_results.Count == 0 && EmptyContent is not null)
+                {
+                    <li class="search-field-empty t-small t-muted">@EmptyContent(_text)</li>
+                }
+                @if (Footer is not null)
+                {
+                    <li>@Footer(_text)</li>
+                }
+            </ul>
+        </div>
+    }
+</div>
+
+@code {
+    /// <summary>The wait after the last keystroke before searching, so a search doesn't run at each one.</summary>
+    public static readonly TimeSpan SearchDelay = TimeSpan.FromMilliseconds(300);
+
+    /// <summary>Id of the search field, for its label.</summary>
+    [Parameter, EditorRequired]
+    public string Id { get; set; } = "";
+
+    [Parameter]
+    public string? Placeholder { get; set; }
+
+    /// <summary>Accessible name of the results.</summary>
+    [Parameter, EditorRequired]
+    public string ResultsLabel { get; set; } = "";
+
+    /// <summary>The items matching the typed text; never called with a blank text.</summary>
+    [Parameter, EditorRequired]
+    public Func<string, CancellationToken, Task<IReadOnlyList<TItem>>> Search { get; set; } = null!;
+
+    /// <summary>The content of the button of a result.</summary>
+    [Parameter, EditorRequired]
+    public RenderFragment<TItem> ResultContent { get; set; } = null!;
+
+    /// <summary>Called with the result the user picks.</summary>
+    [Parameter]
+    public EventCallback<TItem> OnSelect { get; set; }
+
+    /// <summary>The line shown when nothing matches the typed text, given as context.</summary>
+    [Parameter]
+    public RenderFragment<string>? EmptyContent { get; set; }
+
+    /// <summary>The last line of the results, with the typed text as context.</summary>
+    [Parameter]
+    public RenderFragment<string>? Footer { get; set; }
+
+    private string _text = "";
+    private IReadOnlyList<TItem>? _results;
+    private CancellationTokenSource? _pending;
+
+    private async Task SearchAsync(ChangeEventArgs args)
+    {
+        _text = args.Value?.ToString() ?? "";
+
+        // Each keystroke cancels the search waiting for the previous one.
+        CancelPending();
+
+        if (string.IsNullOrWhiteSpace(_text))
+        {
+            _results = null;
+            return;
+        }
+
+        var pending = _pending = new CancellationTokenSource();
+        try
+        {
+            await Task.Delay(SearchDelay, pending.Token);
+            _results = await Search(_text, pending.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            // Another keystroke came in: its own search shows the results.
+        }
+    }
+
+    private void CancelPending()
+    {
+        _pending?.Cancel();
+        _pending?.Dispose();
+        _pending = null;
+    }
+
+    public void Dispose() => CancelPending();
+}

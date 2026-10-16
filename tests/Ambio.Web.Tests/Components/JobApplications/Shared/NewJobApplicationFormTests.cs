@@ -90,7 +90,7 @@ public class NewJobApplicationFormTests : BunitContext
         var cut = RenderForm(offer: null);
 
         cut.Find("#application-offer").Input(summary.Title);
-        cut.WaitForElement("button.offer-search-result").Click();
+        cut.WaitForElement("button.search-field-result").Click();
 
         Assert.Equal($"{_offer.Title} · {_offer.CompanyName}", cut.WaitForElement(".application-offer-name").TextContent);
         Assert.Equal(_offer.Postings.Count + 1, cut.FindAll("#application-via option").Count);
