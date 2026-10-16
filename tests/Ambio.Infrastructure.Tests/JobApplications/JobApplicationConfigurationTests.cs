@@ -3,6 +3,7 @@ using Ambio.Infrastructure.JobApplications;
 using Ambio.Infrastructure.Tests.Fixtures;
 using Ambio.Infrastructure.Tests.Stories;
 
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
 namespace Ambio.Infrastructure.Tests.JobApplications;
@@ -10,6 +11,7 @@ namespace Ambio.Infrastructure.Tests.JobApplications;
 public class JobApplicationConfigurationTests : IAsyncLifetime
 {
     private const string OfferKind = "Offer";
+    private const string SpontaneousKind = "Spontaneous";
 
     private SqliteServiceProvider _services = null!;
 
@@ -39,6 +41,56 @@ public class JobApplicationConfigurationTests : IAsyncLifetime
         Assert.Equal(
             (story.JobOffer.Id, story.JobOffer.Postings[0].Id, OfferKind),
             (saved.JobOfferId, saved.AppliedViaPostingId, kind));
+    }
+
+    [Fact]
+    public async Task SaveChangesAsync_SentSpontaneousApplication_SavesEveryFieldAsSpontaneousKind()
+    {
+        var story = new SpontaneousApplicationStory().WithApplications(1, SpontaneousApplicationFactory.IsSentRuleSet);
+        var application = story.Applications[0];
+        await story.SaveAsync(_services);
+
+        var (saved, kind) = await _services.QueryAsync(async context =>
+        {
+            var row = await context.JobApplications
+                .Select(a => new { Application = (SpontaneousApplication)a, Kind = EF.Property<string>(a, JobApplicationConfiguration.Discriminator) })
+                .SingleAsync(TestContext.Current.CancellationToken);
+            return (row.Application, row.Kind);
+        });
+
+        Assert.Equal(
+            (application.ShortId, application.Status, application.Channel, application.ChannelDetail, application.AppliedOn, application.Notes),
+            (saved.ShortId, saved.Status, saved.Channel, saved.ChannelDetail, saved.AppliedOn, saved.Notes));
+        Assert.Equal(
+            (story.Company.Id, application.TargetPosition, SpontaneousKind),
+            (saved.CompanyId, saved.TargetPosition, kind));
+    }
+
+    [Fact]
+    public async Task SaveChangesAsync_DeletedCompanyWithSpontaneousApplication_IsRefused()
+    {
+        await new SpontaneousApplicationStory().WithApplications(1).SaveAsync(_services);
+
+        await using var context = await _services.CreateDbContextAsync();
+        context.Companies.Remove(await context.Companies.SingleAsync(TestContext.Current.CancellationToken));
+
+        await Assert.ThrowsAsync<DbUpdateException>(() => context.SaveChangesAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Theory]
+    [MemberData(nameof(ColumnsBreakingTheKind))]
+    public async Task KindConstraint_RowWithTheColumnsOfTheOtherKind_IsRefused(string kind, string assignment)
+    {
+        var offerStory = new OfferApplicationStory().WithApplications(1);
+        await offerStory.SaveAsync(_services);
+        await new SpontaneousApplicationStory().WithApplications(1).SaveAsync(_services);
+        var sql = $"""UPDATE "JobApplications" SET {assignment} WHERE "{JobApplicationConfiguration.Discriminator}" = '{kind}'""";
+
+        await using var context = await _services.CreateDbContextAsync();
+        var exception = await Assert.ThrowsAsync<SqliteException>(() =>
+            context.Database.ExecuteSqlRawAsync(sql, TestContext.Current.CancellationToken));
+
+        Assert.Contains(JobApplicationConfiguration.KindConstraint, exception.Message);
     }
 
     [Fact]
@@ -86,4 +138,15 @@ public class JobApplicationConfigurationTests : IAsyncLifetime
             context.Set<OfferApplication>().SingleAsync(TestContext.Current.CancellationToken));
         Assert.Null(saved.AppliedViaPostingId);
     }
+
+    public static TheoryData<string, string> ColumnsBreakingTheKind => new()
+    {
+        { OfferKind, "\"JobOfferId\" = NULL" },
+        { OfferKind, "\"CompanyId\" = (SELECT \"Id\" FROM \"Companies\" LIMIT 1)" },
+        { OfferKind, "\"TargetPosition\" = 'Backend Developer'" },
+        { SpontaneousKind, "\"CompanyId\" = NULL" },
+        { SpontaneousKind, "\"TargetPosition\" = NULL" },
+        { SpontaneousKind, "\"JobOfferId\" = (SELECT \"Id\" FROM \"JobOffers\" LIMIT 1)" },
+        { SpontaneousKind, "\"AppliedViaPostingId\" = (SELECT \"Id\" FROM \"JobOfferPostings\" LIMIT 1)" },
+    };
 }

@@ -2,8 +2,8 @@ using Ambio.Domain.Common;
 
 namespace Ambio.Domain.JobApplications;
 
-/// <summary>An application, to an offer (<see cref="OfferApplication"/>) or spontaneous. Its <see cref="ShortId"/>
-/// identifies it in its URL (ADR 0014).</summary>
+/// <summary>An application, to an offer (<see cref="OfferApplication"/>) or spontaneous
+/// (<see cref="SpontaneousApplication"/>). Its <see cref="ShortId"/> identifies it in its URL (ADR 0014).</summary>
 public abstract class JobApplication : ITimeStampable
 {
     public Guid Id { get; } = Guid.CreateVersion7();
