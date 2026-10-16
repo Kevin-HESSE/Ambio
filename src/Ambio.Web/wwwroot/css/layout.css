@@ -38,7 +38,7 @@
 
 /* The grid of a detail page (docs/ui.md#patterns): header, side column, then content below 992 px; the header
    above the content and a side column on its right above. The side column holds the company profile or the
-   offer's postings. */
+   offer's postings and applications, stacked. */
 .detail-layout {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
@@ -51,6 +51,7 @@
 }
 
 .detail-aside {
+    --gap: var(--ambio-space-16);
     grid-area: aside;
 }
 

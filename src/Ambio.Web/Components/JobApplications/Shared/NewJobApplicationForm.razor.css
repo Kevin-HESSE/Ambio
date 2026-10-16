@@ -1,0 +1,12 @@
+.application-offer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ambio-space-12);
+    min-width: 0;
+}
+
+.application-offer-name {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}

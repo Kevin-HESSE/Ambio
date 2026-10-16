@@ -1,4 +1,4 @@
-.offer-ad-header {
+.application-item {
+    --gap: var(--ambio-space-6);
     padding: var(--ambio-space-12) var(--ambio-space-16);
-    background: none;
 }

@@ -1,0 +1,34 @@
+@* An application in a list inside a card, such as on the offer page or in the Applications tab of the company page:
+   its status, then when and where it was sent. It links to its page with #50. *@
+<div class="application-item stack">
+    @if (ShowTitle)
+    {
+        <span class="application-item-title t-body-strong">@Application.Title</span>
+    }
+    <div class="cluster">
+        <StatusBadge Status="Application.Status" />
+        <span class="application-item-meta t-small t-secondary">
+            @if (Application.SentOn is { } sentOn)
+            {
+                @("Sent ")<time datetime="@sentOn.ToString("yyyy-MM-dd")">@sentOn.ToDisplayDate()</time>
+                @if (Application.AppliedVia is not null)
+                {
+                    @($" via {Application.AppliedVia}")
+                }
+            }
+            else
+            {
+                @("Not sent yet")
+            }
+        </span>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public JobApplicationSummaryDto Application { get; set; } = null!;
+
+    /// <summary>Shows the offer's title, where the list mixes several offers.</summary>
+    [Parameter]
+    public bool ShowTitle { get; set; }
+}

@@ -224,6 +224,17 @@ h1, h2, h3, h4, h5, h6, p, ul, ol, dl, dd, figure, blockquote {
 
 .card {
     --bs-card-bg: var(--ambio-bg-surface);
+    --bs-card-cap-bg: transparent;
+    --bs-card-cap-padding-y: var(--ambio-space-12);
+    --bs-card-cap-padding-x: var(--ambio-space-16);
+}
+
+/* A card title, with its count or actions on the right. */
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ambio-space-8);
 }
 
 .table {

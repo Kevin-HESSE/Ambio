@@ -1,10 +1,14 @@
 using Ambio.Application.Companies;
 using Ambio.Application.Companies.Dtos;
+using Ambio.Application.JobApplications;
+using Ambio.Application.JobApplications.Dtos;
 using Ambio.Application.Offers;
 using Ambio.Application.Offers.Dtos;
 using Ambio.Web.Components.Companies;
 using Ambio.Web.Components.Companies.Pages;
 using Ambio.Web.Components.Companies.Shared;
+using Ambio.Web.Components.JobApplications;
+using Ambio.Web.Components.JobApplications.Shared;
 using Ambio.Web.Components.Offers;
 using Ambio.Web.Components.Offers.Shared;
 using Ambio.Web.Components.Shared;
@@ -13,6 +17,7 @@ using Ambio.Web.Tests.Fixtures;
 using Bogus;
 
 using Bunit;
+using Bunit.TestDoubles;
 
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,6 +30,7 @@ public class CompanyDetailsTests : BunitContext
 {
     private readonly ICompanyService _companyService = Substitute.For<ICompanyService>();
     private readonly IJobOfferService _jobOfferService = Substitute.For<IJobOfferService>();
+    private readonly IJobApplicationService _jobApplicationService = Substitute.For<IJobApplicationService>();
     private readonly Faker<CompanyDetailsDto> _companyDetailsFactory;
     private readonly Faker<JobOfferSummaryDto> _jobOfferSummaryFactory;
 
@@ -32,7 +38,9 @@ public class CompanyDetailsTests : BunitContext
     {
         Services.AddSingleton(_companyService);
         Services.AddSingleton(_jobOfferService);
+        Services.AddSingleton(_jobApplicationService);
         _jobOfferService.ListByCompanyAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns([]);
+        _jobApplicationService.ListByCompanyAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns([]);
         _companyDetailsFactory = CompanyDetailsFactory.GetGenerator();
         _jobOfferSummaryFactory = JobOfferSummaryFactory.GetGenerator();
     }
@@ -178,6 +186,52 @@ public class CompanyDetailsTests : BunitContext
     }
 
     [Fact]
+    public void Render_WithApplications_CountsThemInTheirTabWithoutShowingThem()
+    {
+        var company = _companyDetailsFactory.Generate();
+        GivenCompany(company);
+        GivenApplications(company, JobApplicationSummaryFactory.GetGenerator().Generate(3));
+
+        var cut = RenderDetails(company.Slug);
+
+        var tab = cut.Find($"nav.tabs a.tab[href='{CompanyRoutes.Details(company.Slug, CompanyRoutes.ApplicationsTab)}']");
+        Assert.Equal("3", tab.QuerySelector(".tab-count")!.TextContent);
+        Assert.DoesNotContain("active", tab.ClassList);
+        Assert.Empty(cut.FindAll(".application-item"));
+    }
+
+    [Fact]
+    public void Render_OnApplicationsTab_ListsTheApplicationsWithTheirTitle()
+    {
+        var company = _companyDetailsFactory.Generate();
+        var applications = JobApplicationSummaryFactory.GetGenerator().Generate(2);
+        GivenCompany(company);
+        GivenApplications(company, applications);
+        NavigateToTab(company, CompanyRoutes.ApplicationsTab);
+
+        var cut = RenderDetails(company.Slug);
+
+        Assert.Equal(CompanyRoutes.Details(company.Slug, CompanyRoutes.ApplicationsTab), cut.Find("nav.tabs a.tab.active").GetAttribute("href"));
+        var items = cut.FindAll(".application-item").Select(item => (
+            item.QuerySelector(".application-item-title")!.TextContent,
+            item.QuerySelector(".status-badge")!.TextContent.Trim()));
+        Assert.Equal(applications.Select(a => (a.Title, a.Status.ToLabel())), items);
+        Assert.Empty(cut.FindAll(".offer-item"));
+    }
+
+    [Fact]
+    public void Render_OnApplicationsTabWithoutApplications_ShowsEmptyStateWithNewApplicationLink()
+    {
+        var company = _companyDetailsFactory.Generate();
+        GivenCompany(company);
+        NavigateToTab(company, CompanyRoutes.ApplicationsTab);
+
+        var cut = RenderDetails(company.Slug);
+
+        Assert.NotNull(cut.Find($".empty a[href='{JobApplicationRoutes.New}']"));
+    }
+
+    [Fact]
     public void Render_WithUnknownSlug_RequestsNotFound()
     {
         var notFound = false;
@@ -194,6 +248,12 @@ public class CompanyDetailsTests : BunitContext
 
     private void GivenOffers(CompanyDetailsDto company, params IReadOnlyList<JobOfferSummaryDto> offers) =>
         _jobOfferService.ListByCompanyAsync(company.Id, Arg.Any<CancellationToken>()).Returns(offers);
+
+    private void GivenApplications(CompanyDetailsDto company, params IReadOnlyList<JobApplicationSummaryDto> applications) =>
+        _jobApplicationService.ListByCompanyAsync(company.Id, Arg.Any<CancellationToken>()).Returns(applications);
+
+    private void NavigateToTab(CompanyDetailsDto company, string tab) =>
+        Services.GetRequiredService<BunitNavigationManager>().NavigateTo(CompanyRoutes.Details(company.Slug, tab));
 
     private IRenderedComponent<CompanyDetails> RenderDetails(string slug) =>
         Render<CompanyDetails>(parameters => parameters.Add(page => page.Slug, slug));

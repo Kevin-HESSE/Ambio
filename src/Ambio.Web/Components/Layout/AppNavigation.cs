@@ -1,4 +1,5 @@
 using Ambio.Web.Components.Companies;
+using Ambio.Web.Components.JobApplications;
 using Ambio.Web.Components.Offers;
 
 using Microsoft.AspNetCore.Components.Routing;
@@ -15,6 +16,7 @@ public static class AppNavigation
     public static IReadOnlyList<NavigationEntry> Tracking { get; } =
     [
         new("Dashboard", "Home", "", "house-door", "house-door-fill", NavLinkMatch.All),
+        new("Applications", "Applications", JobApplicationRoutes.List, "card-checklist", "card-checklist"),
         new("Offers", "Offers", OfferRoutes.List, "briefcase", "briefcase-fill"),
         new("Companies", "Companies", CompanyRoutes.List, "building", "building-fill"),
     ];

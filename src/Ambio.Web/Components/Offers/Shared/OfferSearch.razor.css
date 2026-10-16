@@ -1,0 +1,30 @@
+.offer-search-results {
+    box-shadow: var(--ambio-shadow-md);
+}
+
+.offer-search-result {
+    --gap: var(--ambio-space-2);
+    width: 100%;
+    padding: var(--ambio-space-12) var(--ambio-space-16);
+    border: 0;
+    background: none;
+    color: inherit;
+    text-align: start;
+    text-decoration: none;
+}
+
+.offer-search-result:hover {
+    background: var(--ambio-bg-subtle);
+}
+
+.offer-search-new {
+    display: flex;
+    align-items: center;
+    gap: var(--ambio-space-8);
+    color: var(--ambio-accent-text);
+    font-weight: 600;
+}
+
+.offer-search-empty {
+    padding: var(--ambio-space-12) var(--ambio-space-16);
+}

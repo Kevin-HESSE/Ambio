@@ -64,7 +64,7 @@ public class CompanyListTests : BunitContext
 
         var cut = Render<CompanyList>();
 
-        var details = cut.FindAll(".company-card .company-details").Select(d => d.TextContent);
+        var details = cut.FindAll(".list-card .list-card-subtitle").Select(d => d.TextContent);
         Assert.Equal([$"{companies[0].Industry} · {companies[0].Location}", companies[1].Location], details);
     }
 
@@ -78,7 +78,7 @@ public class CompanyListTests : BunitContext
 
         string[] expected = [CompanyRoutes.Details(companies[0].Slug), CompanyRoutes.Details(companies[1].Slug)];
         Assert.Equal(expected, cut.FindAll("tbody a").Select(link => link.GetAttribute("href")));
-        Assert.Equal(expected, cut.FindAll("a.company-card").Select(link => link.GetAttribute("href")));
+        Assert.Equal(expected, cut.FindAll("a.list-card").Select(link => link.GetAttribute("href")));
     }
 
     [Fact]

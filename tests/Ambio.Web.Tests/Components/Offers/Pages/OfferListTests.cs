@@ -92,10 +92,10 @@ public class OfferListTests : BunitContext
 
         var cut = Render<OfferList>();
 
-        var cards = cut.FindAll(".offer-card").Select(card => (
-            card.QuerySelector(".offer-title")!.TextContent,
-            card.QuerySelector(".offer-company")!.TextContent,
-            card.QuerySelector(".offer-date")!.TextContent,
+        var cards = cut.FindAll(".list-card").Select(card => (
+            card.QuerySelector(".list-card-title")!.TextContent,
+            card.QuerySelector(".list-card-subtitle")!.TextContent,
+            card.QuerySelector(".list-card-aside")!.TextContent,
             card.QuerySelector(".offer-postings .count-badge")!.TextContent,
             card.QuerySelector(".offer-postings")!.TextContent.Split(' ', StringSplitOptions.RemoveEmptyEntries).Last()));
         Assert.Equal(
@@ -125,7 +125,7 @@ public class OfferListTests : BunitContext
 
         var expected = _offers.Select(offer => OfferRoutes.Details(offer.Id));
         Assert.Equal(expected, cut.FindAll("tbody tr a.offer-title").Select(link => link.GetAttribute("href")));
-        Assert.Equal(expected, cut.FindAll("a.offer-card").Select(link => link.GetAttribute("href")));
+        Assert.Equal(expected, cut.FindAll("a.list-card").Select(link => link.GetAttribute("href")));
     }
 
     private void GivenOffers(params JobOfferSummaryDto[] offers) =>

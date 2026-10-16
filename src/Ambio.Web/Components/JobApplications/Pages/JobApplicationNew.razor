@@ -1,0 +1,36 @@
+@page "/applications/new"
+@attribute [Authorize]
+@inject IJobOfferService JobOfferService
+
+<PageTitle>New application</PageTitle>
+<AppBarBack Href="@JobApplicationRoutes.List" />
+<AppBarTitle>New application</AppBarTitle>
+
+<PageHeader Title="New application" />
+
+@if (_loaded)
+{
+    <section class="card form-page">
+        <NewJobApplicationForm @rendermode="InteractiveServer" Offer="_offer" />
+    </section>
+}
+
+@code {
+    /// <summary>The offer already chosen, such as from the offer page (<see cref="JobApplicationRoutes.NewForOffer"/>).</summary>
+    [SupplyParameterFromQuery(Name = "offer")]
+    public Guid? OfferId { get; set; }
+
+    private JobOfferDetailsDto? _offer;
+    private bool _loaded;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // An unknown offer leaves the search open, as without one.
+        if (OfferId is { } offerId)
+        {
+            _offer = await JobOfferService.GetAsync(offerId);
+        }
+
+        _loaded = true;
+    }
+}

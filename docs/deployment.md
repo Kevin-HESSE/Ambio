@@ -26,6 +26,7 @@ Ambio ships as a Docker image published on Docker Hub for `linux/amd64` and `lin
 | `Ambio__Storage__Root` | Root folder for documents and photos | `/data` |
 | `Ambio__Plugins__Path` | Plugin folder | `/plugins` |
 | `Ambio__Demo__Enabled` | Seed a demo account and data | `false` |
+| `Ambio__ShortId__Alphabet`, `Ambio__ShortId__Size` | Alphabet and length of the short ids in application URLs: lowercase, never `-` (see [data-model.md](data-model.md#application-hierarchy)) | `0123456789`, `6` |
 | `Smtp__Host`, `Smtp__Port`, `Smtp__Username`, `Smtp__Password`, `Smtp__From` | Email sending; no email sent if unset | — |
 | `Authentication__GitHub__ClientId`, `Authentication__GitHub__ClientSecret` | GitHub login, disabled if unset | — |
 

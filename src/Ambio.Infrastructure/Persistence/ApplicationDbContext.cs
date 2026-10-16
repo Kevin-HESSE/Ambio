@@ -1,4 +1,5 @@
 using Ambio.Domain.Companies;
+using Ambio.Domain.JobApplications;
 using Ambio.Domain.Offers;
 using Ambio.Infrastructure.Users;
 
@@ -16,6 +17,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Company> Companies => Set<Company>();
 
     public DbSet<JobOffer> JobOffers => Set<JobOffer>();
+
+    public DbSet<JobApplication> JobApplications => Set<JobApplication>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
