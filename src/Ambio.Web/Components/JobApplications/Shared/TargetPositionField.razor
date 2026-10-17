@@ -1,0 +1,11 @@
+@* The "Target position" field of a spontaneous application, in the new and edit forms. Place it inside an EditForm
+   whose model is Input. *@
+<FormField Id="application-position" Label="Target position" For="() => Input.TargetPosition" FullWidth>
+    <InputText id="application-position" @bind-Value="Input.TargetPosition" class="form-control"
+               placeholder="e.g. Backend Developer" aria-required="true" />
+</FormField>
+
+@code {
+    [Parameter, EditorRequired]
+    public SpontaneousApplicationInput Input { get; set; } = null!;
+}

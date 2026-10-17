@@ -15,6 +15,7 @@ public static class JobApplicationMappingExtensions
     public static IQueryable<JobApplicationSummaryDto> ToSummaryDto(this IQueryable<JobApplication> applications) =>
         applications.Select(a => new JobApplicationSummaryDto(
             Id: a.Id,
+            ShortId: a.ShortId,
             Kind: a is SpontaneousApplication ? ApplicationKind.Spontaneous : ApplicationKind.Offer,
             Title: a is OfferApplication
                 ? ((OfferApplication)a).JobOffer.Title
@@ -28,6 +29,45 @@ public static class JobApplicationMappingExtensions
                 ? ((OfferApplication)a).AppliedViaPosting!.Site
                 : null,
             SentOn: a.AppliedOn));
+
+    /// <summary>Projection translated to SQL by EF Core, with the offer, its company and the posting used.</summary>
+    public static IQueryable<OfferApplicationDetailsDto> ToDetailsDto(this IQueryable<OfferApplication> applications) =>
+        applications.Select(a => new OfferApplicationDetailsDto(
+            Id: a.Id,
+            ShortId: a.ShortId,
+            Title: a.JobOffer.Title,
+            CompanyName: a.JobOffer.Company.Name,
+            CompanySlug: a.JobOffer.Company.Slug,
+            Status: a.Status,
+            Channel: a.Channel,
+            ChannelDetail: a.ChannelDetail,
+            SentOn: a.AppliedOn,
+            Notes: a.Notes,
+            CreatedAt: a.CreatedAt,
+            JobOfferId: a.JobOfferId,
+            Location: a.JobOffer.Location,
+            ContractType: a.JobOffer.ContractType,
+            RemotePolicy: a.JobOffer.RemotePolicy,
+            Salary: a.JobOffer.Salary,
+            AppliedViaPostingId: a.AppliedViaPostingId,
+            AppliedViaSite: a.AppliedViaPosting != null ? a.AppliedViaPosting.Site : null,
+            AppliedViaUrl: a.AppliedViaPosting != null ? a.AppliedViaPosting.Url : null));
+
+    /// <summary>Projection translated to SQL by EF Core, with the company.</summary>
+    public static IQueryable<SpontaneousApplicationDetailsDto> ToDetailsDto(this IQueryable<SpontaneousApplication> applications) =>
+        applications.Select(a => new SpontaneousApplicationDetailsDto(
+            Id: a.Id,
+            ShortId: a.ShortId,
+            Title: a.TargetPosition,
+            CompanyName: a.Company.Name,
+            CompanySlug: a.Company.Slug,
+            Status: a.Status,
+            Channel: a.Channel,
+            ChannelDetail: a.ChannelDetail,
+            SentOn: a.AppliedOn,
+            Notes: a.Notes,
+            CreatedAt: a.CreatedAt,
+            CompanyLocation: a.Company.Location));
 
     /// <summary>A new application to the offer, sent through <paramref name="posting"/> when given, and already sent
     /// when the form says so. The optional text fields are trimmed, and a blank one is stored as null.</summary>
@@ -69,8 +109,67 @@ public static class JobApplicationMappingExtensions
         return application;
     }
 
+    /// <summary>The edit form, filled with the current values of the application.</summary>
+    public static OfferApplicationInput ToInput(this OfferApplicationDetailsDto application) => new()
+    {
+        AppliedViaPostingId = application.AppliedViaPostingId,
+        Channel = application.Channel,
+        ChannelDetail = application.ChannelDetail,
+        AlreadySent = application.SentOn is not null,
+        SentOn = application.SentOn,
+        Notes = application.Notes,
+    };
+
+    /// <summary>The edit form, filled with the current values of the application.</summary>
+    public static SpontaneousApplicationInput ToInput(this SpontaneousApplicationDetailsDto application) => new()
+    {
+        TargetPosition = application.Title,
+        Channel = application.Channel,
+        ChannelDetail = application.ChannelDetail,
+        AlreadySent = application.SentOn is not null,
+        SentOn = application.SentOn,
+        Notes = application.Notes,
+    };
+
+    /// <summary>Copies the fields of the edit form onto the application, sent through <paramref name="posting"/>, or
+    /// through an unspecified site when null. Its offer doesn't change.</summary>
+    public static void ApplyTo(this OfferApplicationInput input, OfferApplication application, JobOfferPosting? posting)
+    {
+        if (posting is not null)
+        {
+            application.ApplyVia(posting);
+        }
+        else
+        {
+            application.ClearAppliedVia();
+        }
+
+        ApplySharedFields(input, application);
+    }
+
+    /// <summary>Copies the fields of the edit form onto the application. Its company doesn't change.</summary>
+    public static void ApplyTo(this SpontaneousApplicationInput input, SpontaneousApplication application)
+    {
+        application.TargetPosition = input.TargetPosition;
+        ApplySharedFields(input, application);
+    }
+
+    // The optional text fields are trimmed, and a blank one is stored as null. Only the sending day of an application
+    // already sent is corrected: a draft is sent by changing its status.
+    private static void ApplySharedFields(JobApplicationInput input, JobApplication application)
+    {
+        application.Channel = input.Channel;
+        application.ChannelDetail = input.ChannelDetail.NullIfBlank();
+        application.Notes = input.Notes.NullIfBlank();
+
+        if (application.AppliedOn is not null && input.SentOn is { } sentOn)
+        {
+            application.ChangeAppliedOn(sentOn);
+        }
+    }
+
     // The form requires the date once "Already sent" is checked.
-    private static void MarkAsSentWhenSent(NewJobApplicationInput input, JobApplication application)
+    private static void MarkAsSentWhenSent(JobApplicationInput input, JobApplication application)
     {
         if (input is { AlreadySent: true, SentOn: { } sentOn })
         {

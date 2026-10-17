@@ -25,4 +25,11 @@ public class OfferApplication : JobApplication
 
         AppliedViaPostingId = posting.Id;
     }
+
+    /// <summary>Forgets the posting used to apply: it is no longer specified.</summary>
+    public void ClearAppliedVia()
+    {
+        AppliedViaPostingId = null;
+        AppliedViaPosting = null;
+    }
 }

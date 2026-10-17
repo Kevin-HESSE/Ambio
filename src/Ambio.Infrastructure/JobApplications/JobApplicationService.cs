@@ -36,16 +36,36 @@ internal class JobApplicationService : IJobApplicationService
                 : ((SpontaneousApplication)a).CompanyId == companyId,
             cancellationToken);
 
-    public async Task<ServiceResult> CreateAsync(NewOfferApplicationInput input, CancellationToken cancellationToken = default)
+    public async Task<JobApplicationDetailsDto?> GetAsync(string shortId, CancellationToken cancellationToken = default)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
+
+        // One query per kind: a single projection can't build either DTO.
+        return await db.JobApplications
+                .OfType<OfferApplication>()
+                .AsNoTracking()
+                .Where(a => a.ShortId == shortId)
+                .ToDetailsDto()
+                .SingleOrDefaultAsync(cancellationToken) as JobApplicationDetailsDto
+            ?? await db.JobApplications
+                .OfType<SpontaneousApplication>()
+                .AsNoTracking()
+                .Where(a => a.ShortId == shortId)
+                .ToDetailsDto()
+                .SingleOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<ServiceResult<JobApplicationLinkDto>> CreateAsync(NewOfferApplicationInput input, CancellationToken cancellationToken = default)
     {
         await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
 
         var offer = await db.JobOffers
+            .Include(o => o.Company)
             .Include(o => o.Postings)
             .SingleOrDefaultAsync(o => o.Id == input.JobOfferId, cancellationToken);
         if (offer is null)
         {
-            return ServiceResult.Failure(JobApplicationErrors.OfferNotFound);
+            return ServiceResult<JobApplicationLinkDto>.Failure(JobApplicationErrors.OfferNotFound);
         }
 
         var posting = input.AppliedViaPostingId is { } postingId
@@ -53,7 +73,7 @@ internal class JobApplicationService : IJobApplicationService
             : null;
         if (input.AppliedViaPostingId is not null && posting is null)
         {
-            return ServiceResult.Failure(JobApplicationErrors.PostingNotFound);
+            return ServiceResult<JobApplicationLinkDto>.Failure(JobApplicationErrors.PostingNotFound);
         }
 
         var shortId = await _shortIds.FreeAsync(candidate =>
@@ -62,10 +82,11 @@ internal class JobApplicationService : IJobApplicationService
         db.JobApplications.Add(input.ToEntity(offer.Id, shortId, posting));
         await db.SaveChangesAsync(cancellationToken);
 
-        return ServiceResult.Success();
+        return ServiceResult<JobApplicationLinkDto>.Success(
+            new JobApplicationLinkDto(shortId, JobApplicationSlug.From(offer.Title, offer.Company.Name)));
     }
 
-    public async Task CreateAsync(NewSpontaneousApplicationInput input, CancellationToken cancellationToken = default)
+    public async Task<JobApplicationLinkDto> CreateAsync(NewSpontaneousApplicationInput input, CancellationToken cancellationToken = default)
     {
         await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
 
@@ -74,8 +95,62 @@ internal class JobApplicationService : IJobApplicationService
             db.JobApplications.AnyAsync(a => a.ShortId == candidate, cancellationToken));
 
         // Saved with the new company, if any, in a single transaction.
-        db.JobApplications.Add(input.ToEntity(companyId, shortId));
+        var application = input.ToEntity(companyId, shortId);
+        db.JobApplications.Add(application);
         await db.SaveChangesAsync(cancellationToken);
+
+        // The name typed matches the company's ignoring case only, which the slug ignores too.
+        return new JobApplicationLinkDto(shortId, JobApplicationSlug.From(application.TargetPosition, input.CompanyName));
+    }
+
+    public async Task<ServiceResult<JobApplicationLinkDto>> UpdateAsync(Guid id, OfferApplicationInput input, CancellationToken cancellationToken = default)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
+
+        var application = await db.JobApplications
+            .OfType<OfferApplication>()
+            .Include(a => a.JobOffer.Company)
+            .Include(a => a.JobOffer.Postings)
+            .SingleOrDefaultAsync(a => a.Id == id, cancellationToken);
+        if (application is null)
+        {
+            return ServiceResult<JobApplicationLinkDto>.Failure(JobApplicationErrors.NotFound);
+        }
+
+        var offer = application.JobOffer;
+        var posting = input.AppliedViaPostingId is { } postingId
+            ? offer.Postings.SingleOrDefault(p => p.Id == postingId)
+            : null;
+        if (input.AppliedViaPostingId is not null && posting is null)
+        {
+            return ServiceResult<JobApplicationLinkDto>.Failure(JobApplicationErrors.PostingNotFound);
+        }
+
+        input.ApplyTo(application, posting);
+        await db.SaveChangesAsync(cancellationToken);
+
+        return ServiceResult<JobApplicationLinkDto>.Success(
+            new JobApplicationLinkDto(application.ShortId, JobApplicationSlug.From(offer.Title, offer.Company.Name)));
+    }
+
+    public async Task<ServiceResult<JobApplicationLinkDto>> UpdateAsync(Guid id, SpontaneousApplicationInput input, CancellationToken cancellationToken = default)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
+
+        var application = await db.JobApplications
+            .OfType<SpontaneousApplication>()
+            .Include(a => a.Company)
+            .SingleOrDefaultAsync(a => a.Id == id, cancellationToken);
+        if (application is null)
+        {
+            return ServiceResult<JobApplicationLinkDto>.Failure(JobApplicationErrors.NotFound);
+        }
+
+        input.ApplyTo(application);
+        await db.SaveChangesAsync(cancellationToken);
+
+        return ServiceResult<JobApplicationLinkDto>.Success(
+            new JobApplicationLinkDto(application.ShortId, JobApplicationSlug.From(application.TargetPosition, application.Company.Name)));
     }
 
     /// <summary>The active applications of every kind that match <paramref name="predicate"/>, newest first: by

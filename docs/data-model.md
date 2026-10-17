@@ -181,7 +181,7 @@ The same offer is often published on several sites. Each place it was seen is a 
 
 | Type | Specific fields | Meaning |
 |---|---|---|
-| `OfferApplication` | `JobOfferId` (required), `AppliedViaPostingId` (optional) | Answer to a job offer. The company comes from the offer. The posting records which site's form was used, and must belong to the offer: `OfferApplication.ApplyVia` refuses another offer's posting. A removed posting sets it back to null. |
+| `OfferApplication` | `JobOfferId` (required), `AppliedViaPostingId` (optional) | Answer to a job offer. The company comes from the offer. The posting records which site's form was used, and must belong to the offer: `OfferApplication.ApplyVia` refuses another offer's posting, and `ClearAppliedVia` sets it back to "not specified". A removed posting sets it back to null. |
 | `SpontaneousApplication` | `CompanyId` (required), `TargetPosition` (required) | Application sent to a company without any offer. The company is searched by name in the form, or typed to create it: a name matching a company, ignoring case and archived or not, links the application to it; any other name creates the company as an `Employer`, in the same save as the application, as for an offer. |
 
 The base class carries everything they share:
@@ -194,7 +194,8 @@ The base class carries everything they share:
   - `InPerson`.
   - `Other`.
 - `ChannelDetail`: free text, such as a generic address like `jobs@…` or the name of the person who referred you.
-- `AppliedOn`, which is null while the application is a draft.
+- `AppliedOn`, which is null while the application is a draft. `MarkAsSent` sets it when a draft is sent; `ChangeAppliedOn` corrects it afterwards, and refuses a draft.
+- An edit changes neither the offer nor the company of an application, nor its status.
 - `Notes`.
 - The cover letters, CVs, interactions and contacts.
 
@@ -332,7 +333,7 @@ At the data volume of a single user, both costs are negligible.
 
 ### DTOs
 
-- **Lists** use one flat `JobApplicationSummaryDto`, projected in LINQ so EF builds a single query over both kinds. It holds `Id`, `Kind` (`ApplicationKind.Offer` or `Spontaneous`), `Title`, `CompanyName`, `Status`, `Channel`, `AppliedVia` (the site of the posting, null for a spontaneous application) and `SentOn` (`AppliedOn`); `RecruiterName` comes in Phase 2b. An expression tree accepts neither a `switch` expression nor a pattern that declares a variable (`a is OfferApplication o`), so each member tests the kind and casts:
+- **Lists** use one flat `JobApplicationSummaryDto`, projected in LINQ so EF builds a single query over both kinds. It holds `Id`, `ShortId`, `Kind` (`ApplicationKind.Offer` or `Spontaneous`), `Title`, `CompanyName`, `Status`, `Channel`, `AppliedVia` (the site of the posting, null for a spontaneous application) and `SentOn` (`AppliedOn`); `RecruiterName` comes in Phase 2b. An expression tree accepts neither a `switch` expression nor a pattern that declares a variable (`a is OfferApplication o`), so each member tests the kind and casts:
 
   ```csharp
   Title: a is OfferApplication
@@ -341,8 +342,8 @@ At the data volume of a single user, both costs are negligible.
   ```
 
 - Lists are sorted newest first: by sending day, or by creation day for a draft, then by creation time.
-- Summary and detail DTOs carry `ShortId` and the computed `Slug`, so links are built without another query.
-- **Details** use one DTO per subtype: `OfferApplicationDetailsDto` and `SpontaneousApplicationDetailsDto`.
+- Summary and detail DTOs carry `ShortId` and the computed `Slug` (`JobApplicationSlug.From(title, companyName)`, a read-only property, `application` when nothing is left), so links are built without another query.
+- **Details** use one DTO per subtype, `OfferApplicationDetailsDto` and `SpontaneousApplicationDetailsDto`, deriving from the abstract `JobApplicationDetailsDto`. The service reads them with one projection per subtype (`OfType<…>()`): a single projection can't build either type.
 
 ## Common queries
 

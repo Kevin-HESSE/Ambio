@@ -1,0 +1,20 @@
+@* The "Applied via" field of the application forms: one of the offer's postings, or not specified. Place it inside an
+   EditForm whose model is Input. *@
+<FormField Id="application-via" Label="Applied via" For="() => Input.AppliedViaPostingId" Optional>
+    <InputSelect id="application-via" @bind-Value="Input.AppliedViaPostingId" class="form-select">
+        <option value="">Not specified</option>
+        @foreach (var posting in Postings)
+        {
+            <option value="@posting.Id">@posting.Site · seen @posting.SeenAt.ToShortDisplayDate()</option>
+        }
+    </InputSelect>
+</FormField>
+
+@code {
+    [Parameter, EditorRequired]
+    public OfferApplicationInput Input { get; set; } = null!;
+
+    /// <summary>The postings of the offer applied to, empty while no offer is chosen.</summary>
+    [Parameter, EditorRequired]
+    public IReadOnlyList<JobOfferPostingDto> Postings { get; set; } = [];
+}

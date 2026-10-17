@@ -7,10 +7,15 @@ namespace Ambio.Application.JobApplications.Dtos;
 /// to apply, when known; <paramref name="SentOn"/> is null while the application is a draft.</summary>
 public record JobApplicationSummaryDto(
     Guid Id,
+    string ShortId,
     ApplicationKind Kind,
     string Title,
     string CompanyName,
     ApplicationStatus Status,
     Channel Channel,
     string? AppliedVia,
-    DateOnly? SentOn);
+    DateOnly? SentOn)
+{
+    /// <summary>The readable part of its URL, after the <see cref="ShortId"/>.</summary>
+    public string Slug => JobApplicationSlug.From(Title, CompanyName);
+}

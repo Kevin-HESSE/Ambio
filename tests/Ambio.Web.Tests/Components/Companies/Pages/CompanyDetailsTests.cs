@@ -216,6 +216,9 @@ public class CompanyDetailsTests : BunitContext
             item.QuerySelector(".application-item-title")!.TextContent,
             item.QuerySelector(".status-badge")!.TextContent.Trim()));
         Assert.Equal(applications.Select(a => (a.Title, a.Status.ToLabel())), items);
+        Assert.Equal(
+            applications.Select(a => JobApplicationRoutes.Details(a.ShortId, a.Slug)),
+            cut.FindAll("a.application-item").Select(item => item.GetAttribute("href")));
         Assert.Empty(cut.FindAll(".offer-item"));
     }
 

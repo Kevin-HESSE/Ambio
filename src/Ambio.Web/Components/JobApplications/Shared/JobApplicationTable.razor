@@ -1,4 +1,4 @@
-@* The applications list on desktop (≥ 992 px). Its rows link to the application pages with #50. *@
+@* The applications list on desktop (≥ 992 px), whose titles link to the application pages. *@
 <ListTable>
     <Columns>
         <th scope="col">Position</th>
@@ -11,7 +11,7 @@
         {
             <tr>
                 <th scope="row">
-                    <span class="application-title t-body-strong">@application.Title</span>
+                    <a class="application-title t-body-strong" href="@JobApplicationRoutes.Details(application.ShortId, application.Slug)">@application.Title</a>
                     <div class="application-company t-small t-secondary">@application.CompanyName</div>
                 </th>
                 <td><StatusBadge Status="application.Status" /></td>

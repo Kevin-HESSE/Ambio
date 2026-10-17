@@ -176,6 +176,9 @@ public class OfferDetailsTests : BunitContext
             ],
             items);
         Assert.Empty(cut.FindAll(".offer-applications .application-item-title"));
+        Assert.Equal(
+            [JobApplicationRoutes.Details(sent.ShortId, sent.Slug), JobApplicationRoutes.Details(draft.ShortId, draft.Slug)],
+            cut.FindAll(".offer-applications a.application-item").Select(item => item.GetAttribute("href")));
     }
 
     [Fact]

@@ -28,9 +28,13 @@ public class JobApplicationJourneyTests : IClassFixture<AmbioAppFixture>
     private const string Url = "https://www.linkedin.com/jobs/view/4102938475";
     private const string SentOn = "2026-09-03";
     private const string SentOnText = "3 Sep 2026";
+    private const string Notes = "Ask about on-call duty.";
+    private const string NewSentOn = "2026-09-02";
+    private const string NewSentOnText = "2 Sep 2026";
+    private const string ApplicationPathPattern = "/applications/[0-9]{6}-developpeur-donnees-lumen-health$";
 
     [Fact]
-    public async Task User_AppliesToAnOfferFoundBySearchThenFindsTheApplicationOnTheOfferAndCompanyPages()
+    public async Task User_AppliesToAnOfferFoundBySearchEditsTheApplicationThenOpensItFromTheListOfferAndCompanyPages()
     {
         var page = await _app.NewLoggedInPageAsync();
 
@@ -58,19 +62,50 @@ public class JobApplicationJourneyTests : IClassFixture<AmbioAppFixture>
         await page.GetByLabel("Sent on").FillAsync(SentOn);
         await page.GetByRole(AriaRole.Button, new() { Name = "Create application" }).ClickAsync();
 
-        await Expect(page).ToHaveURLAsync(new Regex($"/{ApplicationsPath}$"));
+        await Expect(page).ToHaveURLAsync(new Regex(ApplicationPathPattern));
+        await Expect(page.GetByRole(AriaRole.Heading, new() { Name = Title, Level = 1 })).ToBeVisibleAsync();
+        await Expect(page.Locator(".application-via")).ToContainTextAsync(Site);
+        await Expect(page.Locator(".application-sent-on")).ToContainTextAsync(SentOnText);
+        var applicationUrl = page.Url;
+
+        await page.Locator(".detail-actions").GetByRole(AriaRole.Link, new() { Name = "Edit" }).ClickAsync();
+        await Expect(page.GetByLabel("Applied via")).Not.ToHaveValueAsync("");
+        await page.GetByLabel("Applied via").SelectOptionAsync(new SelectOptionValue { Label = "Not specified" });
+        await page.GetByLabel("Channel", new() { Exact = true }).SelectOptionAsync(new SelectOptionValue { Label = "Referral" });
+        await page.GetByLabel("Sent on").FillAsync(NewSentOn);
+        await page.GetByLabel("Notes").FillAsync(Notes);
+        await page.GetByRole(AriaRole.Button, new() { Name = "Save changes" }).ClickAsync();
+        await Expect(page).ToHaveURLAsync(applicationUrl);
+        await Expect(page.Locator(".application-via")).ToContainTextAsync("Not specified");
+        await Expect(page.Locator(".application-channel")).ToContainTextAsync("Referral");
+        await Expect(page.Locator(".application-sent-on")).ToContainTextAsync(NewSentOnText);
+        await Expect(page.Locator(".application-notes")).ToContainTextAsync(Notes);
+
+        await page.GotoAsync(ApplicationsPath);
         var row = page.Locator("tbody tr");
         await Expect(row).ToHaveCountAsync(1);
         await Expect(row).ToContainTextAsync(Title);
         await Expect(row).ToContainTextAsync("Applied");
-        await Expect(row).ToContainTextAsync(SentOnText);
+        await Expect(row).ToContainTextAsync(NewSentOnText);
+        await row.GetByRole(AriaRole.Link, new() { Name = Title }).ClickAsync();
+        await Expect(page).ToHaveURLAsync(applicationUrl);
+
+        // An old or mistyped slug leads to the current URL.
+        await page.GotoAsync(Regex.Replace(applicationUrl, "-[^/]*$", "-old-title"));
+        await Expect(page).ToHaveURLAsync(applicationUrl);
 
         await page.GotoAsync(offerUrl);
-        await Expect(page.Locator(".offer-applications .application-item")).ToContainTextAsync($"Sent {SentOnText} via {Site}");
+        var offerItem = page.Locator(".offer-applications .application-item");
+        await Expect(offerItem).ToContainTextAsync($"Sent {NewSentOnText}");
+        await offerItem.ClickAsync();
+        await Expect(page).ToHaveURLAsync(applicationUrl);
 
         await page.Locator(".detail-subtitle").GetByRole(AriaRole.Link, new() { Name = CompanyName }).ClickAsync();
         await page.GetByRole(AriaRole.Link, new() { Name = "Applications 1" }).ClickAsync();
         await Expect(page.GetByRole(AriaRole.Link, new() { Name = "Applications 1" })).ToHaveAttributeAsync("aria-current", "page");
-        await Expect(page.Locator(".application-item")).ToContainTextAsync(Title);
+        var companyItem = page.Locator(".application-item");
+        await Expect(companyItem).ToContainTextAsync(Title);
+        await companyItem.ClickAsync();
+        await Expect(page).ToHaveURLAsync(applicationUrl);
     }
 }

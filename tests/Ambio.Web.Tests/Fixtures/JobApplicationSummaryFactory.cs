@@ -19,6 +19,7 @@ public static class JobApplicationSummaryFactory
         new Faker<JobApplicationSummaryDto>()
             .WithRecord()
             .RuleFor(a => a.Id, Guid.CreateVersion7)
+            .RuleFor(a => a.ShortId, faker => faker.Random.String2(6, "0123456789"))
             .RuleFor(a => a.Kind, ApplicationKind.Offer)
             .RuleFor(a => a.Title, faker => faker.Name.JobTitle())
             .RuleFor(a => a.CompanyName, faker => faker.Company.CompanyName())

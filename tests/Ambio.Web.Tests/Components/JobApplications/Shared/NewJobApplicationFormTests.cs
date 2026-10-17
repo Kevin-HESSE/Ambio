@@ -32,6 +32,7 @@ public class NewJobApplicationFormTests : BunitContext
     private const string Notes = "Sent with the English CV.";
 
     private static readonly DateOnly SentOn = new(2026, 9, 3);
+    private static readonly JobApplicationLinkDto Created = new("482913", "backend-developer-acme");
 
     private readonly IJobOfferService _jobOfferService = Substitute.For<IJobOfferService>();
     private readonly IJobApplicationService _jobApplicationService = Substitute.For<IJobApplicationService>();
@@ -47,7 +48,9 @@ public class NewJobApplicationFormTests : BunitContext
         _companyService.SearchAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns([_company]);
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));
         _jobApplicationService.CreateAsync(Arg.Any<NewOfferApplicationInput>(), Arg.Any<CancellationToken>())
-            .Returns(ServiceResult.Success());
+            .Returns(ServiceResult<JobApplicationLinkDto>.Success(Created));
+        _jobApplicationService.CreateAsync(Arg.Any<NewSpontaneousApplicationInput>(), Arg.Any<CancellationToken>())
+            .Returns(Created);
     }
 
     [Fact]
@@ -154,7 +157,7 @@ public class NewJobApplicationFormTests : BunitContext
     }
 
     [Fact]
-    public void Submit_Valid_CreatesTheApplicationAndOpensTheList()
+    public void Submit_Valid_CreatesTheApplicationAndOpensItsPage()
     {
         var posting = _offer.Postings[1];
         var cut = RenderForm(_offer);
@@ -173,14 +176,16 @@ public class NewJobApplicationFormTests : BunitContext
                 && input.AlreadySent
                 && input.SentOn == SentOn),
             Arg.Any<CancellationToken>());
-        Assert.EndsWith(JobApplicationRoutes.List, Services.GetRequiredService<BunitNavigationManager>().Uri);
+        Assert.EndsWith(
+            $"/{JobApplicationRoutes.Details(Created.ShortId, Created.Slug)}",
+            Services.GetRequiredService<BunitNavigationManager>().Uri);
     }
 
     [Fact]
     public void Submit_WhenThePostingIsRefused_ShowsTheErrorUnderAppliedVia()
     {
         _jobApplicationService.CreateAsync(Arg.Any<NewOfferApplicationInput>(), Arg.Any<CancellationToken>())
-            .Returns(ServiceResult.Failure(JobApplicationErrors.PostingNotFound));
+            .Returns(ServiceResult<JobApplicationLinkDto>.Failure(JobApplicationErrors.PostingNotFound));
         var cut = RenderForm(_offer);
 
         cut.Find("form").Submit();
@@ -250,7 +255,7 @@ public class NewJobApplicationFormTests : BunitContext
     }
 
     [Fact]
-    public void Submit_SpontaneousToAFoundCompany_CreatesItAndOpensTheList()
+    public void Submit_SpontaneousToAFoundCompany_CreatesItAndOpensItsPage()
     {
         var cut = RenderForm(offer: null);
         ChooseSpontaneous(cut);
@@ -265,7 +270,9 @@ public class NewJobApplicationFormTests : BunitContext
             Arg.Is<NewSpontaneousApplicationInput>(input =>
                 input.CompanyName == _company.Name && input.TargetPosition == TargetPosition),
             Arg.Any<CancellationToken>());
-        Assert.EndsWith(JobApplicationRoutes.List, Services.GetRequiredService<BunitNavigationManager>().Uri);
+        Assert.EndsWith(
+            $"/{JobApplicationRoutes.Details(Created.ShortId, Created.Slug)}",
+            Services.GetRequiredService<BunitNavigationManager>().Uri);
     }
 
     [Fact]

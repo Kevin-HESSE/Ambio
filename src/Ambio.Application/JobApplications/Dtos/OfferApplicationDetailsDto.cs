@@ -1,0 +1,29 @@
+using Ambio.Domain.JobApplications;
+using Ambio.Domain.Offers;
+
+namespace Ambio.Application.JobApplications.Dtos;
+
+/// <summary>An application to an offer, with what its page shows of the offer. <paramref name="AppliedViaPostingId"/>,
+/// <paramref name="AppliedViaSite"/> and <paramref name="AppliedViaUrl"/> are those of the posting used to apply, null
+/// when not specified.</summary>
+public record OfferApplicationDetailsDto(
+    Guid Id,
+    string ShortId,
+    string Title,
+    string CompanyName,
+    string CompanySlug,
+    ApplicationStatus Status,
+    Channel Channel,
+    string? ChannelDetail,
+    DateOnly? SentOn,
+    string? Notes,
+    DateTime CreatedAt,
+    Guid JobOfferId,
+    string? Location,
+    ContractType ContractType,
+    RemotePolicy RemotePolicy,
+    string? Salary,
+    Guid? AppliedViaPostingId,
+    string? AppliedViaSite,
+    string? AppliedViaUrl)
+    : JobApplicationDetailsDto(Id, ShortId, Title, CompanyName, CompanySlug, Status, Channel, ChannelDetail, SentOn, Notes, CreatedAt);

@@ -75,6 +75,38 @@ public class OfferApplicationTests
         Assert.Null(application.AppliedViaPostingId);
     }
 
+    [Fact]
+    public void ClearAppliedVia_WithPosting_ForgetsIt()
+    {
+        var offer = NewOffer();
+        var application = NewApplication(offer.Id);
+        application.ApplyVia(offer.AddPosting(Site, Url));
+
+        application.ClearAppliedVia();
+
+        Assert.Null(application.AppliedViaPostingId);
+    }
+
+    [Fact]
+    public void ChangeAppliedOn_WhenSent_ChangesTheDayButNotTheStatus()
+    {
+        var application = NewApplication(Guid.CreateVersion7());
+        application.MarkAsSent(SentOn);
+
+        application.ChangeAppliedOn(SentOn.AddDays(-1));
+
+        Assert.Equal((ApplicationStatus.Applied, SentOn.AddDays(-1)), (application.Status, application.AppliedOn));
+    }
+
+    [Fact]
+    public void ChangeAppliedOn_OnDraft_ThrowsInvalidOperationException()
+    {
+        var application = NewApplication(Guid.CreateVersion7());
+
+        Assert.Throws<InvalidOperationException>(() => application.ChangeAppliedOn(SentOn));
+        Assert.Null(application.AppliedOn);
+    }
+
     private static OfferApplication NewApplication(Guid jobOfferId, string shortId = ShortId) => new()
     {
         ShortId = shortId,

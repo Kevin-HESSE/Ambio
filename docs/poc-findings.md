@@ -49,3 +49,11 @@ Newest first. Each entry follows this format:
 - Not needed: what was built and turned out useless
 - Change in the official version: what to do differently
 ```
+
+### 2026-10-17 — Application detail and edit (#50)
+
+- Kept: the `{ShortId}-{slug}` URL with a redirect to the current slug (ADR 0014). Links stay readable, and a renamed target position doesn't break them. The slug isn't stored: the DTOs compute it from the title and the company.
+- Kept: one details DTO per kind, read with one query per kind. The pages switch on the type of the DTO.
+- Kept: the create inputs derive from the edit inputs (`NewOfferApplicationInput : OfferApplicationInput`), as for offers, so both forms share their fields.
+- Not needed: nothing so far. Until the status change (#30), the status card only shows the badge.
+- Change in the official version: the redirect to the canonical URL is a 302 from Blazor's static rendering; an API returns the canonical key and lets the SPA replace the URL. A static Blazor form bound to one of two input types needs two `[SupplyParameterFromForm]` parameters with the same name and their own form name: a SPA form doesn't have this constraint.
