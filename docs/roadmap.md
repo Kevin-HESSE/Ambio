@@ -2,6 +2,8 @@
 
 Ambio is built in small, deployable increments.
 
+> **Proof of concept.** Ambio is a proof of concept for an official version built in separate repositories: an API, a SPA frontend, maybe a desktop app ([ADR 0024](adr/0024-proof-of-concept.md)). What it teaches goes into [poc-findings.md](poc-findings.md).
+
 > **Guiding principle: usable early.** The app is packaged and deployable right after the first feature (application tracking). A demo is set up in the same phase, and every later phase adds its new feature to the demo.
 
 Each phase maps to a GitHub Milestone, and each checkbox maps to an issue.
@@ -13,8 +15,7 @@ Each phase maps to a GitHub Milestone, and each checkbox maps to an issue.
 | [2](#phase-2--docker-deployment--demo) | Docker, deployment & demo | Multi-arch image on Docker Hub, running demo |
 | [2b](#phase-2b--company-research--contacts) | Company research & contacts | Research notes, contacts, recruiters, interviews |
 | [3](#phase-3--candidate-profile--cv-generation) | Profile & CV generation | CVs generated with QuestPDF (per application + general CV) |
-| [5](#phase-5--identity--i18n) | Identity & i18n | Real email, GitHub login, FR/EN UI |
-| [6](#phase-6--data--showcase) | Data & showcase | JSON export/import, screenshots, final README |
+| [4](#phase-4--export--showcase) | Export & showcase | JSON export for the official version, screenshots, final README |
 
 ---
 
@@ -102,18 +103,9 @@ Enriches the company, which is shared by every application to it (see [data-mode
 - [ ] PDF snapshot tests for the default template
 - [ ] Extend demo: seeded profile, a generated general CV, and a generated CV per demo application
 
-## Phase 5 — Identity & i18n
+## Phase 4 — Export & showcase
 
-- [ ] MailKit SMTP email sender configured through environment variables, with the no-op sender kept when SMTP is not configured
-- [ ] Remove the no-op branch in `RegisterConfirmation.razor` when a real sender is configured
-- [ ] Keep 2FA (authenticator app) and recovery codes
-- [ ] GitHub OAuth login: creates the account while none exists, or is linked to the existing one; never creates a second account, and account creation reuses `IUserService` ([ADR 0017](adr/0017-account-creation-local-or-github.md))
-- [ ] FR/EN UI localization with `IStringLocalizer` and a language switcher
-- [ ] Extend demo: language switcher visible in the demo
-
-## Phase 6 — Data & showcase
-
-- [ ] JSON export of all data (profile, applications, cover letters, CV metadata) and import from the UI
+- [ ] JSON export of all data (profile, applications, cover letters, CV metadata), documented as the migration format to the official version; no import
 - [ ] Screenshots in `docs/screenshots/` and embedded in the README
-- [ ] Final README polish (badges, feature tour, demo link)
+- [ ] Final README, adjusted to the proof of concept (badges, feature tour, demo link)
 - [ ] Extend demo: downloadable sample export

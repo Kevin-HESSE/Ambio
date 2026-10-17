@@ -8,7 +8,7 @@ Ambio is a .NET 10 Blazor Web App (Interactive Server only) using ASP.NET Core I
 src/
   Ambio.Domain/                   Entities, value objects, domain rules — no infrastructure dependency
   Ambio.Application/              Service interfaces, DTOs, mapping extensions
-  Ambio.Infrastructure/           Service implementations (EF Core via IDbContextFactory), storage, PDF, SMTP
+  Ambio.Infrastructure/           Service implementations (EF Core via IDbContextFactory), storage, PDF
   Ambio.Web/                      Blazor UI, Identity, composition root
 tools/
   Ambio.CvPlayground/             Console app + QuestPDF Companion for designing templates
@@ -121,8 +121,8 @@ See [ADR 0005](adr/0005-sqlite-and-filesystem-storage.md) for why files live on 
 
 - Single user ([ADR 0002](adr/0002-single-user-application.md)): registration is closed once the account exists.
 - 2FA with an authenticator app, and recovery codes.
-- The account is created locally or with GitHub, and GitHub can be linked to a local account ([ADR 0017](adr/0017-account-creation-local-or-github.md)). Neither way can create a second account.
+- The account is created locally ([ADR 0017](adr/0017-account-creation-local-or-github.md), [ADR 0024](adr/0024-proof-of-concept.md)): registration can't create a second account.
 - Account creation goes through `IUserService`, which serializes "check that no account exists, then create it" with an in-process semaphore: one instance per database.
 - Passkeys from the template are removed.
-- Email is sent through SMTP (MailKit) when configured, and falls back to the no-op sender otherwise.
+- Email goes through the no-op sender, which shows the confirmation link on screen.
 - `IdentityRevalidatingAuthenticationStateProvider` (from the template) revalidates the security stamp for interactive circuits.

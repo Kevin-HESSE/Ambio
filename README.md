@@ -12,7 +12,7 @@
 ![Docker](https://img.shields.io/badge/Docker-amd64%20%7C%20arm64-2496ED?logo=docker)
 ![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
 
-> 🚧 Early development — see the [roadmap](docs/roadmap.md).
+> 🧪 Proof of concept for an official version built in separate repositories ([ADR 0024](docs/adr/0024-proof-of-concept.md)) — see the [roadmap](docs/roadmap.md).
 
 ## Features
 
@@ -22,8 +22,7 @@
 - **CVs per application**: upload the CV you sent, or generate one from your profile by selecting the relevant experiences and tailoring the summary. Each CV is frozen, so you always know what was sent.
 - **General CV**: a CV not tied to any offer, ready to share on LinkedIn and other networks.
 - **Self-hosted**: a single Docker image for amd64 and arm64, with all data in one volume.
-- **Secure by default**: single-user, 2FA, optional GitHub login.
-- **FR / EN** interface.
+- **Secure by default**: single-user, 2FA.
 
 ## Screenshots
 
@@ -48,7 +47,7 @@ docker run -d --name ambio \
 
 Open <http://localhost:8080> and create your account. Add `-e Ambio__Demo__Enabled=true` to explore with demo data.
 
-See [deployment](docs/deployment.md) for `docker compose`, reverse proxy, email and backups.
+See [deployment](docs/deployment.md) for `docker compose`, reverse proxy and backups.
 
 ### From source
 
