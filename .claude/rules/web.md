@@ -15,8 +15,8 @@ paths: src/Ambio.Web/**
 - `Components/Routes.razor` uses `AuthorizeRouteView`; unauthenticated access to `[Authorize]` pages redirects via `RedirectToLogin`.
 - `IdentityRevalidatingAuthenticationStateProvider` periodically revalidates the security stamp for interactive circuits. `MapAdditionalIdentityEndpoints()` (in `Components/Account/IdentityComponentsEndpointRouteBuilderExtensions.cs`) adds the non-Razor endpoints (logout, external login, personal data download).
 - Account creation goes only through `IUserService.RegisterUserAsync`; registration is open only while no user exists (ADR 0002, ADR 0017).
-- `ExternalLogin.razor` has its `@page` commented out until the GitHub OAuth issue, which must create accounts through `IUserService` too.
-- Email is a no-op (`IdentityNoOpEmailSender`); `RegisterConfirmation.razor` special-cases it to show the confirmation link on screen. Remove that branch when a real sender is added.
+- `ExternalLogin.razor` has its `@page` commented out: GitHub login is out of the proof of concept (ADR 0024).
+- Email is a no-op (`IdentityNoOpEmailSender`); `RegisterConfirmation.razor` special-cases it to show the confirmation link on screen. There is no real sender in the proof of concept (ADR 0024).
 
 ## UI
 

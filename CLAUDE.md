@@ -2,10 +2,10 @@
 
 ## Project state
 
-Ambio is in Phase 1 (see `docs/roadmap.md`): a .NET 10 Blazor Web App with ASP.NET Core Identity, split into layered projects (Domain, Application, Infrastructure, Web).
+Ambio is a proof of concept for an official version built in separate repositories: an API, a SPA, maybe a desktop app ([ADR 0024](docs/adr/0024-proof-of-concept.md)). It is in Phase 1 (see `docs/roadmap.md`): a .NET 10 Blazor Web App with ASP.NET Core Identity, split into layered projects (Domain, Application, Infrastructure, Web).
 
 Every project is organised by feature folders ([ADR 0018](docs/adr/0018-feature-folders-in-every-project.md)).
-- The first feature through every layer is `Companies` (entity, EF Core mapping, service, pages).
+- Features built so far: `Companies`, `JobOffers` (with their postings) and `JobApplications` (to an offer or spontaneous).
 - Tests live in `tests/` and mirror the project under test: Domain, Application, Infrastructure, Web (bUnit) and E2E (Playwright)
 
 ## Stack
@@ -75,15 +75,16 @@ See `docs/architecture.md` for the full dependency rules.
 ## Documentation
 
 - Roadmap and phases: `docs/roadmap.md` (each phase = GitHub Milestone). Tick checkboxes as tasks land.
-- Target architecture: `docs/architecture.md`
+- Proof of concept findings: `docs/poc-findings.md`
+- Architecture: `docs/architecture.md`
 - Data model: `docs/data-model.md`
 - Design system (colors, typography, status badges): `docs/design-system.md`
 - Screens, navigation and responsive layout: `docs/ui.md` (HTML mockups in `docs/mockups/`)
-- Plugins: `docs/plugins.md`
 - Deployment: `docs/deployment.md`
 - Tests and test conventions: `docs/testing.md`
 - CI/CD: `docs/ci-cd.md`
-- Decisions: `docs/adr/` — add a new ADR for any significant decision, never rewrite an accepted one.
+- Decisions: `docs/adr/` — add an ADR only for a decision that can serve as a basis for the official version (domain, data, business rules); other choices go in `docs/poc-findings.md`. Never rewrite an accepted ADR.
+- Docs describe what is built: a planned feature is a roadmap line, its design is written when its slice is built. A slice ends with an entry in `docs/poc-findings.md` and updates the docs it touches.
 - Docs are written in English.
 
 ## Git

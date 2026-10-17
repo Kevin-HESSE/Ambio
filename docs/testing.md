@@ -18,6 +18,7 @@ Tests run on xUnit v3 with Microsoft.Testing.Platform, enabled for `dotnet test`
 - **Critical points first.** There is no coverage target. Test business rules, guards (such as the single-account semaphore of [ADR 0017](adr/0017-account-creation-local-or-github.md)), data access, integrations (such as email sending) and the journeys that would hurt if they broke. Don't test trivial getters or framework behavior.
 - **A test project is created when its layer has something worth testing.** `Ambio.Domain.Tests` comes with the first domain rule, not before.
 - **Real dependencies where they are cheap.** Services run against a real SQLite engine in memory, wired with the production DI extensions, rather than the EF in-memory provider or mocked contexts. Mocks are kept for what the test doesn't own, and are always NSubstitute mocks, never hand-written fakes.
+- **Component tests only where there is logic.** bUnit covers components with behavior: interactive islands, state, conditional rendering. A page that only displays DTOs has no component test ([ADR 0024](adr/0024-proof-of-concept.md)). The existing tests are kept.
 - **A few end-to-end journeys** cover what unit and component tests can't reach, such as the statically rendered Identity pages.
 
 ## Test projects
@@ -28,8 +29,8 @@ The content listed below is typical, not exhaustive: each project grows with its
 |---|---|---|
 | `tests/Ambio.Domain.Tests` | Domain rules (status workflow, invariants) — created in Phase 1 | xUnit |
 | `tests/Ambio.Application.Tests` | DTO validation, `ServiceResult`, mapping extensions | xUnit |
-| `tests/Ambio.Infrastructure.Tests` | Service implementations (user management, email sending…), EF Core mappings and queries, file storage, plugin loader, PDF snapshots | xUnit, SQLite in-memory, NSubstitute, Bogus |
-| `tests/Ambio.Web.Tests` | Blazor components: the app shell, then the interactive pages | bUnit, NSubstitute, Bogus |
+| `tests/Ambio.Infrastructure.Tests` | Service implementations (user management, email sending…), EF Core mappings and queries, file storage, PDF snapshots | xUnit, SQLite in-memory, NSubstitute, Bogus |
+| `tests/Ambio.Web.Tests` | Blazor components with logic: the app shell, the interactive islands, conditional rendering | bUnit, NSubstitute, Bogus |
 | `tests/Ambio.E2E.Tests` | Critical user journeys in a real browser | xUnit, Playwright |
 
 Shared settings (target framework, xUnit package, global `using Xunit;`) live in `tests/Directory.Build.props`, and package versions in `Directory.Packages.props`.
@@ -96,11 +97,11 @@ Playwright drives a headless Chromium against the real app, hosted in the test p
 
 ## PDF snapshot tests
 
-Every CV template (built-in or bundled plugin) is rendered with a fixed `CvModel` fixture.
+Every built-in CV template is rendered with a fixed `CvModel` fixture.
 
 - The test checks that the PDF is valid and has the expected page count.
 - Pages are rasterized to images and compared with approved images stored next to the test. A differing snapshot fails the test and writes the new image for review.
 
 ## Designing templates by hand
 
-`tools/Ambio.CvPlayground` renders a template with sample data in the QuestPDF Companion for live preview. It isn't a test, but it's the fastest way to iterate on a layout before approving new snapshots. See [plugins.md](plugins.md#developing-a-template).
+`tools/Ambio.CvPlayground` renders a template with sample data in the QuestPDF Companion for live preview. It isn't a test, but it's the fastest way to iterate on a layout before approving new snapshots.

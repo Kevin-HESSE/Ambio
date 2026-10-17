@@ -4,7 +4,7 @@ paths: src/Ambio.Application/**
 
 # Application rules
 
-- `Ambio.Application` references Domain only (and `Ambio.Plugins.CV.Abstractions` once it exists): no EF Core, no Infrastructure.
+- `Ambio.Application` references Domain only: no EF Core, no Infrastructure.
 - Code is organised by feature ([ADR 0018](../../docs/adr/0018-feature-folders-in-every-project.md)), e.g. for `Users/`:
   - `Users/IUserService.cs`: service interface
   - `Users/Dtos/RegisterInput.cs`: DTOs

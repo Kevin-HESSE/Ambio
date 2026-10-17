@@ -2,6 +2,8 @@
 
 Ambio is built in small, deployable increments.
 
+> **Proof of concept.** Ambio is a proof of concept for an official version built in separate repositories: an API, a SPA frontend, maybe a desktop app ([ADR 0024](adr/0024-proof-of-concept.md)). What it teaches goes into [poc-findings.md](poc-findings.md).
+
 > **Guiding principle: usable early.** The app is packaged and deployable right after the first feature (application tracking). A demo is set up in the same phase, and every later phase adds its new feature to the demo.
 
 Each phase maps to a GitHub Milestone, and each checkbox maps to an issue.
@@ -13,9 +15,7 @@ Each phase maps to a GitHub Milestone, and each checkbox maps to an issue.
 | [2](#phase-2--docker-deployment--demo) | Docker, deployment & demo | Multi-arch image on Docker Hub, running demo |
 | [2b](#phase-2b--company-research--contacts) | Company research & contacts | Research notes, contacts, recruiters, interviews |
 | [3](#phase-3--candidate-profile--cv-generation) | Profile & CV generation | CVs generated with QuestPDF (per application + general CV) |
-| [4](#phase-4--cv-template-plugins) | CV template plugins | Third-party templates loaded from `/plugins` |
-| [5](#phase-5--identity--i18n) | Identity & i18n | Real email, GitHub login, FR/EN UI |
-| [6](#phase-6--data--showcase) | Data & showcase | JSON export/import, screenshots, final README |
+| [4](#phase-4--export--showcase) | Export & showcase | JSON export for the official version, screenshots, final README |
 
 ---
 
@@ -69,7 +69,7 @@ Each item is a vertical slice: domain, persistence, service, page and tests for 
 ## Phase 2 — Docker, deployment & demo
 
 - [ ] Multi-stage `Dockerfile` (SDK build → ASP.NET runtime), non-root user
-- [ ] Volumes: `/data` (SQLite database, documents, DataProtection keys) and `/plugins` (prepared, empty for now)
+- [ ] Volumes: `/data` (SQLite database, documents, DataProtection keys)
 - [ ] EF Core migrations applied at startup
 - [ ] Forwarded headers enabled for running behind a reverse proxy
 - [ ] `docker-compose.yml` example
@@ -97,34 +97,15 @@ Enriches the company, which is shared by every application to it (see [data-mode
 - [ ] **CV per application — selection + override** ([ADR 0007](adr/0007-cv-snapshots-selection-and-override.md)): choose profile items, override the title and summary for the job offer, then freeze the result as a snapshot
 - [ ] **General CV**: `CvDocument` with no application (`JobApplicationId = null`), meant for sharing on LinkedIn and other networks, with a "My CVs" page
 - [ ] QuestPDF rendering (`Source = Generated`), stored under `/data/documents`, with preview and download
-- [ ] Built-in template `Ambio.Plugins.CV.Default`
+- [ ] Built-in CV template in `Ambio.Infrastructure`
 - [ ] Linux fonts bundled in the Docker image
 - [ ] `tools/Ambio.CvPlayground`: console app using the QuestPDF Companion to design templates by hand
 - [ ] PDF snapshot tests for the default template
 - [ ] Extend demo: seeded profile, a generated general CV, and a generated CV per demo application
 
-## Phase 4 — CV template plugins
+## Phase 4 — Export & showcase
 
-- [ ] `Ambio.Plugins.CV.Abstractions`: `ICvTemplate`, `CvModel` (see [plugins.md](plugins.md))
-- [ ] Plugin loader: scans `/plugins/<Name>/` at startup, one `AssemblyLoadContext` per plugin, sharing the contract and QuestPDF with the host
-- [ ] Faulty-plugin isolation: a plugin that fails to load or render is logged and disabled, and the app keeps running
-- [ ] Template picker when generating a CV, and a template list page (name, version, source)
-- [ ] Sample external plugin (for example `Ambio.Plugins.CV.Modern`) built and dropped into `/plugins` in CI
-- [ ] PDF snapshot tests run against every bundled template
-- [ ] Extend demo: second template available in the demo image
-
-## Phase 5 — Identity & i18n
-
-- [ ] MailKit SMTP email sender configured through environment variables, with the no-op sender kept when SMTP is not configured
-- [ ] Remove the no-op branch in `RegisterConfirmation.razor` when a real sender is configured
-- [ ] Keep 2FA (authenticator app) and recovery codes
-- [ ] GitHub OAuth login: creates the account while none exists, or is linked to the existing one; never creates a second account, and account creation reuses `IUserService` ([ADR 0017](adr/0017-account-creation-local-or-github.md))
-- [ ] FR/EN UI localization with `IStringLocalizer` and a language switcher
-- [ ] Extend demo: language switcher visible in the demo
-
-## Phase 6 — Data & showcase
-
-- [ ] JSON export of all data (profile, applications, cover letters, CV metadata) and import from the UI
+- [ ] JSON export of all data (profile, applications, cover letters, CV metadata), documented as the migration format to the official version; no import
 - [ ] Screenshots in `docs/screenshots/` and embedded in the README
-- [ ] Final README polish (badges, feature tour, demo link)
+- [ ] Final README, adjusted to the proof of concept (badges, feature tour, demo link)
 - [ ] Extend demo: downloadable sample export

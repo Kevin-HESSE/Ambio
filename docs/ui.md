@@ -37,9 +37,7 @@ The screens of the MVP ([Phase 1](roadmap.md#phase-1--application-tracking-mvp))
 | Phase | Added to the sidebar and the More sheet |
 |---|---|
 | 3 | Profile, My CVs (a "Profile & CV" group in the sidebar) |
-| 4 | Templates |
-| 5 | Language (in Settings) |
-| 6 | Export / import |
+| 4 | Export |
 
 ## Patterns
 
@@ -78,7 +76,7 @@ The screens of the MVP ([Phase 1](roadmap.md#phase-1--application-tracking-mvp))
 
 | # | Screen | Route | Content | Later phases |
 |---|---|---|---|---|
-| 1 | Log in | `/Account/Login` | Logo, email, password, "Remember me". Registration link only while no account exists ([ADR 0002](adr/0002-single-user-application.md)). | GitHub login (5) |
+| 1 | Log in | `/Account/Login` | Logo, email, password, "Remember me". Registration link only while no account exists ([ADR 0002](adr/0002-single-user-application.md)). | — |
 | 2 | Dashboard | `/` | Pipeline bar and a counter per status (each opens the filtered list), **Follow up**, recent activity. | Upcoming interviews (2b) |
 | 3 | Applications — list | `/applications` | Filters, table or cards. | — |
 | 4 | Applications — empty | `/applications` | Empty state with "New application" and "Add an offer". | — |
@@ -93,9 +91,9 @@ The screens of the MVP ([Phase 1](roadmap.md#phase-1--application-tracking-mvp))
 | 13 | New offer | `/offers/new` | Offer (company picked from the existing ones or typed to create it), first posting (site and link, no date), ad text. **Duplicate suggestion** banner after "Create offer" when the company and a similar title match: "Add this posting to this offer" adds the site and link to an existing offer and opens it, "Create a new offer anyway" creates it. The form keeps its values. | Recruiter company (2b) |
 | 14 | Companies — list | `/companies` | Kind, industry, location, offers and applications counts. | — |
 | 15 | Company — detail | `/companies/{slug}` | Profile, description, Offers and Applications tabs (`?tab=applications`), each with its count. The Applications tab lists the applications to its offers and the spontaneous ones; its empty state opens a spontaneous application to the company. | Notes and Contacts tabs (2b) |
-| 16 | More sheet | mobile only | Settings, Account, Theme, Log out. | Profile, My CVs, Templates, Export |
-| 17 | Settings | `/settings` | Follow-up delay (days), theme. | Language (5) |
-| 18 | Account | `/Account/Manage` | Identity management: section list on desktop, scrolling tabs on mobile. | External logins (5) |
+| 16 | More sheet | mobile only | Settings, Account, Theme, Log out. | Profile, My CVs, Export |
+| 17 | Settings | `/settings` | Follow-up delay (days), theme. | — |
+| 18 | Account | `/Account/Manage` | Identity management: section list on desktop, scrolling tabs on mobile. | — |
 
 **Follow up** lists the applications still `Applied` after the delay set in Settings (7 days by default, `UserSettings.FollowUpAfterDays`), oldest first. An item leaves the list when its status changes. In Phase 2b, logging a follow-up interaction also resets the delay.
 

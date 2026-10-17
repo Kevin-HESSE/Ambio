@@ -91,7 +91,7 @@ Each status of `ApplicationStatus` ([data model](data-model.md#application-hiera
 - **Draft** vs **Withdrawn**: both are gray. Draft is empty with a dashed border ("not sent yet"). Withdrawn is filled ("closed by me").
 - The **indigo accent is never used for a status**, so a badge can't be mistaken for a button or a link.
 - The `feedback/*` tokens share these hues (success = Offer, warning = Interview, danger = Rejected, info = Applied), so each color means the same thing everywhere in the app.
-- The UI and the mockups use the English labels. The French labels come with localization ([Phase 5](roadmap.md#phase-5--identity--i18n)). The Figma components still show the French labels and will be switched to English.
+- The UI and the mockups use the English labels. Localization is out of the proof of concept ([ADR 0024](adr/0024-proof-of-concept.md)). The Figma components still show the French labels and will be switched to English.
 - Icons come from [Bootstrap Icons](https://icons.getbootstrap.com/) (MIT), self-hosted in `wwwroot/lib/bootstrap-icons/` as an icon font (`<i class="bi bi-send"></i>`). Figma shows a dot instead of the icon.
 
 ### Tags

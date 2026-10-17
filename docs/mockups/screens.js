@@ -768,7 +768,7 @@ Hybrid: 2 days a week at the Nantes office.</p></div>
   window.SCREENS = [
     { id: "login", group: "Log in", title: "Log in", route: "/Account/Login", render: login,
       content: "Centered card with the logo, email, password and “Remember me”. No registration link: the app has a single account (ADR 0002).",
-      later: "Phase 5 adds “Continue with GitHub” for a linked account." },
+      later: "—" },
     { id: "dashboard", group: "Dashboard", title: "Dashboard", route: "/", render: dashboard,
       content: "Pipeline bar and six counters by status (each opens the filtered list). Follow up lists Applied applications with no change for the configured delay. Recent activity shows the last status changes.",
       later: "Phase 2b adds an “Upcoming interviews” card and a “Log a follow-up” action that clears an item from Follow up." },
@@ -813,12 +813,12 @@ Hybrid: 2 days a week at the Nantes office.</p></div>
       later: "Phase 2b adds Notes (research timeline) and Contacts tabs." },
     { id: "more", group: "Navigation & settings", title: "“More” sheet", route: "mobile only", render: moreSheet, mobileOnly: true,
       content: "Fifth tab of the mobile bar. Holds what the desktop sidebar shows at its bottom: Settings, Account, theme, Log out.",
-      later: "Phase 3 adds Profile and My CVs, Phase 4 Templates, Phase 6 Export. Entries are added here and in the sidebar, never as new tabs." },
+      later: "Phase 3 adds Profile and My CVs, Phase 4 Export. Entries are added here and in the sidebar, never as new tabs." },
     { id: "settings", group: "Navigation & settings", title: "Settings", route: "/settings", render: settings,
       content: "Follow-up delay (7 days by default, stored in UserSettings) and theme (System, Light, Dark, stored in the browser).",
-      later: "Phase 5 adds the language." },
+      later: "—" },
     { id: "account", group: "Navigation & settings", title: "Account", route: "/Account/Manage", render: account,
       content: "Identity management pages in the app shell: section list on the left on desktop, scrolling tabs on mobile. Every other Identity page uses the same template.",
-      later: "Phase 5 adds external logins (GitHub)." },
+      later: "—" },
   ];
 })();
