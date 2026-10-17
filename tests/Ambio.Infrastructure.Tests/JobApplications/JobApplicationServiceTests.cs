@@ -289,6 +289,20 @@ public class JobApplicationServiceTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task CreateAsync_ToOffer_ReturnsItsShortIdAndSlug()
+    {
+        var story = new OfferApplicationStory();
+        story.JobOffer.Title = TargetPosition;
+        story.Company.Name = CompanyName;
+        await story.SaveAsync(_services);
+
+        var result = await CreateAsync(_inputFactory.Generate() with { JobOfferId = story.JobOffer.Id });
+
+        Assert.True(result.TryGetValue(out var link));
+        Assert.Equal(new JobApplicationLinkDto((await FindSingleAsync()).ShortId, ApplicationSlug), link);
+    }
+
+    [Fact]
     public async Task CreateAsync_AlreadySentViaPosting_SavesItAsApplied()
     {
         var story = new OfferApplicationStory(numberOfPosting: 2);
@@ -360,6 +374,22 @@ public class JobApplicationServiceTests : IAsyncLifetime
             (company.Id, input.TargetPosition, ApplicationStatus.Draft, (DateOnly?)null, input.Channel, input.ChannelDetail, input.Notes),
             (saved.CompanyId, saved.TargetPosition, saved.Status, saved.AppliedOn, saved.Channel, saved.ChannelDetail, saved.Notes));
         Assert.Matches(ShortIdPattern, saved.ShortId);
+    }
+
+    [Fact]
+    public async Task CreateAsync_SpontaneousToCompanyNamedInAnotherCase_ReturnsItsShortIdAndSlug()
+    {
+        var company = CompanyFactory.GetGenerator().Generate();
+        company.Name = CompanyName;
+        await _services.AddAsync(company);
+
+        var link = await CreateAsync(_spontaneousInputFactory.Generate() with
+        {
+            CompanyName = $" {CompanyName.ToUpperInvariant()} ",
+            TargetPosition = TargetPosition,
+        });
+
+        Assert.Equal(new JobApplicationLinkDto((await FindSingleSpontaneousAsync()).ShortId, ApplicationSlug), link);
     }
 
     [Fact]
@@ -481,10 +511,10 @@ public class JobApplicationServiceTests : IAsyncLifetime
     private Task<JobApplicationDetailsDto?> GetAsync(string shortId) =>
         _services.CallAsync((IJobApplicationService service) => service.GetAsync(shortId, TestContext.Current.CancellationToken));
 
-    private Task<ServiceResult> CreateAsync(NewOfferApplicationInput input) =>
+    private Task<ServiceResult<JobApplicationLinkDto>> CreateAsync(NewOfferApplicationInput input) =>
         _services.CallAsync((IJobApplicationService service) => service.CreateAsync(input, TestContext.Current.CancellationToken));
 
-    private Task CreateAsync(NewSpontaneousApplicationInput input) =>
+    private Task<JobApplicationLinkDto> CreateAsync(NewSpontaneousApplicationInput input) =>
         _services.CallAsync((IJobApplicationService service) => service.CreateAsync(input, TestContext.Current.CancellationToken));
 
     public static TheoryData<string, int> InvalidShortIdOptions => new()

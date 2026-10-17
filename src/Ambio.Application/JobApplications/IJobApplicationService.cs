@@ -18,13 +18,13 @@ public interface IJobApplicationService
     /// <see cref="SpontaneousApplicationDetailsDto"/>, or null when no application has it.</summary>
     public Task<JobApplicationDetailsDto?> GetAsync(string shortId, CancellationToken cancellationToken = default);
 
-    /// <summary>Creates an application to the offer, as a draft or already sent, with a free short id. Fails with
-    /// <see cref="JobApplicationErrors.OfferNotFound"/>, or with <see cref="JobApplicationErrors.PostingNotFound"/>
-    /// when the posting isn't one of the offer's.</summary>
-    public Task<ServiceResult> CreateAsync(NewOfferApplicationInput input, CancellationToken cancellationToken = default);
+    /// <summary>Creates an application to the offer, as a draft or already sent, with a free short id, and returns
+    /// what its URL is built from. Fails with <see cref="JobApplicationErrors.OfferNotFound"/>, or with
+    /// <see cref="JobApplicationErrors.PostingNotFound"/> when the posting isn't one of the offer's.</summary>
+    public Task<ServiceResult<JobApplicationLinkDto>> CreateAsync(NewOfferApplicationInput input, CancellationToken cancellationToken = default);
 
-    /// <summary>Creates a spontaneous application, as a draft or already sent, with a free short id. Its company is
-    /// the one with this name, compared ignoring case and archived or not, or a new employer created in the same
-    /// save.</summary>
-    public Task CreateAsync(NewSpontaneousApplicationInput input, CancellationToken cancellationToken = default);
+    /// <summary>Creates a spontaneous application, as a draft or already sent, with a free short id, and returns
+    /// what its URL is built from. Its company is the one with this name, compared ignoring case and archived or
+    /// not, or a new employer created in the same save.</summary>
+    public Task<JobApplicationLinkDto> CreateAsync(NewSpontaneousApplicationInput input, CancellationToken cancellationToken = default);
 }

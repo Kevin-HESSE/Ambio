@@ -31,7 +31,7 @@ public class JobApplicationJourneyTests : IClassFixture<AmbioAppFixture>
     private const string ApplicationPathPattern = "/applications/[0-9]{6}-developpeur-donnees-lumen-health$";
 
     [Fact]
-    public async Task User_AppliesToAnOfferFoundBySearchThenOpensTheApplicationFromTheListOfferAndCompanyPages()
+    public async Task User_AppliesToAnOfferFoundBySearchLandsOnTheApplicationThenOpensItFromTheListOfferAndCompanyPages()
     {
         var page = await _app.NewLoggedInPageAsync();
 
@@ -59,19 +59,20 @@ public class JobApplicationJourneyTests : IClassFixture<AmbioAppFixture>
         await page.GetByLabel("Sent on").FillAsync(SentOn);
         await page.GetByRole(AriaRole.Button, new() { Name = "Create application" }).ClickAsync();
 
-        await Expect(page).ToHaveURLAsync(new Regex($"/{ApplicationsPath}$"));
-        var row = page.Locator("tbody tr");
-        await Expect(row).ToHaveCountAsync(1);
-        await Expect(row).ToContainTextAsync(Title);
-        await Expect(row).ToContainTextAsync("Applied");
-        await Expect(row).ToContainTextAsync(SentOnText);
-
-        await row.GetByRole(AriaRole.Link, new() { Name = Title }).ClickAsync();
         await Expect(page).ToHaveURLAsync(new Regex(ApplicationPathPattern));
         await Expect(page.GetByRole(AriaRole.Heading, new() { Name = Title, Level = 1 })).ToBeVisibleAsync();
         await Expect(page.Locator(".application-via")).ToContainTextAsync(Site);
         await Expect(page.Locator(".application-sent-on")).ToContainTextAsync(SentOnText);
         var applicationUrl = page.Url;
+
+        await page.GotoAsync(ApplicationsPath);
+        var row = page.Locator("tbody tr");
+        await Expect(row).ToHaveCountAsync(1);
+        await Expect(row).ToContainTextAsync(Title);
+        await Expect(row).ToContainTextAsync("Applied");
+        await Expect(row).ToContainTextAsync(SentOnText);
+        await row.GetByRole(AriaRole.Link, new() { Name = Title }).ClickAsync();
+        await Expect(page).ToHaveURLAsync(applicationUrl);
 
         // An old or mistyped slug leads to the current URL.
         await page.GotoAsync(Regex.Replace(applicationUrl, "-[^/]*$", "-old-title"));

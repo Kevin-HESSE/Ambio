@@ -26,9 +26,10 @@ public class SpontaneousApplicationJourneyTests : IClassFixture<AmbioAppFixture>
     private const string TargetPosition = "Backend Developer";
     private const string SentOn = "2026-09-08";
     private const string SentOnText = "8 Sep 2026";
+    private const string ApplicationPathPattern = "/applications/[0-9]{6}-backend-developer-northwind-labs$";
 
     [Fact]
-    public async Task User_SendsASpontaneousApplicationToANewCompanyThenFindsItOnTheCompanyPage()
+    public async Task User_SendsASpontaneousApplicationToANewCompanyThenFindsItInTheListAndOnTheCompanyPage()
     {
         var page = await _app.NewLoggedInPageAsync();
 
@@ -47,7 +48,11 @@ public class SpontaneousApplicationJourneyTests : IClassFixture<AmbioAppFixture>
         await page.GetByLabel("Sent on").FillAsync(SentOn);
         await page.GetByRole(AriaRole.Button, new() { Name = "Create application" }).ClickAsync();
 
-        await Expect(page).ToHaveURLAsync(new Regex($"/{ApplicationsPath}$"));
+        await Expect(page).ToHaveURLAsync(new Regex(ApplicationPathPattern));
+        await Expect(page.GetByRole(AriaRole.Heading, new() { Name = TargetPosition, Level = 1 })).ToBeVisibleAsync();
+        await Expect(page.Locator(".detail-tags")).ToContainTextAsync("Spontaneous");
+
+        await page.GotoAsync(ApplicationsPath);
         var row = page.Locator("tbody tr");
         await Expect(row).ToHaveCountAsync(1);
         await Expect(row).ToContainTextAsync(TargetPosition);

@@ -232,27 +232,20 @@
     {
         if (_kind == ApplicationKind.Spontaneous)
         {
-            await JobApplicationService.CreateAsync(_spontaneousInput);
-            NavigationManager.NavigateTo(JobApplicationRoutes.List);
+            var link = await JobApplicationService.CreateAsync(_spontaneousInput);
+            NavigationManager.NavigateTo(JobApplicationRoutes.Details(link.ShortId, link.Slug));
             return;
         }
 
         var result = await JobApplicationService.CreateAsync(_offerInput);
 
-        if (result.IsSuccess)
+        if (result.TryGetValue(out var created))
         {
-            NavigationManager.NavigateTo(JobApplicationRoutes.List);
+            NavigationManager.NavigateTo(JobApplicationRoutes.Details(created.ShortId, created.Slug));
             return;
         }
 
-        if (result.GetMessage == JobApplicationErrors.PostingNotFound)
-        {
-            ShowError(nameof(NewOfferApplicationInput.AppliedViaPostingId), result.GetMessage);
-        }
-        else
-        {
-            ShowError(nameof(NewOfferApplicationInput.JobOfferId), result.GetMessage);
-        }
+        ShowError(result.GetMessage == JobApplicationErrors.PostingNotFound ? nameof(NewOfferApplicationInput.AppliedViaPostingId) : nameof(NewOfferApplicationInput.JobOfferId), result.GetMessage);
     }
 
     /// <summary>Shows the service's message under the field of the offer input named <paramref name="fieldName"/>.</summary>
