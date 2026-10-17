@@ -1,0 +1,40 @@
+.application-overview-list {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.application-overview-list > div {
+    --gap: var(--ambio-space-2);
+    padding: var(--ambio-space-12) 0;
+    border-top: 1px solid var(--ambio-border-default);
+}
+
+.application-overview-list > div:first-child {
+    padding-top: 0;
+    border-top: 0;
+}
+
+.application-overview-list > div:last-child {
+    padding-bottom: 0;
+}
+
+.application-overview-list dd {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.application-short-id {
+    font-family: var(--ambio-font-mono);
+}
+
+@media (min-width: 992px) {
+    .application-overview-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        column-gap: var(--ambio-space-32);
+    }
+
+    .application-overview-list > div:nth-child(2) {
+        padding-top: 0;
+        border-top: 0;
+    }
+}

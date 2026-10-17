@@ -15,6 +15,7 @@ public static class JobApplicationMappingExtensions
     public static IQueryable<JobApplicationSummaryDto> ToSummaryDto(this IQueryable<JobApplication> applications) =>
         applications.Select(a => new JobApplicationSummaryDto(
             Id: a.Id,
+            ShortId: a.ShortId,
             Kind: a is SpontaneousApplication ? ApplicationKind.Spontaneous : ApplicationKind.Offer,
             Title: a is OfferApplication
                 ? ((OfferApplication)a).JobOffer.Title
@@ -28,6 +29,44 @@ public static class JobApplicationMappingExtensions
                 ? ((OfferApplication)a).AppliedViaPosting!.Site
                 : null,
             SentOn: a.AppliedOn));
+
+    /// <summary>Projection translated to SQL by EF Core, with the offer, its company and the posting used.</summary>
+    public static IQueryable<OfferApplicationDetailsDto> ToDetailsDto(this IQueryable<OfferApplication> applications) =>
+        applications.Select(a => new OfferApplicationDetailsDto(
+            Id: a.Id,
+            ShortId: a.ShortId,
+            Title: a.JobOffer.Title,
+            CompanyName: a.JobOffer.Company.Name,
+            CompanySlug: a.JobOffer.Company.Slug,
+            Status: a.Status,
+            Channel: a.Channel,
+            ChannelDetail: a.ChannelDetail,
+            SentOn: a.AppliedOn,
+            Notes: a.Notes,
+            CreatedAt: a.CreatedAt,
+            JobOfferId: a.JobOfferId,
+            Location: a.JobOffer.Location,
+            ContractType: a.JobOffer.ContractType,
+            RemotePolicy: a.JobOffer.RemotePolicy,
+            Salary: a.JobOffer.Salary,
+            AppliedViaSite: a.AppliedViaPosting != null ? a.AppliedViaPosting.Site : null,
+            AppliedViaUrl: a.AppliedViaPosting != null ? a.AppliedViaPosting.Url : null));
+
+    /// <summary>Projection translated to SQL by EF Core, with the company.</summary>
+    public static IQueryable<SpontaneousApplicationDetailsDto> ToDetailsDto(this IQueryable<SpontaneousApplication> applications) =>
+        applications.Select(a => new SpontaneousApplicationDetailsDto(
+            Id: a.Id,
+            ShortId: a.ShortId,
+            Title: a.TargetPosition,
+            CompanyName: a.Company.Name,
+            CompanySlug: a.Company.Slug,
+            Status: a.Status,
+            Channel: a.Channel,
+            ChannelDetail: a.ChannelDetail,
+            SentOn: a.AppliedOn,
+            Notes: a.Notes,
+            CreatedAt: a.CreatedAt,
+            CompanyLocation: a.Company.Location));
 
     /// <summary>A new application to the offer, sent through <paramref name="posting"/> when given, and already sent
     /// when the form says so. The optional text fields are trimmed, and a blank one is stored as null.</summary>

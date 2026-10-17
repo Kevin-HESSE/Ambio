@@ -1,0 +1,79 @@
+@page "/applications/{Key}"
+@attribute [Authorize]
+@inject IJobApplicationService JobApplicationService
+@inject NavigationManager NavigationManager
+
+@if (_application is not null)
+{
+    <PageTitle>@_application.Title</PageTitle>
+    <AppBarBack Href="@JobApplicationRoutes.List" />
+    <AppBarTitle>Application</AppBarTitle>
+
+    <div class="application-detail detail-layout">
+        <DetailHeader Title="@_application.Title" ParentTitle="Applications" ParentHref="@JobApplicationRoutes.List">
+            <Subtitle>
+                <a class="application-company" href="@CompanyRoutes.Details(_application.CompanySlug)">@_application.CompanyName</a>
+                @if (Location is not null)
+                {
+                    @(" · ")<span class="application-location">@Location</span>
+                }
+            </Subtitle>
+            <Tags>
+                @if (_application is OfferApplicationDetailsDto offer)
+                {
+                    <OfferTags ContractType="offer.ContractType" RemotePolicy="offer.RemotePolicy" />
+                    @if (offer.Salary is not null)
+                    {
+                        <Tag>@offer.Salary</Tag>
+                    }
+                }
+                else
+                {
+                    <SpontaneousTag />
+                }
+            </Tags>
+        </DetailHeader>
+
+        <div class="application-detail-aside detail-aside stack">
+            <StatusPanel Status="_application.Status" />
+        </div>
+
+        <div class="application-detail-main detail-main stack">
+            <JobApplicationOverview Application="_application" />
+        </div>
+    </div>
+}
+
+@code {
+    /// <summary>The short id and the slug of the application (<see cref="JobApplicationRoutes.Key"/>).</summary>
+    [Parameter]
+    public string Key { get; set; } = "";
+
+    private JobApplicationDetailsDto? _application;
+
+    /// <summary>Where the job is: the offer's location, or the company's for a spontaneous application.</summary>
+    private string? Location => _application switch
+    {
+        OfferApplicationDetailsDto offer => offer.Location,
+        SpontaneousApplicationDetailsDto spontaneous => spontaneous.CompanyLocation,
+        _ => null,
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        _application = await JobApplicationService.GetAsync(JobApplicationRoutes.ShortIdOf(Key));
+
+        if (_application is null)
+        {
+            NavigationManager.NotFound();
+            return;
+        }
+
+        // An old title or a mistyped slug still finds the application: it moves to its current URL.
+        var key = JobApplicationRoutes.Key(_application.ShortId, _application.Slug);
+        if (Key != key)
+        {
+            NavigationManager.NavigateTo(JobApplicationRoutes.Details(_application.ShortId, _application.Slug), replace: true);
+        }
+    }
+}

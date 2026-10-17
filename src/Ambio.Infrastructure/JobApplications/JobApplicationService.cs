@@ -36,6 +36,25 @@ internal class JobApplicationService : IJobApplicationService
                 : ((SpontaneousApplication)a).CompanyId == companyId,
             cancellationToken);
 
+    public async Task<JobApplicationDetailsDto?> GetAsync(string shortId, CancellationToken cancellationToken = default)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
+
+        // One query per kind: a single projection can't build either DTO.
+        return await db.JobApplications
+                .OfType<OfferApplication>()
+                .AsNoTracking()
+                .Where(a => a.ShortId == shortId)
+                .ToDetailsDto()
+                .SingleOrDefaultAsync(cancellationToken) as JobApplicationDetailsDto
+            ?? await db.JobApplications
+                .OfType<SpontaneousApplication>()
+                .AsNoTracking()
+                .Where(a => a.ShortId == shortId)
+                .ToDetailsDto()
+                .SingleOrDefaultAsync(cancellationToken);
+    }
+
     public async Task<ServiceResult> CreateAsync(NewOfferApplicationInput input, CancellationToken cancellationToken = default)
     {
         await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);

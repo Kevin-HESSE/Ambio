@@ -80,7 +80,7 @@ The screens of the MVP ([Phase 1](roadmap.md#phase-1--application-tracking-mvp))
 | 2 | Dashboard | `/` | Pipeline bar and a counter per status (each opens the filtered list), **Follow up**, recent activity. | Upcoming interviews (2b) |
 | 3 | Applications — list | `/applications` | Filters, table or cards. | — |
 | 4 | Applications — empty | `/applications` | Empty state with "New application" and "Add an offer". | — |
-| 5 | Application — Overview | `/applications/{ShortId}-{slug}` | Offer, posting, channel, sending date, short id, notes; status panel and history. | Interactions and Contacts tabs (2b) |
+| 5 | Application — Overview | `/applications/{ShortId}-{slug}` | Company and location (the offer's, or the company's for a spontaneous application) under the title; the offer's contract, remote policy and salary as tags, or the Spontaneous tag. Offer, posting, channel, sending date, short id, creation date, notes; status panel and history. Any other slug, or none, redirects to the current URL. Opened from the applications list, the offer page and the Applications tab of the company page. | Interactions and Contacts tabs (2b) |
 | 6 | Application — Cover letters | `…?tab=letters` | Letter list, plain-text editor, Copy and Save. | — |
 | 7 | Application — CV | `…?tab=cv` | PDF upload (drop zone or file picker), sent CVs with preview and download. | Generate a CV (3) |
 | 8 | Application — archived | same | Restore banner, Undo toast. | — |
@@ -118,7 +118,7 @@ What the mockups are built from, and the Blazor component each becomes. Stock Bo
 | List card (mobile) / table row (desktop) | `app-card` / `table` | `ResponsiveList.razor` (cards below 992 px, table above) and `ListTable.razor` (header, rows, `num` cells), filled by each feature's card and table: `CompanyCard.razor` / `CompanyTable.razor`, `OfferCard.razor` / `OfferTable.razor`, `JobApplicationCard.razor` / `JobApplicationTable.razor`. Each card is a `ListCard.razor` (title, aside such as a date, subtitle, tags; a link with `Href`) |
 | Tabs | `tabs`, `tab` | `TabNav.razor` (links carrying `?tab=`) |
 | Count | `n`, `card-sub` | `CountBadge.razor` (tab counts, postings of an offer) |
-| Status panel and history | `status-panel`, `timeline` | `StatusPanel.razor`, `StatusTimeline.razor` |
+| Status panel and history | `status-panel`, `timeline` | `JobApplications/Shared/StatusPanel.razor` (the status badge), `StatusTimeline.razor` |
 | Bottom sheet / modal | `overlay`, `dialog` | `Sheet.razor` (optional title with a close button; `sheet-content` and `sheet-actions` blocks; `CloseAsync()` from an interactive component) |
 | Toast | `toast` | `ToastHost.razor` + a scoped `ToastService` |
 | Banner | `banner` | `Banner.razor` (icon, title, text, actions; `Neutral` or `Info` icon color) |

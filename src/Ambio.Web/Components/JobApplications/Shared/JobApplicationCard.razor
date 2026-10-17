@@ -1,5 +1,5 @@
-@* An application in the mobile list (< 992 px). It links to its page with #50. *@
-<ListCard Title="@Application.Title" Subtitle="@Application.CompanyName">
+@* An application in the mobile list (< 992 px), linking to its page. *@
+<ListCard Title="@Application.Title" Href="@JobApplicationRoutes.Details(Application.ShortId, Application.Slug)" Subtitle="@Application.CompanyName">
     <Aside>
         @if (Application.SentOn is { } sentOn)
         {

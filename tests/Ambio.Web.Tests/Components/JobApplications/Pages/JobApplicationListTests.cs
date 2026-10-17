@@ -90,6 +90,18 @@ public class JobApplicationListTests : BunitContext
     }
 
     [Fact]
+    public void Render_WithApplications_LinksEachRowAndCardToItsPage()
+    {
+        GivenApplications(_applications);
+
+        var cut = Render<JobApplicationList>();
+
+        var expected = _applications.Select(a => JobApplicationRoutes.Details(a.ShortId, a.Slug)).ToList();
+        Assert.Equal(expected, cut.FindAll("tbody a.application-title").Select(link => link.GetAttribute("href")));
+        Assert.Equal(expected, cut.FindAll("a.list-card").Select(card => card.GetAttribute("href")));
+    }
+
+    [Fact]
     public void Render_WithSpontaneousApplication_TagsItsRowAndCardOnly()
     {
         var spontaneous = JobApplicationSummaryFactory.GetGenerator().Generate(JobApplicationSummaryFactory.IsSpontaneousRuleSet);

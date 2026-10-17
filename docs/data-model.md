@@ -332,7 +332,7 @@ At the data volume of a single user, both costs are negligible.
 
 ### DTOs
 
-- **Lists** use one flat `JobApplicationSummaryDto`, projected in LINQ so EF builds a single query over both kinds. It holds `Id`, `Kind` (`ApplicationKind.Offer` or `Spontaneous`), `Title`, `CompanyName`, `Status`, `Channel`, `AppliedVia` (the site of the posting, null for a spontaneous application) and `SentOn` (`AppliedOn`); `RecruiterName` comes in Phase 2b. An expression tree accepts neither a `switch` expression nor a pattern that declares a variable (`a is OfferApplication o`), so each member tests the kind and casts:
+- **Lists** use one flat `JobApplicationSummaryDto`, projected in LINQ so EF builds a single query over both kinds. It holds `Id`, `ShortId`, `Kind` (`ApplicationKind.Offer` or `Spontaneous`), `Title`, `CompanyName`, `Status`, `Channel`, `AppliedVia` (the site of the posting, null for a spontaneous application) and `SentOn` (`AppliedOn`); `RecruiterName` comes in Phase 2b. An expression tree accepts neither a `switch` expression nor a pattern that declares a variable (`a is OfferApplication o`), so each member tests the kind and casts:
 
   ```csharp
   Title: a is OfferApplication
@@ -341,8 +341,8 @@ At the data volume of a single user, both costs are negligible.
   ```
 
 - Lists are sorted newest first: by sending day, or by creation day for a draft, then by creation time.
-- Summary and detail DTOs carry `ShortId` and the computed `Slug`, so links are built without another query.
-- **Details** use one DTO per subtype: `OfferApplicationDetailsDto` and `SpontaneousApplicationDetailsDto`.
+- Summary and detail DTOs carry `ShortId` and the computed `Slug` (`JobApplicationSlug.From(title, companyName)`, a read-only property, `application` when nothing is left), so links are built without another query.
+- **Details** use one DTO per subtype, `OfferApplicationDetailsDto` and `SpontaneousApplicationDetailsDto`, deriving from the abstract `JobApplicationDetailsDto`. The service reads them with one projection per subtype (`OfType<…>()`): a single projection can't build either type.
 
 ## Common queries
 
