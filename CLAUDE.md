@@ -75,6 +75,7 @@ See `docs/architecture.md` for the full dependency rules.
 ## Documentation
 
 - Roadmap and phases: `docs/roadmap.md` (each phase = GitHub Milestone). Tick checkboxes as tasks land.
+- Proof of concept findings: `docs/poc-findings.md`
 - Target architecture: `docs/architecture.md`
 - Data model: `docs/data-model.md`
 - Design system (colors, typography, status badges): `docs/design-system.md`
