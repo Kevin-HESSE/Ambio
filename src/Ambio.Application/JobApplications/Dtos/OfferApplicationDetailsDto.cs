@@ -3,8 +3,9 @@ using Ambio.Domain.Offers;
 
 namespace Ambio.Application.JobApplications.Dtos;
 
-/// <summary>An application to an offer, with what its page shows of the offer. <paramref name="AppliedViaSite"/> and
-/// <paramref name="AppliedViaUrl"/> are those of the posting used to apply, null when not specified.</summary>
+/// <summary>An application to an offer, with what its page shows of the offer. <paramref name="AppliedViaPostingId"/>,
+/// <paramref name="AppliedViaSite"/> and <paramref name="AppliedViaUrl"/> are those of the posting used to apply, null
+/// when not specified.</summary>
 public record OfferApplicationDetailsDto(
     Guid Id,
     string ShortId,
@@ -22,6 +23,7 @@ public record OfferApplicationDetailsDto(
     ContractType ContractType,
     RemotePolicy RemotePolicy,
     string? Salary,
+    Guid? AppliedViaPostingId,
     string? AppliedViaSite,
     string? AppliedViaUrl)
     : JobApplicationDetailsDto(Id, ShortId, Title, CompanyName, CompanySlug, Status, Channel, ChannelDetail, SentOn, Notes, CreatedAt);

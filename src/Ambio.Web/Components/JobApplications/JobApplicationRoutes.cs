@@ -16,6 +16,8 @@ public static class JobApplicationRoutes
 
     public static string Details(string shortId, string slug) => $"applications/{Key(shortId, slug)}";
 
+    public static string Edit(string shortId, string slug) => $"applications/{Key(shortId, slug)}/edit";
+
     /// <summary>The part of the URL that names the application: its short id, a <c>-</c>, then its slug.</summary>
     public static string Key(string shortId, string slug) => $"{shortId}-{slug}";
 

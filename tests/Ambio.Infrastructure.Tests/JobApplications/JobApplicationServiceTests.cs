@@ -32,6 +32,8 @@ public class JobApplicationServiceTests : IAsyncLifetime
 
     private readonly Faker<NewOfferApplicationInput> _inputFactory = NewOfferApplicationInputFactory.GetGenerator();
     private readonly Faker<NewSpontaneousApplicationInput> _spontaneousInputFactory = NewSpontaneousApplicationInputFactory.GetGenerator();
+    private readonly Faker<OfferApplicationInput> _offerEditFactory = OfferApplicationInputFactory.GetGenerator();
+    private readonly Faker<SpontaneousApplicationInput> _spontaneousEditFactory = SpontaneousApplicationInputFactory.GetGenerator();
     private SqliteServiceProvider _services = null!;
 
     public async ValueTask InitializeAsync() => _services = await CreateServicesAsync();
@@ -218,8 +220,8 @@ public class JobApplicationServiceTests : IAsyncLifetime
             new OfferApplicationDetailsDto(
                 application.Id, application.ShortId, offer.Title, story.Company.Name, story.Company.Slug, ApplicationStatus.Applied,
                 application.Channel, application.ChannelDetail, application.AppliedOn, application.Notes, Now.UtcDateTime,
-                offer.Id, offer.Location, offer.ContractType, offer.RemotePolicy, offer.Salary, offer.Postings[0].Site,
-                offer.Postings[0].Url),
+                offer.Id, offer.Location, offer.ContractType, offer.RemotePolicy, offer.Salary, offer.Postings[0].Id,
+                offer.Postings[0].Site, offer.Postings[0].Url),
             details);
     }
 
@@ -460,6 +462,120 @@ public class JobApplicationServiceTests : IAsyncLifetime
             service.CreateAsync(_inputFactory.Generate() with { JobOfferId = story.JobOffer.Id }, TestContext.Current.CancellationToken)));
     }
 
+    [Fact]
+    public async Task UpdateAsync_OfferApplication_ReplacesItsFieldsAndPostingAndReturnsItsLink()
+    {
+        var story = new OfferApplicationStory(numberOfPosting: 2).WithApplications(1);
+        story.JobOffer.Title = TargetPosition;
+        story.Company.Name = CompanyName;
+        var application = story.Applications[0];
+        application.ApplyVia(story.JobOffer.Postings[0]);
+        await story.SaveAsync(_services);
+        var posting = story.JobOffer.Postings[1];
+        var input = _offerEditFactory.Generate() with { AppliedViaPostingId = posting.Id };
+
+        var result = await UpdateAsync(application.Id, input);
+
+        Assert.True(result.TryGetValue(out var link));
+        Assert.Equal(new JobApplicationLinkDto(application.ShortId, ApplicationSlug), link);
+        var saved = await FindSingleAsync();
+        Assert.Equal(
+            (posting.Id, input.Channel, input.ChannelDetail, input.Notes, story.JobOffer.Id, ApplicationStatus.Draft),
+            (saved.AppliedViaPostingId, saved.Channel, saved.ChannelDetail, saved.Notes, saved.JobOfferId, saved.Status));
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WithoutPosting_ForgetsThePostingAndStoresBlankTextsAsNull()
+    {
+        var story = new OfferApplicationStory().WithApplications(1);
+        var application = story.Applications[0];
+        application.ApplyVia(story.JobOffer.Postings[0]);
+        await story.SaveAsync(_services);
+
+        await UpdateAsync(application.Id, _offerEditFactory.Generate() with { ChannelDetail = " ", Notes = "\n" });
+
+        var saved = await FindSingleAsync();
+        Assert.Equal(((Guid?)null, (string?)null, (string?)null), (saved.AppliedViaPostingId, saved.ChannelDetail, saved.Notes));
+    }
+
+    [Fact]
+    public async Task UpdateAsync_SentApplication_CorrectsTheSendingDay()
+    {
+        var story = new OfferApplicationStory().WithApplications(1, OfferApplicationFactory.IsSentRuleSet);
+        await story.SaveAsync(_services);
+
+        await UpdateAsync(story.Applications[0].Id, _offerEditFactory.Generate() with { AlreadySent = true, SentOn = SentOn });
+
+        var saved = await FindSingleAsync();
+        Assert.Equal((ApplicationStatus.Applied, SentOn), (saved.Status, saved.AppliedOn));
+    }
+
+    [Fact]
+    public async Task UpdateAsync_DraftWithASendingDay_LeavesItADraft()
+    {
+        var story = new OfferApplicationStory().WithApplications(1);
+        await story.SaveAsync(_services);
+
+        await UpdateAsync(story.Applications[0].Id, _offerEditFactory.Generate() with { SentOn = SentOn });
+
+        var saved = await FindSingleAsync();
+        Assert.Equal((ApplicationStatus.Draft, (DateOnly?)null), (saved.Status, saved.AppliedOn));
+    }
+
+    [Fact]
+    public async Task UpdateAsync_PostingOfAnotherOffer_FailsWithPostingNotFound()
+    {
+        var story = new OfferApplicationStory().WithApplications(1);
+        await story.SaveAsync(_services);
+        var other = new OfferApplicationStory();
+        await other.SaveAsync(_services);
+
+        var result = await UpdateAsync(
+            story.Applications[0].Id, _offerEditFactory.Generate() with { AppliedViaPostingId = other.JobOffer.Postings[0].Id });
+
+        Assert.Equal(JobApplicationErrors.PostingNotFound, result.GetMessage);
+        Assert.Equal(story.Applications[0].Channel, (await FindSingleAsync()).Channel);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_UnknownApplication_FailsWithNotFound()
+    {
+        var result = await UpdateAsync(Guid.CreateVersion7(), _offerEditFactory.Generate());
+
+        Assert.Equal(JobApplicationErrors.NotFound, result.GetMessage);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_SpontaneousApplication_ReplacesItsFieldsAndReturnsTheSlugOfItsNewPosition()
+    {
+        var story = new SpontaneousApplicationStory().WithApplications(1);
+        story.Company.Name = CompanyName;
+        var application = story.Applications[0];
+        await story.SaveAsync(_services);
+        var input = _spontaneousEditFactory.Generate() with { TargetPosition = $" {TargetPosition} " };
+
+        var result = await UpdateAsync(application.Id, input);
+
+        Assert.True(result.TryGetValue(out var link));
+        Assert.Equal(new JobApplicationLinkDto(application.ShortId, ApplicationSlug), link);
+        var saved = await FindSingleSpontaneousAsync();
+        Assert.Equal(
+            (TargetPosition, input.Channel, input.ChannelDetail, input.Notes, story.Company.Id),
+            (saved.TargetPosition, saved.Channel, saved.ChannelDetail, saved.Notes, saved.CompanyId));
+    }
+
+    [Fact]
+    public async Task UpdateAsync_UnknownSpontaneousApplication_FailsWithNotFound()
+    {
+        var story = new OfferApplicationStory().WithApplications(1);
+        await story.SaveAsync(_services);
+
+        // An application of the other kind isn't found either.
+        var result = await UpdateAsync(story.Applications[0].Id, _spontaneousEditFactory.Generate());
+
+        Assert.Equal(JobApplicationErrors.NotFound, result.GetMessage);
+    }
+
     [Theory]
     [MemberData(nameof(InvalidShortIdOptions))]
     public async Task ShortIdOptions_WithInvalidAlphabetOrSize_FailValidation(string alphabet, int size)
@@ -516,6 +632,12 @@ public class JobApplicationServiceTests : IAsyncLifetime
 
     private Task<JobApplicationLinkDto> CreateAsync(NewSpontaneousApplicationInput input) =>
         _services.CallAsync((IJobApplicationService service) => service.CreateAsync(input, TestContext.Current.CancellationToken));
+
+    private Task<ServiceResult<JobApplicationLinkDto>> UpdateAsync(Guid id, OfferApplicationInput input) =>
+        _services.CallAsync((IJobApplicationService service) => service.UpdateAsync(id, input, TestContext.Current.CancellationToken));
+
+    private Task<ServiceResult<JobApplicationLinkDto>> UpdateAsync(Guid id, SpontaneousApplicationInput input) =>
+        _services.CallAsync((IJobApplicationService service) => service.UpdateAsync(id, input, TestContext.Current.CancellationToken));
 
     public static TheoryData<string, int> InvalidShortIdOptions => new()
     {

@@ -69,6 +69,7 @@
 <section class="card application-notes" aria-labelledby="application-notes-title">
     <div class="card-header">
         <h2 id="application-notes-title" class="t-h3">Notes</h2>
+        <ButtonLink Href="@EditHref" Icon="pencil" class="btn-sm application-notes-edit">Edit</ButtonLink>
     </div>
     <div class="card-body">
         @if (Application.Notes is not null)
@@ -85,4 +86,8 @@
 @code {
     [Parameter, EditorRequired]
     public JobApplicationDetailsDto Application { get; set; } = null!;
+
+    /// <summary>Base-relative URL of the edit page, where the notes are changed.</summary>
+    [Parameter, EditorRequired]
+    public string EditHref { get; set; } = "";
 }

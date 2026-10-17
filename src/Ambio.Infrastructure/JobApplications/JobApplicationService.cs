@@ -103,6 +103,56 @@ internal class JobApplicationService : IJobApplicationService
         return new JobApplicationLinkDto(shortId, JobApplicationSlug.From(application.TargetPosition, input.CompanyName));
     }
 
+    public async Task<ServiceResult<JobApplicationLinkDto>> UpdateAsync(Guid id, OfferApplicationInput input, CancellationToken cancellationToken = default)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
+
+        var application = await db.JobApplications
+            .OfType<OfferApplication>()
+            .Include(a => a.JobOffer.Company)
+            .Include(a => a.JobOffer.Postings)
+            .SingleOrDefaultAsync(a => a.Id == id, cancellationToken);
+        if (application is null)
+        {
+            return ServiceResult<JobApplicationLinkDto>.Failure(JobApplicationErrors.NotFound);
+        }
+
+        var offer = application.JobOffer;
+        var posting = input.AppliedViaPostingId is { } postingId
+            ? offer.Postings.SingleOrDefault(p => p.Id == postingId)
+            : null;
+        if (input.AppliedViaPostingId is not null && posting is null)
+        {
+            return ServiceResult<JobApplicationLinkDto>.Failure(JobApplicationErrors.PostingNotFound);
+        }
+
+        input.ApplyTo(application, posting);
+        await db.SaveChangesAsync(cancellationToken);
+
+        return ServiceResult<JobApplicationLinkDto>.Success(
+            new JobApplicationLinkDto(application.ShortId, JobApplicationSlug.From(offer.Title, offer.Company.Name)));
+    }
+
+    public async Task<ServiceResult<JobApplicationLinkDto>> UpdateAsync(Guid id, SpontaneousApplicationInput input, CancellationToken cancellationToken = default)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
+
+        var application = await db.JobApplications
+            .OfType<SpontaneousApplication>()
+            .Include(a => a.Company)
+            .SingleOrDefaultAsync(a => a.Id == id, cancellationToken);
+        if (application is null)
+        {
+            return ServiceResult<JobApplicationLinkDto>.Failure(JobApplicationErrors.NotFound);
+        }
+
+        input.ApplyTo(application);
+        await db.SaveChangesAsync(cancellationToken);
+
+        return ServiceResult<JobApplicationLinkDto>.Success(
+            new JobApplicationLinkDto(application.ShortId, JobApplicationSlug.From(application.TargetPosition, application.Company.Name)));
+    }
+
     /// <summary>The active applications of every kind that match <paramref name="predicate"/>, newest first: by
     /// sending day, or by creation day for a draft, then by creation time.</summary>
     private async Task<IReadOnlyList<JobApplicationSummaryDto>> ListWhereAsync(

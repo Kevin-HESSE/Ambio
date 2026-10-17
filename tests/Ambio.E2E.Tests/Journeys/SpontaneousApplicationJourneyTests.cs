@@ -27,9 +27,11 @@ public class SpontaneousApplicationJourneyTests : IClassFixture<AmbioAppFixture>
     private const string SentOn = "2026-09-08";
     private const string SentOnText = "8 Sep 2026";
     private const string ApplicationPathPattern = "/applications/[0-9]{6}-backend-developer-northwind-labs$";
+    private const string NewTargetPosition = "Platform Engineer";
+    private const string RenamedPathPattern = "/applications/[0-9]{6}-platform-engineer-northwind-labs$";
 
     [Fact]
-    public async Task User_SendsASpontaneousApplicationToANewCompanyThenFindsItInTheListAndOnTheCompanyPage()
+    public async Task User_SendsASpontaneousApplicationToANewCompanyRenamesItThenFindsItInTheListAndOnTheCompanyPage()
     {
         var page = await _app.NewLoggedInPageAsync();
 
@@ -52,10 +54,17 @@ public class SpontaneousApplicationJourneyTests : IClassFixture<AmbioAppFixture>
         await Expect(page.GetByRole(AriaRole.Heading, new() { Name = TargetPosition, Level = 1 })).ToBeVisibleAsync();
         await Expect(page.Locator(".detail-tags")).ToContainTextAsync("Spontaneous");
 
+        // A new target position gives the application a new slug.
+        await page.Locator(".detail-actions").GetByRole(AriaRole.Link, new() { Name = "Edit" }).ClickAsync();
+        await page.GetByLabel("Target position").FillAsync(NewTargetPosition);
+        await page.GetByRole(AriaRole.Button, new() { Name = "Save changes" }).ClickAsync();
+        await Expect(page).ToHaveURLAsync(new Regex(RenamedPathPattern));
+        await Expect(page.GetByRole(AriaRole.Heading, new() { Name = NewTargetPosition, Level = 1 })).ToBeVisibleAsync();
+
         await page.GotoAsync(ApplicationsPath);
         var row = page.Locator("tbody tr");
         await Expect(row).ToHaveCountAsync(1);
-        await Expect(row).ToContainTextAsync(TargetPosition);
+        await Expect(row).ToContainTextAsync(NewTargetPosition);
         await Expect(row).ToContainTextAsync(CompanyName);
         await Expect(row).ToContainTextAsync("Spontaneous");
         await Expect(row).ToContainTextAsync(SentOnText);
@@ -65,7 +74,7 @@ public class SpontaneousApplicationJourneyTests : IClassFixture<AmbioAppFixture>
         await Expect(page).ToHaveURLAsync(new Regex($"/{CompaniesPath}/{CompanySlug}$"));
         await page.GetByRole(AriaRole.Link, new() { Name = "Applications 1" }).ClickAsync();
         var item = page.Locator(".application-item");
-        await Expect(item).ToContainTextAsync(TargetPosition);
+        await Expect(item).ToContainTextAsync(NewTargetPosition);
         await Expect(item).ToContainTextAsync("Spontaneous");
     }
 }

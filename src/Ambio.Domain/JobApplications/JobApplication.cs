@@ -50,4 +50,17 @@ public abstract class JobApplication : ITimeStampable
         Status = ApplicationStatus.Applied;
         AppliedOn = appliedOn;
     }
+
+    /// <summary>Corrects the day the application was sent, without changing its status.</summary>
+    /// <exception cref="InvalidOperationException">The application hasn't been sent: <see cref="MarkAsSent"/> records
+    /// its first sending day.</exception>
+    public void ChangeAppliedOn(DateOnly appliedOn)
+    {
+        if (AppliedOn is null)
+        {
+            throw new InvalidOperationException("Only a sent application has a sending day to change.");
+        }
+
+        AppliedOn = appliedOn;
+    }
 }

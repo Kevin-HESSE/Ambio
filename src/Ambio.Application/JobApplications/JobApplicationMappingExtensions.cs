@@ -49,6 +49,7 @@ public static class JobApplicationMappingExtensions
             ContractType: a.JobOffer.ContractType,
             RemotePolicy: a.JobOffer.RemotePolicy,
             Salary: a.JobOffer.Salary,
+            AppliedViaPostingId: a.AppliedViaPostingId,
             AppliedViaSite: a.AppliedViaPosting != null ? a.AppliedViaPosting.Site : null,
             AppliedViaUrl: a.AppliedViaPosting != null ? a.AppliedViaPosting.Url : null));
 
@@ -108,8 +109,67 @@ public static class JobApplicationMappingExtensions
         return application;
     }
 
+    /// <summary>The edit form, filled with the current values of the application.</summary>
+    public static OfferApplicationInput ToInput(this OfferApplicationDetailsDto application) => new()
+    {
+        AppliedViaPostingId = application.AppliedViaPostingId,
+        Channel = application.Channel,
+        ChannelDetail = application.ChannelDetail,
+        AlreadySent = application.SentOn is not null,
+        SentOn = application.SentOn,
+        Notes = application.Notes,
+    };
+
+    /// <summary>The edit form, filled with the current values of the application.</summary>
+    public static SpontaneousApplicationInput ToInput(this SpontaneousApplicationDetailsDto application) => new()
+    {
+        TargetPosition = application.Title,
+        Channel = application.Channel,
+        ChannelDetail = application.ChannelDetail,
+        AlreadySent = application.SentOn is not null,
+        SentOn = application.SentOn,
+        Notes = application.Notes,
+    };
+
+    /// <summary>Copies the fields of the edit form onto the application, sent through <paramref name="posting"/>, or
+    /// through an unspecified site when null. Its offer doesn't change.</summary>
+    public static void ApplyTo(this OfferApplicationInput input, OfferApplication application, JobOfferPosting? posting)
+    {
+        if (posting is not null)
+        {
+            application.ApplyVia(posting);
+        }
+        else
+        {
+            application.ClearAppliedVia();
+        }
+
+        ApplySharedFields(input, application);
+    }
+
+    /// <summary>Copies the fields of the edit form onto the application. Its company doesn't change.</summary>
+    public static void ApplyTo(this SpontaneousApplicationInput input, SpontaneousApplication application)
+    {
+        application.TargetPosition = input.TargetPosition;
+        ApplySharedFields(input, application);
+    }
+
+    // The optional text fields are trimmed, and a blank one is stored as null. Only the sending day of an application
+    // already sent is corrected: a draft is sent by changing its status.
+    private static void ApplySharedFields(JobApplicationInput input, JobApplication application)
+    {
+        application.Channel = input.Channel;
+        application.ChannelDetail = input.ChannelDetail.NullIfBlank();
+        application.Notes = input.Notes.NullIfBlank();
+
+        if (application.AppliedOn is not null && input.SentOn is { } sentOn)
+        {
+            application.ChangeAppliedOn(sentOn);
+        }
+    }
+
     // The form requires the date once "Already sent" is checked.
-    private static void MarkAsSentWhenSent(NewJobApplicationInput input, JobApplication application)
+    private static void MarkAsSentWhenSent(JobApplicationInput input, JobApplication application)
     {
         if (input is { AlreadySent: true, SentOn: { } sentOn })
         {

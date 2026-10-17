@@ -27,4 +27,15 @@ public interface IJobApplicationService
     /// what its URL is built from. Its company is the one with this name, compared ignoring case and archived or
     /// not, or a new employer created in the same save.</summary>
     public Task<JobApplicationLinkDto> CreateAsync(NewSpontaneousApplicationInput input, CancellationToken cancellationToken = default);
+
+    /// <summary>Replaces the fields of the application to an offer, but not its offer nor its status, and returns what
+    /// its URL is built from. The sending day is corrected only once sent. Fails with
+    /// <see cref="JobApplicationErrors.NotFound"/>, or with <see cref="JobApplicationErrors.PostingNotFound"/> when the
+    /// posting isn't one of the offer's.</summary>
+    public Task<ServiceResult<JobApplicationLinkDto>> UpdateAsync(Guid id, OfferApplicationInput input, CancellationToken cancellationToken = default);
+
+    /// <summary>Replaces the fields of the spontaneous application, but not its company nor its status, and returns
+    /// what its URL is built from, whose slug follows a new target position. The sending day is corrected only once
+    /// sent. Fails with <see cref="JobApplicationErrors.NotFound"/>.</summary>
+    public Task<ServiceResult<JobApplicationLinkDto>> UpdateAsync(Guid id, SpontaneousApplicationInput input, CancellationToken cancellationToken = default);
 }

@@ -1,0 +1,34 @@
+@* The fields of the application forms shared by every kind, in the new and edit forms: how and when it was sent, then
+   the notes. Place them inside an EditForm whose model is Input. The new form puts its "Already sent" checkbox before
+   the sending day (ChildContent); the day is shown once the application is sent. *@
+<FormField Id="application-channel" Label="Channel" For="() => Input.Channel">
+    <InputSelect id="application-channel" @bind-Value="Input.Channel" class="form-select">
+        @foreach (var channel in Enum.GetValues<Channel>())
+        {
+            <option value="@channel">@channel.ToLabel()</option>
+        }
+    </InputSelect>
+</FormField>
+<FormField Id="application-channel-detail" Label="Channel detail" For="() => Input.ChannelDetail" Optional FullWidth>
+    <InputText id="application-channel-detail" @bind-Value="Input.ChannelDetail" class="form-control"
+               placeholder="@("An address like jobs@…, or who referred you")" />
+</FormField>
+@ChildContent
+@if (Input.AlreadySent)
+{
+    <FormField Id="application-sent-on" Label="Sent on" For="() => Input.SentOn">
+        <InputDate id="application-sent-on" @bind-Value="Input.SentOn" class="form-control" aria-required="true" />
+    </FormField>
+}
+<FormField Id="application-notes" Label="Notes" For="() => Input.Notes" Optional FullWidth>
+    <InputTextArea id="application-notes" @bind-Value="Input.Notes" class="form-control" />
+</FormField>
+
+@code {
+    [Parameter, EditorRequired]
+    public JobApplicationInput Input { get; set; } = null!;
+
+    /// <summary>Fields between the channel detail and the sending day, such as the "Already sent" checkbox.</summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

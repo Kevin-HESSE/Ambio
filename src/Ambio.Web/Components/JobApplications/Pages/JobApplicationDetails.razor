@@ -8,6 +8,9 @@
     <PageTitle>@_application.Title</PageTitle>
     <AppBarBack Href="@JobApplicationRoutes.List" />
     <AppBarTitle>Application</AppBarTitle>
+    <AppBarActions>
+        <ButtonLink Href="@EditHref" Icon="pencil" IconOnly aria-label="Edit application" />
+    </AppBarActions>
 
     <div class="application-detail detail-layout">
         <DetailHeader Title="@_application.Title" ParentTitle="Applications" ParentHref="@JobApplicationRoutes.List">
@@ -32,6 +35,9 @@
                     <SpontaneousTag />
                 }
             </Tags>
+            <Actions>
+                <ButtonLink Href="@EditHref" Variant="ButtonVariant.Secondary" Icon="pencil">Edit</ButtonLink>
+            </Actions>
         </DetailHeader>
 
         <div class="application-detail-aside detail-aside stack">
@@ -39,7 +45,7 @@
         </div>
 
         <div class="application-detail-main detail-main stack">
-            <JobApplicationOverview Application="_application" />
+            <JobApplicationOverview Application="_application" EditHref="@EditHref" />
         </div>
     </div>
 }
@@ -50,6 +56,8 @@
     public string Key { get; set; } = "";
 
     private JobApplicationDetailsDto? _application;
+
+    private string EditHref => JobApplicationRoutes.Edit(_application!.ShortId, _application.Slug);
 
     /// <summary>Where the job is: the offer's location, or the company's for a spontaneous application.</summary>
     private string? Location => _application switch

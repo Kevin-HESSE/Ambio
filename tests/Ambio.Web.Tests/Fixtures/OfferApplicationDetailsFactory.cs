@@ -33,12 +33,14 @@ public static class OfferApplicationDetailsFactory
             .RuleFor(a => a.ContractType, faker => faker.PickRandom<ContractType>())
             .RuleFor(a => a.RemotePolicy, faker => faker.PickRandom<RemotePolicy>())
             .RuleFor(a => a.Salary, faker => $"{faker.Random.Int(30, 80)} k€")
+            .RuleFor(a => a.AppliedViaPostingId, _ => Guid.CreateVersion7())
             .RuleFor(a => a.AppliedViaSite, faker => faker.PickRandom("LinkedIn", "Indeed", "Welcome to the Jungle"))
             .RuleFor(a => a.AppliedViaUrl, faker => faker.Internet.Url())
             .RuleSet(IsDraft, set => set
                 .RuleFor(a => a.Status, ApplicationStatus.Draft)
                 .RuleFor(a => a.SentOn, (DateOnly?)null)
                 .RuleFor(a => a.Notes, (string?)null)
+                .RuleFor(a => a.AppliedViaPostingId, (Guid?)null)
                 .RuleFor(a => a.AppliedViaSite, (string?)null)
                 .RuleFor(a => a.AppliedViaUrl, (string?)null));
 }

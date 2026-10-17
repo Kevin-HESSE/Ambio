@@ -111,6 +111,19 @@ public class JobApplicationDetailsTests : BunitContext
     }
 
     [Fact]
+    public void Render_WithApplication_LinksTheEditButtonsToTheEditPage()
+    {
+        var application = OfferApplicationDetailsFactory.GetGenerator().Generate();
+        GivenApplication(application);
+
+        var cut = RenderDetails(Key(application));
+
+        var editHref = JobApplicationRoutes.Edit(application.ShortId, application.Slug);
+        Assert.Equal(editHref, cut.Find(".detail-actions a").GetAttribute("href"));
+        Assert.Equal(editHref, cut.Find("a.application-notes-edit").GetAttribute("href"));
+    }
+
+    [Fact]
     public void Render_WithCanonicalKey_StaysOnThePage()
     {
         var application = OfferApplicationDetailsFactory.GetGenerator().Generate();

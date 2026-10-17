@@ -56,53 +56,23 @@
                         </div>
                     }
                 </FormField>
-                <FormField Id="application-position" Label="Target position" For="() => _spontaneousInput.TargetPosition" FullWidth>
-                    <InputText id="application-position" @bind-Value="_spontaneousInput.TargetPosition" class="form-control"
-                               placeholder="e.g. Backend Developer" aria-required="true" />
-                </FormField>
+                <TargetPositionField Input="_spontaneousInput" />
             </FormSection>
         }
 
         <FormSection Title="Application">
             @if (_kind == ApplicationKind.Offer)
             {
-                <FormField Id="application-via" Label="Applied via" For="() => _offerInput.AppliedViaPostingId" Optional>
-                    <InputSelect id="application-via" @bind-Value="_offerInput.AppliedViaPostingId" class="form-select">
-                        <option value="">Not specified</option>
-                        @foreach (var posting in _offer?.Postings ?? [])
-                        {
-                            <option value="@posting.Id">@posting.Site · seen @posting.SeenAt.ToShortDisplayDate()</option>
-                        }
-                    </InputSelect>
-                </FormField>
+                <AppliedViaField Input="_offerInput" Postings="_offer?.Postings ?? []" />
             }
-            <FormField Id="application-channel" Label="Channel" For="() => Input.Channel">
-                <InputSelect id="application-channel" @bind-Value="Input.Channel" class="form-select">
-                    @foreach (var channel in Enum.GetValues<Channel>())
-                    {
-                        <option value="@channel">@channel.ToLabel()</option>
-                    }
-                </InputSelect>
-            </FormField>
-            <FormField Id="application-channel-detail" Label="Channel detail" For="() => Input.ChannelDetail" Optional FullWidth>
-                <InputText id="application-channel-detail" @bind-Value="Input.ChannelDetail" class="form-control"
-                           placeholder="@("An address like jobs@…, or who referred you")" />
-            </FormField>
-            <div class="field">
-                <div class="form-check">
-                    <InputCheckbox id="application-already-sent" @bind-Value="Input.AlreadySent" class="form-check-input" />
-                    <label class="form-check-label" for="application-already-sent">Already sent</label>
+            <JobApplicationFormFields Input="Input">
+                <div class="field">
+                    <div class="form-check">
+                        <InputCheckbox id="application-already-sent" @bind-Value="Input.AlreadySent" class="form-check-input" />
+                        <label class="form-check-label" for="application-already-sent">Already sent</label>
+                    </div>
                 </div>
-            </div>
-            @if (Input.AlreadySent)
-            {
-                <FormField Id="application-sent-on" Label="Sent on" For="() => Input.SentOn">
-                    <InputDate id="application-sent-on" @bind-Value="Input.SentOn" class="form-control" aria-required="true" />
-                </FormField>
-            }
-            <FormField Id="application-notes" Label="Notes" For="() => Input.Notes" Optional FullWidth>
-                <InputTextArea id="application-notes" @bind-Value="Input.Notes" class="form-control" />
-            </FormField>
+            </JobApplicationFormFields>
         </FormSection>
 
         <div class="action-bar">
@@ -137,7 +107,7 @@
     private ValidationMessageStore _serviceMessages = null!;
 
     /// <summary>The fields of the kind shown, for the Application section.</summary>
-    private NewJobApplicationInput Input => _kind == ApplicationKind.Offer ? _offerInput : _spontaneousInput;
+    private JobApplicationInput Input => _kind == ApplicationKind.Offer ? _offerInput : _spontaneousInput;
 
     private EditContext EditContext => _kind == ApplicationKind.Offer ? _offerContext : _spontaneousContext;
 
