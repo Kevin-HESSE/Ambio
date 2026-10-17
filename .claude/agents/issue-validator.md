@@ -47,8 +47,9 @@ Rate each check ✅ (validated), ❌ (not validated) or ⚠️ (partial, or cann
 7. **Commits** - For `git log dev..<branch>` (or the PR commits), every message follows Conventional Commits (`type(scope): subject`) with a subject line only and no body paragraph. Trailers such as `Co-Authored-By` are allowed.
 8. **Documentation**:
    - The roadmap checkbox matching the issue is ticked in `docs/roadmap.md`.
-   - `CLAUDE.md` and the relevant docs (`docs/architecture.md`, `docs/data-model.md`, `docs/ui.md`, `docs/testing.md`...) reflect the change.
-   - A significant decision has a new ADR in `docs/adr/`; accepted ADRs are never rewritten.
+   - `docs/poc-findings.md` has an entry for the slice in its slice log.
+   - The docs the change touches (`CLAUDE.md`, `docs/architecture.md`, `docs/data-model.md`, `docs/ui.md`, `docs/testing.md`...) describe what is built.
+   - A decision that can serve as a basis for the official version (domain, data, business rules) has a new ADR in `docs/adr/`; other choices are in `docs/poc-findings.md`. Accepted ADRs are never rewritten.
    - Docs are in English; colors are written as hex values.
 9. **Post-merge (information only)** - If the PR is merged into `dev`, the issue should carry the `resolved` label and a comment such as "Resolved in #<PR>, merged into `dev`...". Report the gap; never apply it.
 

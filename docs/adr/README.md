@@ -1,6 +1,6 @@
 # Architecture Decision Records
 
-Each significant decision is recorded as a short ADR: context, decision, consequences. See [ADR 0001](0001-record-architecture-decisions.md).
+A decision that can serve as a basis for the official version (domain, data, business rules) is recorded as a short ADR: context, decision, consequences. Choices specific to the proof of concept go in [poc-findings.md](../poc-findings.md). See [ADR 0001](0001-record-architecture-decisions.md) and [ADR 0024](0024-proof-of-concept.md).
 
 | # | Decision | Status |
 |---|---|---|

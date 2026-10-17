@@ -18,6 +18,7 @@ Tests run on xUnit v3 with Microsoft.Testing.Platform, enabled for `dotnet test`
 - **Critical points first.** There is no coverage target. Test business rules, guards (such as the single-account semaphore of [ADR 0017](adr/0017-account-creation-local-or-github.md)), data access, integrations (such as email sending) and the journeys that would hurt if they broke. Don't test trivial getters or framework behavior.
 - **A test project is created when its layer has something worth testing.** `Ambio.Domain.Tests` comes with the first domain rule, not before.
 - **Real dependencies where they are cheap.** Services run against a real SQLite engine in memory, wired with the production DI extensions, rather than the EF in-memory provider or mocked contexts. Mocks are kept for what the test doesn't own, and are always NSubstitute mocks, never hand-written fakes.
+- **Component tests only where there is logic.** bUnit covers components with behavior: interactive islands, state, conditional rendering. A page that only displays DTOs has no component test ([ADR 0024](adr/0024-proof-of-concept.md)). The existing tests are kept.
 - **A few end-to-end journeys** cover what unit and component tests can't reach, such as the statically rendered Identity pages.
 
 ## Test projects
@@ -29,7 +30,7 @@ The content listed below is typical, not exhaustive: each project grows with its
 | `tests/Ambio.Domain.Tests` | Domain rules (status workflow, invariants) — created in Phase 1 | xUnit |
 | `tests/Ambio.Application.Tests` | DTO validation, `ServiceResult`, mapping extensions | xUnit |
 | `tests/Ambio.Infrastructure.Tests` | Service implementations (user management, email sending…), EF Core mappings and queries, file storage, PDF snapshots | xUnit, SQLite in-memory, NSubstitute, Bogus |
-| `tests/Ambio.Web.Tests` | Blazor components: the app shell, then the interactive pages | bUnit, NSubstitute, Bogus |
+| `tests/Ambio.Web.Tests` | Blazor components with logic: the app shell, the interactive islands, conditional rendering | bUnit, NSubstitute, Bogus |
 | `tests/Ambio.E2E.Tests` | Critical user journeys in a real browser | xUnit, Playwright |
 
 Shared settings (target framework, xUnit package, global `using Xunit;`) live in `tests/Directory.Build.props`, and package versions in `Directory.Packages.props`.

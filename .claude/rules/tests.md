@@ -13,7 +13,7 @@ See [docs/testing.md](../../docs/testing.md) for the full approach.
 | `Ambio.Domain.Tests` | Domain rules (created in Phase 1) | xUnit |
 | `Ambio.Application.Tests` | DTO, validation, mapping extensions | xUnit |
 | `Ambio.Infrastructure.Tests` | Services, EF Core mappings and queries, storage, PDF snapshots | xUnit, SQLite in-memory, NSubstitute, Bogus |
-| `Ambio.Web.Tests` | Blazor components: the app shell, then the interactive pages | bUnit, NSubstitute, Bogus |
+| `Ambio.Web.Tests` | Blazor components with logic: the app shell, the interactive islands, conditional rendering | bUnit, NSubstitute, Bogus |
 | `Ambio.E2E.Tests` | Critical user journeys | xUnit, Playwright |
 
 Shared settings live in `tests/Directory.Build.props`, package versions in `Directory.Packages.props`.
@@ -39,6 +39,7 @@ Shared settings live in `tests/Directory.Build.props`, package versions in `Dire
 
 ## Component tests
 
+- Only components with logic get bUnit tests (interactive islands, state, conditional rendering). A page that only displays DTOs has none (ADR 0024). Existing tests are kept.
 - Test classes inherit `BunitContext`. The Application services a component consumes are NSubstitute mocks registered in the bUnit `Services`, as in the Infrastructure tests.
 - `Components/Account` pages are rendered statically and need `HttpContext`: cover them with E2E tests, not bUnit.
 
