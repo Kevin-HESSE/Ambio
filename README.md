@@ -21,7 +21,6 @@
 - **Cover letters**: plain-text letters attached to each application.
 - **CVs per application**: upload the CV you sent, or generate one from your profile by selecting the relevant experiences and tailoring the summary. Each CV is frozen, so you always know what was sent.
 - **General CV**: a CV not tied to any offer, ready to share on LinkedIn and other networks.
-- **Template plugins**: CV layouts are [QuestPDF](https://www.questpdf.com/) templates loaded from a `/plugins` folder. Write your own in C#.
 - **Self-hosted**: a single Docker image for amd64 and arm64, with all data in one volume.
 - **Secure by default**: single-user, 2FA, optional GitHub login.
 - **FR / EN** interface.
@@ -44,7 +43,6 @@ _Coming soon._ Screenshots will live in [`docs/screenshots/`](docs/screenshots/)
 docker run -d --name ambio \
   -p 8080:8080 \
   -v ./data:/data \
-  -v ./plugins:/plugins \
   <dockerhub-user>/ambio:latest
 ```
 
@@ -62,33 +60,12 @@ dotnet run --project src/Ambio.Web
 
 The first restore also installs the git hooks ([Husky.Net](https://alirezanet.github.io/Husky.Net/)), which check the formatting and the commit messages.
 
-## Write your own CV template
-
-```csharp
-public sealed class ModernTemplate : ICvTemplate
-{
-    public string Id => "acme.modern";
-    public string Name => "Modern";
-    public Version Version => new(1, 0, 0);
-
-    public void Compose(IDocumentContainer container, CvModel model) =>
-        container.Page(page =>
-        {
-            page.Header().Text(model.FullName).FontSize(24).Bold();
-            // ...
-        });
-}
-```
-
-Publish it, drop the folder into `/plugins`, and restart. See the [plugin guide](docs/plugins.md).
-
 ## Documentation
 
 - [Roadmap](docs/roadmap.md)
 - [Architecture](docs/architecture.md)
 - [Design system](docs/design-system.md)
 - [UI and screens](docs/ui.md)
-- [CV template plugins](docs/plugins.md)
 - [Deployment](docs/deployment.md)
 - [Testing](docs/testing.md)
 - [Architecture Decision Records](docs/adr/README.md)

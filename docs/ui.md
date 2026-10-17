@@ -37,7 +37,6 @@ The screens of the MVP ([Phase 1](roadmap.md#phase-1--application-tracking-mvp))
 | Phase | Added to the sidebar and the More sheet |
 |---|---|
 | 3 | Profile, My CVs (a "Profile & CV" group in the sidebar) |
-| 4 | Templates |
 | 5 | Language (in Settings) |
 | 6 | Export / import |
 
@@ -93,7 +92,7 @@ The screens of the MVP ([Phase 1](roadmap.md#phase-1--application-tracking-mvp))
 | 13 | New offer | `/offers/new` | Offer (company picked from the existing ones or typed to create it), first posting (site and link, no date), ad text. **Duplicate suggestion** banner after "Create offer" when the company and a similar title match: "Add this posting to this offer" adds the site and link to an existing offer and opens it, "Create a new offer anyway" creates it. The form keeps its values. | Recruiter company (2b) |
 | 14 | Companies — list | `/companies` | Kind, industry, location, offers and applications counts. | — |
 | 15 | Company — detail | `/companies/{slug}` | Profile, description, Offers and Applications tabs (`?tab=applications`), each with its count. The Applications tab lists the applications to its offers and the spontaneous ones; its empty state opens a spontaneous application to the company. | Notes and Contacts tabs (2b) |
-| 16 | More sheet | mobile only | Settings, Account, Theme, Log out. | Profile, My CVs, Templates, Export |
+| 16 | More sheet | mobile only | Settings, Account, Theme, Log out. | Profile, My CVs, Export |
 | 17 | Settings | `/settings` | Follow-up delay (days), theme. | Language (5) |
 | 18 | Account | `/Account/Manage` | Identity management: section list on desktop, scrolling tabs on mobile. | External logins (5) |
 

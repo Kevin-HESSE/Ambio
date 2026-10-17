@@ -43,7 +43,6 @@ Rate each check ✅ (validated), ❌ (not validated) or ⚠️ (partial, or cann
    - Table configuration only through `IEntityTypeConfiguration<T>` classes in the Infrastructure feature folder of the entity (`<Feature>/<Entity>Configuration.cs`).
    - Data access through `IDbContextFactory<ApplicationDbContext>` with one short-lived context per operation (`await using var db = await dbFactory.CreateDbContextAsync(ct);`). No repository or unit of work.
    - Services return DTO records, never entities; Blazor components consume DTOs only. Mapping is hand-written `ToDto()` extension methods in an `<Entity>MappingExtensions` class of the feature folder. No mapping library.
-   - Plugin projects are named `Ambio.Plugins.<Domain>.<Purpose>`.
 6. **Migrations** - If entities or configurations changed, a matching migration exists in the migrations folder and the model snapshot is updated. Check by reading files; never run `dotnet ef`.
 7. **Commits** - For `git log dev..<branch>` (or the PR commits), every message follows Conventional Commits (`type(scope): subject`) with a subject line only and no body paragraph. Trailers such as `Co-Authored-By` are allowed.
 8. **Documentation**:

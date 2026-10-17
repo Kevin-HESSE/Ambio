@@ -813,7 +813,7 @@ Hybrid: 2 days a week at the Nantes office.</p></div>
       later: "Phase 2b adds Notes (research timeline) and Contacts tabs." },
     { id: "more", group: "Navigation & settings", title: "“More” sheet", route: "mobile only", render: moreSheet, mobileOnly: true,
       content: "Fifth tab of the mobile bar. Holds what the desktop sidebar shows at its bottom: Settings, Account, theme, Log out.",
-      later: "Phase 3 adds Profile and My CVs, Phase 4 Templates, Phase 6 Export. Entries are added here and in the sidebar, never as new tabs." },
+      later: "Phase 3 adds Profile and My CVs, Phase 6 Export. Entries are added here and in the sidebar, never as new tabs." },
     { id: "settings", group: "Navigation & settings", title: "Settings", route: "/settings", render: settings,
       content: "Follow-up delay (7 days by default, stored in UserSettings) and theme (System, Light, Dark, stored in the browser).",
       later: "Phase 5 adds the language." },

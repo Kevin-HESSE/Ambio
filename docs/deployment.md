@@ -16,7 +16,6 @@ Ambio ships as a Docker image published on Docker Hub for `linux/amd64` and `lin
 | Path | Content |
 |---|---|
 | `/data` | SQLite database, CV files, profile photo, DataProtection keys |
-| `/plugins` | CV template plugins (see [plugins.md](plugins.md)) |
 
 ## Environment variables
 
@@ -24,7 +23,6 @@ Ambio ships as a Docker image published on Docker Hub for `linux/amd64` and `lin
 |---|---|---|
 | `ConnectionStrings__DefaultConnection` | SQLite connection string | `Data Source=/data/ambio.db` |
 | `Ambio__Storage__Root` | Root folder for documents and photos | `/data` |
-| `Ambio__Plugins__Path` | Plugin folder | `/plugins` |
 | `Ambio__Demo__Enabled` | Seed a demo account and data | `false` |
 | `Ambio__ShortId__Alphabet`, `Ambio__ShortId__Size` | Alphabet and length of the short ids in application URLs: lowercase, never `-` (see [data-model.md](data-model.md#application-hierarchy)) | `0123456789`, `6` |
 | `Smtp__Host`, `Smtp__Port`, `Smtp__Username`, `Smtp__Password`, `Smtp__From` | Email sending; no email sent if unset | — |
@@ -47,7 +45,6 @@ services:
       - Smtp__From=me@example.com
     volumes:
       - ./data:/data
-      - ./plugins:/plugins
 ```
 
 ## Reverse proxy

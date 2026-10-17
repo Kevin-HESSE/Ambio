@@ -79,7 +79,6 @@ See `docs/architecture.md` for the full dependency rules.
 - Data model: `docs/data-model.md`
 - Design system (colors, typography, status badges): `docs/design-system.md`
 - Screens, navigation and responsive layout: `docs/ui.md` (HTML mockups in `docs/mockups/`)
-- Plugins: `docs/plugins.md`
 - Deployment: `docs/deployment.md`
 - Tests and test conventions: `docs/testing.md`
 - CI/CD: `docs/ci-cd.md`

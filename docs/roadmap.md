@@ -13,7 +13,6 @@ Each phase maps to a GitHub Milestone, and each checkbox maps to an issue.
 | [2](#phase-2--docker-deployment--demo) | Docker, deployment & demo | Multi-arch image on Docker Hub, running demo |
 | [2b](#phase-2b--company-research--contacts) | Company research & contacts | Research notes, contacts, recruiters, interviews |
 | [3](#phase-3--candidate-profile--cv-generation) | Profile & CV generation | CVs generated with QuestPDF (per application + general CV) |
-| [4](#phase-4--cv-template-plugins) | CV template plugins | Third-party templates loaded from `/plugins` |
 | [5](#phase-5--identity--i18n) | Identity & i18n | Real email, GitHub login, FR/EN UI |
 | [6](#phase-6--data--showcase) | Data & showcase | JSON export/import, screenshots, final README |
 
@@ -69,7 +68,7 @@ Each item is a vertical slice: domain, persistence, service, page and tests for 
 ## Phase 2 — Docker, deployment & demo
 
 - [ ] Multi-stage `Dockerfile` (SDK build → ASP.NET runtime), non-root user
-- [ ] Volumes: `/data` (SQLite database, documents, DataProtection keys) and `/plugins` (prepared, empty for now)
+- [ ] Volumes: `/data` (SQLite database, documents, DataProtection keys)
 - [ ] EF Core migrations applied at startup
 - [ ] Forwarded headers enabled for running behind a reverse proxy
 - [ ] `docker-compose.yml` example
@@ -97,21 +96,11 @@ Enriches the company, which is shared by every application to it (see [data-mode
 - [ ] **CV per application — selection + override** ([ADR 0007](adr/0007-cv-snapshots-selection-and-override.md)): choose profile items, override the title and summary for the job offer, then freeze the result as a snapshot
 - [ ] **General CV**: `CvDocument` with no application (`JobApplicationId = null`), meant for sharing on LinkedIn and other networks, with a "My CVs" page
 - [ ] QuestPDF rendering (`Source = Generated`), stored under `/data/documents`, with preview and download
-- [ ] Built-in template `Ambio.Plugins.CV.Default`
+- [ ] Built-in CV template in `Ambio.Infrastructure`
 - [ ] Linux fonts bundled in the Docker image
 - [ ] `tools/Ambio.CvPlayground`: console app using the QuestPDF Companion to design templates by hand
 - [ ] PDF snapshot tests for the default template
 - [ ] Extend demo: seeded profile, a generated general CV, and a generated CV per demo application
-
-## Phase 4 — CV template plugins
-
-- [ ] `Ambio.Plugins.CV.Abstractions`: `ICvTemplate`, `CvModel` (see [plugins.md](plugins.md))
-- [ ] Plugin loader: scans `/plugins/<Name>/` at startup, one `AssemblyLoadContext` per plugin, sharing the contract and QuestPDF with the host
-- [ ] Faulty-plugin isolation: a plugin that fails to load or render is logged and disabled, and the app keeps running
-- [ ] Template picker when generating a CV, and a template list page (name, version, source)
-- [ ] Sample external plugin (for example `Ambio.Plugins.CV.Modern`) built and dropped into `/plugins` in CI
-- [ ] PDF snapshot tests run against every bundled template
-- [ ] Extend demo: second template available in the demo image
 
 ## Phase 5 — Identity & i18n
 

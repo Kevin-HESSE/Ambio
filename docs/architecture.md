@@ -8,10 +8,8 @@ Ambio is a .NET 10 Blazor Web App (Interactive Server only) using ASP.NET Core I
 src/
   Ambio.Domain/                   Entities, value objects, domain rules — no infrastructure dependency
   Ambio.Application/              Service interfaces, DTOs, mapping extensions
-  Ambio.Infrastructure/           Service implementations (EF Core via IDbContextFactory), storage, PDF, plugins, SMTP
+  Ambio.Infrastructure/           Service implementations (EF Core via IDbContextFactory), storage, PDF, SMTP
   Ambio.Web/                      Blazor UI, Identity, composition root
-  Ambio.Plugins.CV.Abstractions/  Public contract for CV template authors
-  Ambio.Plugins.CV.Default/       Built-in CV template (also the reference plugin)
 tools/
   Ambio.CvPlayground/             Console app + QuestPDF Companion for designing templates
 tests/
@@ -30,10 +28,7 @@ flowchart LR
     Web --> Infrastructure
     Infrastructure --> Application
     Infrastructure --> Domain
-    Infrastructure --> CVAbs[Plugins.CV.Abstractions]
     Application --> Domain
-    Application --> CVAbs
-    CVDefault[Plugins.CV.Default] --> CVAbs
 ```
 
 - **Domain** references nothing: no EF Core, no data annotations, no `DbContext` ([ADR 0006](adr/0006-persistence-ignorant-domain-and-dtos.md)).
@@ -41,7 +36,6 @@ flowchart LR
 - **Infrastructure** implements the Application services with a short-lived `DbContext` per operation, created by `IDbContextFactory<ApplicationDbContext>`, as Microsoft recommends for Blazor Server. There are no repositories and no unit of work ([ADR 0010](adr/0010-dbcontext-factory-without-repositories.md)).
 - **Infrastructure** configures persistence exclusively with `IEntityTypeConfiguration<T>` classes kept in the feature folder of their entity, which are applied with `ApplyConfigurationsFromAssembly` ([ADR 0018](adr/0018-feature-folders-in-every-project.md)).
 - **Web** only consumes Application services and DTOs. It wires everything together in `Program.cs`.
-- **Plugins** only reference `Ambio.Plugins.CV.Abstractions` and QuestPDF.
 
 ## Conventions
 
@@ -57,7 +51,6 @@ flowchart LR
 | Company URLs | `/companies/{slug}`, slug stored with a unique index, numeric suffix on collision, recomputed on rename ([ADR 0021](adr/0021-slug-urls-for-companies.md)) |
 | UI tokens | Colors, typography and spacing come from `--ambio-*` CSS variables mapped onto Bootstrap. No hard-coded colors in components. See [design-system.md](design-system.md) ([ADR 0015](adr/0015-neutral-visual-identity-with-status-colors.md)) |
 | UI layout | Bottom tab bar + "More" sheet below 992 px, sidebar above. Lists are tables on desktop and cards on mobile; detail pages use tabs in the URL (`?tab=`). See [ui.md](ui.md) ([ADR 0016](adr/0016-responsive-navigation-bottom-tabs-and-sidebar.md)) |
-| Plugin naming | `Ambio.Plugins.<Domain>.<Purpose>` — see [plugins.md](plugins.md) |
 
 ## Data model
 
@@ -104,7 +97,7 @@ flowchart LR
     P[CandidateProfile] --> S[Select items + override title/summary]
     S --> Snap[Immutable snapshot JSON]
     Snap --> M[CvModel]
-    M --> T[ICvTemplate.Compose]
+    M --> T[Built-in QuestPDF template]
     T --> PDF[QuestPDF document]
     PDF --> St[IDocumentStorage → /data/documents]
     St --> CV[CvDocument row]
@@ -120,8 +113,6 @@ An uploaded CV (Phase 1) skips every step up to storage: the file is validated (
   documents/<yyyy>/<id>.pdf
   photos/<id>.<ext>       optional profile photo
   keys/                   ASP.NET Core DataProtection keys
-/plugins
-  <PluginName>/<PluginName>.dll (+ dependencies)
 ```
 
 See [ADR 0005](adr/0005-sqlite-and-filesystem-storage.md) for why files live on disk rather than in the database.
