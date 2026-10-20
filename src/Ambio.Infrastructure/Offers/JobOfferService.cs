@@ -2,6 +2,7 @@ using Ambio.Application.Common;
 using Ambio.Application.Offers;
 using Ambio.Application.Offers.Dtos;
 using Ambio.Domain.Offers;
+using Ambio.Infrastructure.Common;
 using Ambio.Infrastructure.Companies;
 using Ambio.Infrastructure.Persistence;
 
@@ -12,10 +13,12 @@ namespace Ambio.Infrastructure.Offers;
 internal class JobOfferService : IJobOfferService
 {
     private readonly IDbContextFactory<ApplicationDbContext> _dbFactory;
+    private readonly ShortIdGenerator _shortIds;
 
-    public JobOfferService(IDbContextFactory<ApplicationDbContext> dbFactory)
+    public JobOfferService(IDbContextFactory<ApplicationDbContext> dbFactory, ShortIdGenerator shortIds)
     {
         _dbFactory = dbFactory;
+        _shortIds = shortIds;
     }
 
     public async Task<IReadOnlyList<JobOfferSummaryDto>> ListAsync(CancellationToken cancellationToken = default)
@@ -84,9 +87,11 @@ internal class JobOfferService : IJobOfferService
         await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
 
         var companyId = await CompanyLookup.FindOrAddAsync(db, input.CompanyName, cancellationToken);
+        var shortId = await _shortIds.FreeAsync(candidate =>
+            db.JobOffers.AnyAsync(o => o.ShortId == candidate, cancellationToken));
 
         // Saved with the new company, if any, in a single transaction.
-        var offer = input.ToEntity(companyId);
+        var offer = input.ToEntity(companyId, shortId);
         db.JobOffers.Add(offer);
         await db.SaveChangesAsync(cancellationToken);
 

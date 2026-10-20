@@ -42,10 +42,11 @@ public static class JobOfferMappingExtensions
 
     /// <summary>A new offer of the company with the fields of the form, see <see cref="ApplyTo"/>, and its first
     /// posting.</summary>
-    public static JobOffer ToEntity(this NewJobOfferInput input, Guid companyId)
+    public static JobOffer ToEntity(this NewJobOfferInput input, Guid companyId, string shortId)
     {
         var offer = new JobOffer
         {
+            ShortId = shortId,
             CompanyId = companyId,
             Title = input.Title,
             ContractType = input.ContractType,

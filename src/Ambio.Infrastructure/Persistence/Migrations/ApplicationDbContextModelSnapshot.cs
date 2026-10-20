@@ -159,6 +159,10 @@ namespace Ambio.Infrastructure.Persistence.Migrations
                     b.Property<string>("Salary")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("ShortId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -169,6 +173,9 @@ namespace Ambio.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CompanyId");
+
+                    b.HasIndex("ShortId")
+                        .IsUnique();
 
                     b.ToTable("JobOffers");
                 });

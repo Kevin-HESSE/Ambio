@@ -116,6 +116,7 @@ public class OfferApplicationTests
 
     private static JobOffer NewOffer() => new()
     {
+        ShortId = "731052",
         CompanyId = Guid.CreateVersion7(),
         Title = "Backend Developer",
         ContractType = ContractType.Permanent,

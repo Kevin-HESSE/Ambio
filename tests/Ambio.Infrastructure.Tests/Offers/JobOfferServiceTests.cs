@@ -3,6 +3,7 @@ using Ambio.Application.Offers;
 using Ambio.Application.Offers.Dtos;
 using Ambio.Domain.Companies;
 using Ambio.Domain.Offers;
+using Ambio.Infrastructure.Common;
 using Ambio.Infrastructure.Tests.Fixtures;
 using Ambio.Infrastructure.Tests.Stories;
 
@@ -23,6 +24,9 @@ public class JobOfferServiceTests : IAsyncLifetime
     private const string DifferentTitle = "Frontend Developer";
     private const string AccentedTitle = "Développeur backend";
     private const string UnaccentedSearch = "developpeur kelvio";
+    private const string AlphabetKey = $"{ShortIdOptions.Section}:{nameof(ShortIdOptions.Alphabet)}";
+    private const string SizeKey = $"{ShortIdOptions.Section}:{nameof(ShortIdOptions.Size)}";
+    private const string ShortIdPattern = "^[0-9]{6}$";
 
     private static readonly DateTimeOffset Now = new(2026, 9, 28, 10, 0, 0, TimeSpan.Zero);
     private static readonly DateTimeOffset Later = Now.AddDays(2);
@@ -323,6 +327,30 @@ public class JobOfferServiceTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task CreateAsync_SavesTheOfferWithANumericShortId()
+    {
+        var id = await CreateAsync(_newJobOfferInputFactory.Generate());
+
+        Assert.Matches(ShortIdPattern, (await FindAsync(id)).ShortId);
+    }
+
+    [Fact]
+    public async Task CreateAsync_WhenTheDrawnShortIdIsTaken_DrawsAnother()
+    {
+        await using var services = await CreateServicesAsync(alphabet: "01", size: 1);
+        var story = new JobOfferStory();
+        await services.AddAsync(story.Company);
+        await services.AddAsync(JobOfferFactory.GetGenerator(story.Company.Id).RuleFor(o => o.ShortId, "0").Generate());
+
+        await services.CallAsync((IJobOfferService service) =>
+            service.CreateAsync(_newJobOfferInputFactory.Generate(), TestContext.Current.CancellationToken));
+
+        var shortIds = await services.QueryAsync(context =>
+            context.JobOffers.Select(o => o.ShortId).OrderBy(id => id).ToListAsync(TestContext.Current.CancellationToken));
+        Assert.Equal(["0", "1"], shortIds);
+    }
+
+    [Fact]
     public async Task GetAsync_WithUnknownId_ReturnsNull()
     {
         await new JobOfferStory().WithJobOffers(1, numberOfPosting: 1).SaveAsync(_services);
@@ -498,6 +526,17 @@ public class JobOfferServiceTests : IAsyncLifetime
         var story = new JobOfferStory().WithJobOffers(1, numberOfPosting);
         await story.SaveAsync(_services);
         return story.JobOffers[0];
+    }
+
+    private static async Task<SqliteServiceProvider> CreateServicesAsync(string alphabet, int size)
+    {
+        var services = await SqliteServiceProvider.CreateAsync(new Dictionary<string, string?>
+        {
+            [AlphabetKey] = alphabet,
+            [SizeKey] = size.ToString(),
+        });
+        services.TimeProvider.GetUtcNow().Returns(Now);
+        return services;
     }
 
     private async Task<Company> AddCompanyAsync()
