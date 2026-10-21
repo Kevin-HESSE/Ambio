@@ -8,4 +8,6 @@ public static class JobApplicationErrors
     public const string OfferNotFound = "This offer doesn't exist anymore.";
 
     public const string PostingNotFound = "Choose one of the sites where this offer was seen.";
+
+    public const string StatusNotAllowed = "Choose one of the statuses that can follow the current one.";
 }

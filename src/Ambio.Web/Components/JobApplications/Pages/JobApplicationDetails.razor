@@ -41,7 +41,13 @@
         </DetailHeader>
 
         <div class="application-detail-aside detail-aside stack">
-            <StatusPanel Status="_application.Status" Since="StatusSince" />
+            <StatusPanel Status="_application.Status" Since="StatusSince">
+                @if (_application.NextStatuses.Count > 0)
+                {
+                    <ChangeStatusSheet @rendermode="InteractiveServer" ApplicationId="_application.Id" Status="_application.Status"
+                                       NextStatuses="_application.NextStatuses" />
+                }
+            </StatusPanel>
         </div>
 
         <div class="application-detail-main detail-main stack">

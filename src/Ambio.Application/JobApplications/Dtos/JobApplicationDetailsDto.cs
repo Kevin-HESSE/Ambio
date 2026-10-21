@@ -22,4 +22,7 @@ public abstract record JobApplicationDetailsDto(
 {
     /// <summary>The readable part of its URL, after the <see cref="ShortId"/>.</summary>
     public string Slug => JobApplicationSlug.From(Title, CompanyName);
+
+    /// <summary>The statuses it can move to (<see cref="StatusWorkflow"/>): none once its status is final.</summary>
+    public IReadOnlyList<ApplicationStatus> NextStatuses => StatusWorkflow.Next(Status);
 }

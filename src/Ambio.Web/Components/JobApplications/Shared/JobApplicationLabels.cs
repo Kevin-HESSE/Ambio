@@ -29,6 +29,18 @@ public static class JobApplicationLabels
         _ => throw new ArgumentOutOfRangeException(nameof(status), status, null),
     };
 
+    /// <summary>What reaching the status means, next to it in the change status sheet.</summary>
+    public static string ToHint(this ApplicationStatus status) => status switch
+    {
+        ApplicationStatus.Draft => "Not sent yet",
+        ApplicationStatus.Applied => "Sent to the employer",
+        ApplicationStatus.Interview => "Invited to an interview",
+        ApplicationStatus.Offer => "You received a job offer",
+        ApplicationStatus.Rejected => "The employer turned it down",
+        ApplicationStatus.Withdrawn => "You dropped it",
+        _ => throw new ArgumentOutOfRangeException(nameof(status), status, null),
+    };
+
     public static string ToLabel(this Channel channel) => channel switch
     {
         Channel.OnlineForm => "Online form",

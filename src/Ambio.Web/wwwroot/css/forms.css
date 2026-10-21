@@ -19,7 +19,7 @@
 
 /* ---------- Validation ---------- */
 /* Classes added by Blazor's input components and ValidationMessage. */
-.valid.modified:not([type=checkbox]) {
+.valid.modified:not([type=checkbox], [type=radio]) {
     outline: 1px solid var(--ambio-feedback-success);
 }
 

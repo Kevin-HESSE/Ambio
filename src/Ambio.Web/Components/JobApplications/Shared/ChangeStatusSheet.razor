@@ -1,0 +1,105 @@
+@inject IJobApplicationService JobApplicationService
+@inject NavigationManager NavigationManager
+
+@* The "Change status" button of the status card, and its sheet (docs/ui.md, screen 10): only the statuses the workflow
+   allows, the sending day when a draft is sent, and a comment. Rendered in InteractiveServer mode by the static
+   application page, whose status, sending day and history it refreshes once the change is saved. Its button waits for
+   the circuit. *@
+<button type="button" class="btn btn-primary w-100 change-status-open" data-sheet-open="@SheetId" aria-haspopup="dialog"
+        aria-controls="@SheetId" disabled="@(!RendererInfo.IsInteractive)">
+    Change status
+</button>
+
+<Sheet @ref="_sheet" Id="@SheetId" Title="Change status">
+    <EditForm EditContext="_editContext" OnValidSubmit="ChangeStatusAsync" novalidate>
+        <DataAnnotationsValidator />
+        <div class="sheet-content">
+            <p class="change-status-current cluster t-small t-secondary">Current status <StatusBadge Status="Status" /></p>
+            <fieldset class="field">
+                <legend class="form-label t-small">New status</legend>
+                <InputRadioGroup @bind-Value="_input.To" Name="status-to">
+                    <div class="stack">
+                        @foreach (var status in NextStatuses)
+                        {
+                            <label class="change-status-option">
+                                <InputRadio Value="(ApplicationStatus?)status" />
+                                <StatusBadge Status="status" />
+                                <span class="change-status-hint t-small t-muted">@status.ToHint()</span>
+                            </label>
+                        }
+                    </div>
+                </InputRadioGroup>
+                <ValidationMessage For="() => _input.To" />
+            </fieldset>
+            @if (_input.To == ApplicationStatus.Applied)
+            {
+                <FormField Id="status-sent-on" Label="Sent on" For="() => _input.SentOn">
+                    <InputDate id="status-sent-on" @bind-Value="_input.SentOn" class="form-control" aria-required="true" />
+                </FormField>
+            }
+            <FormField Id="status-comment" Label="Comment" For="() => _input.Comment" Optional>
+                <InputTextArea id="status-comment" @bind-Value="_input.Comment" class="form-control" />
+            </FormField>
+        </div>
+        <div class="sheet-actions">
+            <button type="button" class="btn btn-secondary" data-sheet-close @onclick="ResetForm">Cancel</button>
+            <button type="submit" class="btn btn-primary">Change status</button>
+        </div>
+    </EditForm>
+</Sheet>
+
+@code {
+    /// <summary>Id of the change status sheet.</summary>
+    public const string SheetId = "change-status";
+
+    [Parameter, EditorRequired]
+    public Guid ApplicationId { get; set; }
+
+    [Parameter, EditorRequired]
+    public ApplicationStatus Status { get; set; }
+
+    /// <summary>The statuses the application can move to, in the order of the workflow.</summary>
+    [Parameter, EditorRequired]
+    public IReadOnlyList<ApplicationStatus> NextStatuses { get; set; } = [];
+
+    private Sheet _sheet = null!;
+    private StatusChangeInput _input = new();
+    private EditContext _editContext = null!;
+    private ValidationMessageStore _serviceMessages = null!;
+
+    protected override void OnInitialized() => ResetForm();
+
+    private void ResetForm()
+    {
+        _input = new();
+        _editContext = new EditContext(_input);
+        _serviceMessages = new ValidationMessageStore(_editContext);
+        // The service's message stays until a field changes: otherwise the form could never be valid again.
+        _editContext.OnFieldChanged += (_, _) => _serviceMessages.Clear();
+    }
+
+    private async Task ChangeStatusAsync()
+    {
+        var result = await JobApplicationService.ChangeStatusAsync(ApplicationId, _input);
+
+        if (result.GetMessage == JobApplicationErrors.NotFound)
+        {
+            NavigationManager.NotFound();
+            return;
+        }
+
+        if (!result.IsSuccess)
+        {
+            // The status changed since the page was read: the message goes under the statuses.
+            _serviceMessages.Add(_editContext.Field(nameof(StatusChangeInput.To)), result.GetMessage);
+            _editContext.NotifyValidationStateChanged();
+            return;
+        }
+
+        await _sheet.CloseAsync();
+        ResetForm();
+        // The static page reads the application again: its status, sending day and history, and this island's new
+        // parameters.
+        NavigationManager.Refresh();
+    }
+}

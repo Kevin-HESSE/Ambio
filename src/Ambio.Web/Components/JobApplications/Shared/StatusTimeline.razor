@@ -8,8 +8,8 @@
         <ol class="status-timeline-list list-unstyled">
             @foreach (var change in History)
             {
-                <li class="status-timeline-item status-@change.To.ToString().ToLowerInvariant() stack">
-                    <div><StatusBadge Status="change.To" /></div>
+                <li class="status-timeline-item status-@change.To.ToString().ToLowerInvariant() stack align-items-start">
+                    <StatusBadge Status="change.To" />
                     <time class="t-small t-muted" datetime="@change.ChangedAt.ToString("yyyy-MM-dd")">@change.ChangedAt.ToDisplayDate()</time>
                     @if (change.Comment is not null)
                     {
@@ -17,8 +17,8 @@
                     }
                 </li>
             }
-            <li class="status-timeline-item status-draft stack">
-                <div><StatusBadge Status="ApplicationStatus.Draft" /></div>
+            <li class="status-timeline-item status-draft stack align-items-start">
+                <StatusBadge Status="ApplicationStatus.Draft" />
                 <time class="t-small t-muted" datetime="@CreatedAt.ToString("yyyy-MM-dd")">@CreatedAt.ToDisplayDate()</time>
             </li>
         </ol>

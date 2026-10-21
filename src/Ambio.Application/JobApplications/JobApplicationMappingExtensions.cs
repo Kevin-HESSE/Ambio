@@ -173,6 +173,12 @@ public static class JobApplicationMappingExtensions
         ApplySharedFields(input, application);
     }
 
+    /// <summary>Moves the application to the status of the form, recorded at <paramref name="changedAt"/> (UTC). The
+    /// comment is trimmed, and a blank one is stored as null. The service checks first that the workflow allows
+    /// it.</summary>
+    public static void ApplyTo(this StatusChangeInput input, JobApplication application, DateTime changedAt) =>
+        application.ChangeStatus(input.To!.Value, changedAt, input.Comment.NullIfBlank(), input.SentOn);
+
     // The optional text fields are trimmed, and a blank one is stored as null. Only the sending day of an application
     // already sent is corrected: a draft is sent by changing its status.
     private static void ApplySharedFields(JobApplicationInput input, JobApplication application)

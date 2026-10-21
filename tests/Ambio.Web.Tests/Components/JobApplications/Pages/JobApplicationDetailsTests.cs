@@ -39,6 +39,8 @@ public class JobApplicationDetailsTests : BunitContext
     public JobApplicationDetailsTests()
     {
         Services.AddSingleton(_jobApplicationService);
+        // The page is static; its change status sheet is interactive once the circuit is up.
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
     }
 
     [Fact]
@@ -55,7 +57,7 @@ public class JobApplicationDetailsTests : BunitContext
         Assert.Equal(
             [application.ContractType.ToLabel(), application.RemotePolicy.ToLabel(), application.Salary],
             cut.FindAll(".detail-tags .tag").Select(tag => tag.TextContent.Trim()));
-        Assert.Equal(application.Status.ToLabel(), cut.Find(".status-panel .status-badge").TextContent.Trim());
+        Assert.Equal(application.Status.ToLabel(), cut.Find(".status-panel-status .status-badge").TextContent.Trim());
     }
 
     [Fact]
@@ -152,6 +154,19 @@ public class JobApplicationDetailsTests : BunitContext
 
         Assert.Equal($"{ApplicationStatus.Draft.ToLabel()} 1 Sep 2026", TimelineItem(cut.Find(".status-timeline-item")));
         Assert.Equal("since 1 Sep", Normalize(cut.Find(".status-panel-since").TextContent));
+    }
+
+    [Theory]
+    [InlineData(ApplicationStatus.Draft, true)]
+    [InlineData(ApplicationStatus.Rejected, false)]
+    public void Render_WithStatus_OffersToChangeItUnlessItIsFinal(ApplicationStatus status, bool canChange)
+    {
+        var application = OfferApplicationDetailsFactory.GetGenerator().Generate() with { Status = status };
+        GivenApplication(application);
+
+        var cut = RenderDetails(Key(application));
+
+        Assert.Equal(canChange, cut.FindAll(".status-panel .change-status-open").Count == 1);
     }
 
     [Fact]

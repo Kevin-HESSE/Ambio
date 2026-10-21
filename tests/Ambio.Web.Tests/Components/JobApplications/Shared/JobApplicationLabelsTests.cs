@@ -22,6 +22,14 @@ public class JobApplicationLabelsTests
     }
 
     [Fact]
+    public void ToHint_EveryStatus_ReturnsDistinctHints()
+    {
+        var hints = Enum.GetValues<ApplicationStatus>().Select(status => status.ToHint()).ToList();
+
+        Assert.Equal(hints.Count, hints.Distinct().Count());
+    }
+
+    [Fact]
     public void ToLabel_EveryChannel_ReturnsDistinctLabels()
     {
         var labels = Enum.GetValues<Channel>().Select(channel => channel.ToLabel()).ToList();

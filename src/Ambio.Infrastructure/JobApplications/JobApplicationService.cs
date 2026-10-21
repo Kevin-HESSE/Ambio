@@ -155,6 +155,28 @@ internal class JobApplicationService : IJobApplicationService
             new JobApplicationLinkDto(application.ShortId, JobApplicationSlug.From(application.TargetPosition, application.Company.Name)));
     }
 
+    public async Task<ServiceResult> ChangeStatusAsync(Guid id, StatusChangeInput input, CancellationToken cancellationToken = default)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
+
+        // The history isn't loaded: a change is only appended to it.
+        var application = await db.JobApplications.SingleOrDefaultAsync(a => a.Id == id, cancellationToken);
+        if (application is null)
+        {
+            return ServiceResult.Failure(JobApplicationErrors.NotFound);
+        }
+
+        if (input.To is not { } to || !application.CanChangeStatusTo(to))
+        {
+            return ServiceResult.Failure(JobApplicationErrors.StatusNotAllowed);
+        }
+
+        input.ApplyTo(application, Now);
+        await db.SaveChangesAsync(cancellationToken);
+
+        return ServiceResult.Success();
+    }
+
     private DateTime Now => _timeProvider.GetUtcNow().UtcDateTime;
 
     /// <summary>The active applications of every kind that match <paramref name="predicate"/>, newest first: by

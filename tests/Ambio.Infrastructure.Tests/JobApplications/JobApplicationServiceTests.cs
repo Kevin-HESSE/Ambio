@@ -612,6 +612,74 @@ public class JobApplicationServiceTests : IAsyncLifetime
         Assert.Equal(JobApplicationErrors.NotFound, result.GetMessage);
     }
 
+    [Fact]
+    public async Task ChangeStatusAsync_DraftToApplied_SendsItAndRecordsTheChangeWithItsTrimmedComment()
+    {
+        var story = new OfferApplicationStory().WithApplications(1);
+        await story.SaveAsync(_services);
+        var application = story.Applications[0];
+
+        var result = await ChangeStatusAsync(
+            application.Id, new StatusChangeInput { To = ApplicationStatus.Applied, SentOn = SentOn, Comment = $"  {Comment}\n" });
+
+        Assert.True(result.IsSuccess);
+        var saved = await FindSingleAsync();
+        Assert.Equal((ApplicationStatus.Applied, SentOn), (saved.Status, saved.AppliedOn));
+        var change = Assert.Single(await FindStatusChangesAsync());
+        Assert.Equal(
+            (application.Id, ApplicationStatus.Draft, ApplicationStatus.Applied, Now.UtcDateTime, Comment),
+            (change.JobApplicationId, change.From, change.To, change.ChangedAt, change.Comment));
+    }
+
+    [Fact]
+    public async Task ChangeStatusAsync_WithBlankComment_StoresItAsNull()
+    {
+        var story = new OfferApplicationStory().WithApplications(1);
+        await story.SaveAsync(_services);
+
+        await ChangeStatusAsync(story.Applications[0].Id, new StatusChangeInput { To = ApplicationStatus.Withdrawn, Comment = " " });
+
+        Assert.Null(Assert.Single(await FindStatusChangesAsync()).Comment);
+    }
+
+    [Fact]
+    public async Task ChangeStatusAsync_SentApplication_KeepsItsSendingDay()
+    {
+        var story = new SpontaneousApplicationStory().WithApplications(1, SpontaneousApplicationFactory.IsSentRuleSet);
+        await story.SaveAsync(_services);
+        var application = story.Applications[0];
+
+        var result = await ChangeStatusAsync(application.Id, new StatusChangeInput { To = ApplicationStatus.Interview, SentOn = SentOn });
+
+        Assert.True(result.IsSuccess);
+        var saved = await FindSingleSpontaneousAsync();
+        Assert.Equal((ApplicationStatus.Interview, application.AppliedOn), (saved.Status, saved.AppliedOn));
+        Assert.Equal(
+            [ApplicationStatus.Applied, ApplicationStatus.Interview],
+            (await FindStatusChangesAsync()).OrderBy(c => c.ChangedAt).Select(c => c.To));
+    }
+
+    [Fact]
+    public async Task ChangeStatusAsync_StatusTheWorkflowRefuses_FailsWithStatusNotAllowed()
+    {
+        var story = new OfferApplicationStory().WithApplications(1);
+        await story.SaveAsync(_services);
+
+        var result = await ChangeStatusAsync(story.Applications[0].Id, new StatusChangeInput { To = ApplicationStatus.Interview });
+
+        Assert.Equal(JobApplicationErrors.StatusNotAllowed, result.GetMessage);
+        Assert.Equal(ApplicationStatus.Draft, (await FindSingleAsync()).Status);
+        Assert.Empty(await FindStatusChangesAsync());
+    }
+
+    [Fact]
+    public async Task ChangeStatusAsync_UnknownApplication_FailsWithNotFound()
+    {
+        var result = await ChangeStatusAsync(Guid.CreateVersion7(), new StatusChangeInput { To = ApplicationStatus.Withdrawn });
+
+        Assert.Equal(JobApplicationErrors.NotFound, result.GetMessage);
+    }
+
     [Theory]
     [MemberData(nameof(InvalidShortIdOptions))]
     public async Task ShortIdOptions_WithInvalidAlphabetOrSize_FailValidation(string alphabet, int size)
@@ -683,6 +751,9 @@ public class JobApplicationServiceTests : IAsyncLifetime
 
     private Task<ServiceResult<JobApplicationLinkDto>> UpdateAsync(Guid id, SpontaneousApplicationInput input) =>
         _services.CallAsync((IJobApplicationService service) => service.UpdateAsync(id, input, TestContext.Current.CancellationToken));
+
+    private Task<ServiceResult> ChangeStatusAsync(Guid id, StatusChangeInput input) =>
+        _services.CallAsync((IJobApplicationService service) => service.ChangeStatusAsync(id, input, TestContext.Current.CancellationToken));
 
     public static TheoryData<string, int> InvalidShortIdOptions => new()
     {
