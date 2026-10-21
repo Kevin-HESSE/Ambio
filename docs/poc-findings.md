@@ -22,6 +22,7 @@ These ADRs are worth reading again when the official version is designed. They a
 | [0015](adr/0015-neutral-visual-identity-with-status-colors.md) | Visual identity and status colors | |
 | [0017](adr/0017-account-creation-local-or-github.md) | One account, created locally | The GitHub part is dropped ([ADR 0024](adr/0024-proof-of-concept.md)) |
 | [0021](adr/0021-slug-urls-for-companies.md) | Slug URLs for companies | |
+| [0025](adr/0025-short-id-and-slug-urls-for-offers.md) | Short id and slug URLs for offers | Same scheme as applications |
 
 ## Specific to this proof of concept
 
@@ -49,6 +50,13 @@ Newest first. Each entry follows this format:
 - Not needed: what was built and turned out useless
 - Change in the official version: what to do differently
 ```
+
+### 2026-10-21 — Offers: readable URLs (#65)
+
+- Kept: the `{ShortId}-{slug}` URL of applications (ADR 0014) fits offers as is (ADR 0025). The generator, its setting and the redirect to the canonical slug were reused; only the key helper moved to a shared place.
+- Kept: links that carry an offer to another page use its short id (`?offer=482913`), so no GUID is left in the URLs.
+- Not needed: nothing so far.
+- Change in the official version: an offer and its applications get the same slug, built from the same title and company. A renamed offer changes the URL of every application to it; an API that returns the canonical key of each resource handles this without redirects.
 
 ### 2026-10-17 — Application detail and edit (#50)
 
