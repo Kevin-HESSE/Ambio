@@ -10,6 +10,7 @@ public static class JobOfferMappingExtensions
     public static IQueryable<JobOfferSummaryDto> ToSummaryDto(this IQueryable<JobOffer> offers) =>
         offers.Select(o => new JobOfferSummaryDto(
             Id: o.Id,
+            ShortId: o.ShortId,
             Title: o.Title,
             CompanyName: o.Company.Name,
             CompanySlug: o.Company.Slug,
@@ -22,6 +23,7 @@ public static class JobOfferMappingExtensions
     public static IQueryable<JobOfferDetailsDto> ToDetailsDto(this IQueryable<JobOffer> offers) =>
         offers.Select(o => new JobOfferDetailsDto(
             Id: o.Id,
+            ShortId: o.ShortId,
             Title: o.Title,
             CompanyName: o.Company.Name,
             CompanySlug: o.Company.Slug,

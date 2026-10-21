@@ -11,7 +11,7 @@ public static class JobApplicationRoutes
     public const string New = "applications/new";
 
     /// <summary>The new application page with this offer already chosen.</summary>
-    public static string NewForOffer(Guid offerId) => $"applications/new?offer={offerId}";
+    public static string NewForOffer(string offerShortId) => $"applications/new?offer={offerShortId}";
 
     /// <summary>The new application page, spontaneous, with this company already chosen.</summary>
     public static string NewForCompany(string companySlug) => $"applications/new?company={companySlug}";

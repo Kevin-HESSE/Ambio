@@ -24,6 +24,9 @@ public class OfferJourneyTests : IClassFixture<AmbioAppFixture>
     private const string CompanyName = "Kelvio";
     private const string CompanySlug = "kelvio";
     private const string Title = "Backend Developer";
+    private const string NewTitle = "Senior Backend Developer";
+    private const string OfferPathPattern = $"/{OffersPath}/[0-9]{{6}}-backend-developer-kelvio$";
+    private const string RenamedPathPattern = $"/{OffersPath}/[0-9]{{6}}-senior-backend-developer-kelvio$";
     private const string Site = "LinkedIn";
     private const string Url = "https://www.linkedin.com/jobs/view/4102938475";
     private const string UrlWithoutDomain = "https://linkedin";
@@ -31,7 +34,7 @@ public class OfferJourneyTests : IClassFixture<AmbioAppFixture>
     private const string OtherUrl = "https://fr.indeed.com/viewjob?jk=4a1f9e0c2b7d6e35";
 
     [Fact]
-    public async Task User_CreatesOfferThenManagesItsPostingsAndFindsItFromTheCompanyPage()
+    public async Task User_CreatesOfferManagesItsPostingsRenamesItThenFindsItFromTheCompanyPage()
     {
         var page = await _app.NewLoggedInPageAsync();
 
@@ -48,7 +51,7 @@ public class OfferJourneyTests : IClassFixture<AmbioAppFixture>
 
         await page.GetByLabel("Link", new() { Exact = true }).FillAsync(Url);
         await page.GetByRole(AriaRole.Button, new() { Name = "Create offer" }).ClickAsync();
-        await Expect(page).ToHaveURLAsync(new Regex($"/{OffersPath}/[0-9a-f-]{{36}}$"));
+        await Expect(page).ToHaveURLAsync(new Regex(OfferPathPattern));
         var offerUrl = page.Url;
         await Expect(page.GetByRole(AriaRole.Heading, new() { Name = Title, Level = 1 })).ToBeVisibleAsync();
         await Expect(page.GetByText(CompanyName).First).ToBeVisibleAsync();
@@ -77,11 +80,21 @@ public class OfferJourneyTests : IClassFixture<AmbioAppFixture>
         await Expect(postings.First).ToContainTextAsync(OtherSite);
         await Expect(page.GetByRole(AriaRole.Button, new() { Name = $"Remove the {OtherSite} posting" })).ToHaveCountAsync(0);
 
+        // A new title gives the offer a new slug; its old URL still leads to it.
+        await page.Locator(".detail-actions").GetByRole(AriaRole.Link, new() { Name = "Edit" }).ClickAsync();
+        await page.GetByLabel("Title", new() { Exact = true }).FillAsync(NewTitle);
+        await page.GetByRole(AriaRole.Button, new() { Name = "Save changes" }).ClickAsync();
+        await Expect(page).ToHaveURLAsync(new Regex(RenamedPathPattern));
+        var renamedUrl = page.Url;
+        await Expect(page.GetByRole(AriaRole.Heading, new() { Name = NewTitle, Level = 1 })).ToBeVisibleAsync();
+        await page.GotoAsync(offerUrl);
+        await Expect(page).ToHaveURLAsync(renamedUrl);
+
         await page.GotoAsync(CompaniesPath);
         await page.GetByRole(AriaRole.Link, new() { Name = CompanyName }).First.ClickAsync();
         await Expect(page).ToHaveURLAsync(new Regex($"/{CompaniesPath}/{CompanySlug}$"));
         await Expect(page.GetByRole(AriaRole.Link, new() { Name = "Offers 1" })).ToHaveAttributeAsync("aria-current", "page");
-        await page.GetByRole(AriaRole.Link, new() { Name = Title }).ClickAsync();
-        await Expect(page).ToHaveURLAsync(offerUrl);
+        await page.GetByRole(AriaRole.Link, new() { Name = NewTitle }).ClickAsync();
+        await Expect(page).ToHaveURLAsync(renamedUrl);
     }
 }

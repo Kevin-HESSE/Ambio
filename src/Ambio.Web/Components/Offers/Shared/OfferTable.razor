@@ -11,7 +11,7 @@
         {
             <tr>
                 <th scope="row">
-                    <a class="offer-title t-body-strong" href="@OfferRoutes.Details(offer.Id)">@offer.Title</a>
+                    <a class="offer-title t-body-strong" href="@OfferRoutes.Details(offer.ShortId, offer.Slug)">@offer.Title</a>
                     <div class="offer-company t-small t-secondary">@offer.CompanyName</div>
                 </th>
                 <td><div class="offer-tags cluster"><OfferTags ContractType="offer.ContractType" RemotePolicy="offer.RemotePolicy" /></div></td>

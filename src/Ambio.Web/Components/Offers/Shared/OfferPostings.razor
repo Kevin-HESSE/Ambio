@@ -81,6 +81,10 @@
     [Parameter, EditorRequired]
     public Guid OfferId { get; set; }
 
+    /// <summary>The short id the card reloads the offer by, after a change.</summary>
+    [Parameter, EditorRequired]
+    public string OfferShortId { get; set; } = "";
+
     /// <summary>The postings as read by the static page; the card then keeps its own list up to date.</summary>
     [Parameter, EditorRequired]
     public IReadOnlyList<JobOfferPostingDto> Postings { get; set; } = [];
@@ -154,7 +158,7 @@
 
     private async Task ReloadAsync()
     {
-        var offer = await JobOfferService.GetAsync(OfferId);
+        var offer = await JobOfferService.GetAsync(OfferShortId);
 
         if (offer is null)
         {

@@ -95,6 +95,7 @@ public class JobOfferMappingExtensionsTests
     {
         var details = new JobOfferDetailsDto(
             Id: Guid.CreateVersion7(),
+            ShortId: ShortId,
             Title: Title,
             CompanyName: CompanyName,
             CompanySlug: "kelvio",

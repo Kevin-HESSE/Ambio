@@ -42,9 +42,10 @@ public class JobApplicationEditTests : BunitContext
         _application = OfferApplicationDetailsFactory.GetGenerator().Generate() with
         {
             JobOfferId = _offer.Id,
+            JobOfferShortId = _offer.ShortId,
             AppliedViaPostingId = _offer.Postings[0].Id,
         };
-        _jobOfferService.GetAsync(_offer.Id, Arg.Any<CancellationToken>()).Returns(_offer);
+        _jobOfferService.GetAsync(_offer.ShortId, Arg.Any<CancellationToken>()).Returns(_offer);
         GivenApplication(_application);
         _jobApplicationService.UpdateAsync(Arg.Any<Guid>(), Arg.Any<OfferApplicationInput>(), Arg.Any<CancellationToken>())
             .Returns(ServiceResult<JobApplicationLinkDto>.Success(Updated));

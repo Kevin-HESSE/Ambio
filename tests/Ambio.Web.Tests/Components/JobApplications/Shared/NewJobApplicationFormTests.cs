@@ -99,9 +99,9 @@ public class NewJobApplicationFormTests : BunitContext
     [Fact]
     public void SelectResult_LoadsTheOfferWithItsPostings()
     {
-        var summary = JobOfferSummaryFactory.GetGenerator().Generate() with { Id = _offer.Id };
+        var summary = JobOfferSummaryFactory.GetGenerator().Generate() with { Id = _offer.Id, ShortId = _offer.ShortId };
         _jobOfferService.SearchAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns([summary]);
-        _jobOfferService.GetAsync(_offer.Id, Arg.Any<CancellationToken>()).Returns(_offer);
+        _jobOfferService.GetAsync(_offer.ShortId, Arg.Any<CancellationToken>()).Returns(_offer);
         var cut = RenderForm(offer: null);
 
         cut.Find("#application-offer").Input(summary.Title);

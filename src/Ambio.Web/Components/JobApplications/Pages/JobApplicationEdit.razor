@@ -87,7 +87,7 @@
         if (_application is OfferApplicationDetailsDto offer)
         {
             OfferInput ??= offer.ToInput();
-            _postings = (await JobOfferService.GetAsync(offer.JobOfferId))?.Postings ?? [];
+            _postings = (await JobOfferService.GetAsync(offer.JobOfferShortId))?.Postings ?? [];
         }
         else if (_application is SpontaneousApplicationDetailsDto spontaneous)
         {

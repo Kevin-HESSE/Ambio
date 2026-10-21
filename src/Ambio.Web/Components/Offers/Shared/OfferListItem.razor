@@ -1,5 +1,5 @@
 @* An offer in a list inside a card, such as the Offers tab of the company page, linking to its page. *@
-<a class="offer-item" href="@OfferRoutes.Details(Offer.Id)">
+<a class="offer-item" href="@OfferRoutes.Details(Offer.ShortId, Offer.Slug)">
     <div class="offer-item-text stack">
         <span class="offer-title t-body-strong text-truncate">@Offer.Title</span>
         <div class="offer-tags cluster"><OfferTags ContractType="Offer.ContractType" RemotePolicy="Offer.RemotePolicy" /></div>

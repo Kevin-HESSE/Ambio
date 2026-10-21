@@ -1,4 +1,4 @@
-@page "/offers/{Id:guid}"
+@page "/offers/{Key}"
 @attribute [Authorize]
 @inject IJobOfferService JobOfferService
 @inject IJobApplicationService JobApplicationService
@@ -10,7 +10,7 @@
     <AppBarBack Href="@OfferRoutes.List" />
     <AppBarTitle>Offer</AppBarTitle>
     <AppBarActions>
-        <ButtonLink Href="@OfferRoutes.Edit(_offer.Id)" Icon="pencil" IconOnly aria-label="Edit offer" />
+        <ButtonLink Href="@EditHref" Icon="pencil" IconOnly aria-label="Edit offer" />
     </AppBarActions>
 
     <div class="offer-detail detail-layout">
@@ -31,13 +31,13 @@
                 }
             </Tags>
             <Actions>
-                <ButtonLink Href="@OfferRoutes.Edit(_offer.Id)" Variant="ButtonVariant.Secondary" Icon="pencil">Edit</ButtonLink>
+                <ButtonLink Href="@EditHref" Variant="ButtonVariant.Secondary" Icon="pencil">Edit</ButtonLink>
             </Actions>
         </DetailHeader>
 
         <div class="offer-detail-aside detail-aside stack">
-            <OfferPostings @rendermode="InteractiveServer" OfferId="_offer.Id" Postings="_offer.Postings" />
-            <OfferApplications OfferId="_offer.Id" Applications="_applications" />
+            <OfferPostings @rendermode="InteractiveServer" OfferId="_offer.Id" OfferShortId="@_offer.ShortId" Postings="_offer.Postings" />
+            <OfferApplications OfferShortId="@_offer.ShortId" Applications="_applications" />
         </div>
 
         <div class="offer-detail-main detail-main stack">
@@ -61,20 +61,30 @@
 }
 
 @code {
+    /// <summary>The short id and the slug of the offer (<see cref="ShortIdKey"/>).</summary>
     [Parameter]
-    public Guid Id { get; set; }
+    public string Key { get; set; } = "";
 
     private JobOfferDetailsDto? _offer;
 
     private IReadOnlyList<JobApplicationSummaryDto> _applications = [];
 
+    private string EditHref => OfferRoutes.Edit(_offer!.ShortId, _offer.Slug);
+
     protected override async Task OnInitializedAsync()
     {
-        _offer = await JobOfferService.GetAsync(Id);
+        _offer = await JobOfferService.GetAsync(ShortIdKey.ShortIdOf(Key));
 
         if (_offer is null)
         {
             NavigationManager.NotFound();
+            return;
+        }
+
+        // An old title or a mistyped slug still finds the offer: it moves to its current URL.
+        if (Key != ShortIdKey.Of(_offer.ShortId, _offer.Slug))
+        {
+            NavigationManager.NavigateTo(OfferRoutes.Details(_offer.ShortId, _offer.Slug), replace: true);
             return;
         }
 

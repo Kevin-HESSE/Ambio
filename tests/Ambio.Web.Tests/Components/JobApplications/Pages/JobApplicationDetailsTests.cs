@@ -73,7 +73,7 @@ public class JobApplicationDetailsTests : BunitContext
         Assert.Equal(
             (application.Channel.ToLabel(), application.ChannelDetail),
             (cut.Find(".application-channel .tag").TextContent.Trim(), cut.Find(".application-channel-detail").TextContent));
-        Assert.Equal(OfferRoutes.Details(application.JobOfferId), cut.Find(".application-offer").GetAttribute("href"));
+        Assert.Equal(OfferRoutes.Details(application.JobOfferShortId, application.JobOfferSlug), cut.Find(".application-offer").GetAttribute("href"));
         Assert.NotNull(cut.Find($".application-via a[href='{application.AppliedViaUrl}'][target='_blank']"));
         Assert.Equal(application.Notes, cut.Find(".application-notes-text").TextContent);
     }

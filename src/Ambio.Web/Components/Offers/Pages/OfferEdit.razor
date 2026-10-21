@@ -1,4 +1,4 @@
-@page "/offers/{Id:guid}/edit"
+@page "/offers/{Key}/edit"
 @attribute [Authorize]
 @inject IJobOfferService JobOfferService
 @inject NavigationManager NavigationManager
@@ -6,7 +6,7 @@
 @if (_offer is not null)
 {
     <PageTitle>Edit @_offer.Title</PageTitle>
-    <AppBarBack Href="@OfferRoutes.Details(_offer.Id)" />
+    <AppBarBack Href="@DetailsHref" />
     <AppBarTitle>Edit offer</AppBarTitle>
 
     @* The company of an offer isn't edited: it is named under the title. *@
@@ -19,7 +19,7 @@
             <OfferFormFields Input="Input" />
 
             <div class="action-bar">
-                <ButtonLink Href="@OfferRoutes.Details(_offer.Id)" Variant="ButtonVariant.Secondary">Cancel</ButtonLink>
+                <ButtonLink Href="@DetailsHref" Variant="ButtonVariant.Secondary">Cancel</ButtonLink>
                 <button type="submit" class="btn btn-primary">Save changes</button>
             </div>
         </EditForm>
@@ -27,8 +27,9 @@
 }
 
 @code {
+    /// <summary>The short id and the slug of the offer (<see cref="ShortIdKey"/>).</summary>
     [Parameter]
-    public Guid Id { get; set; }
+    public string Key { get; set; } = "";
 
     [SupplyParameterFromForm]
     private JobOfferInput Input { get; set; } = default!;
@@ -36,13 +37,24 @@
     // The offer as saved: it names the page, even while the form holds unsaved changes.
     private JobOfferDetailsDto? _offer;
 
+    private string DetailsHref => OfferRoutes.Details(_offer!.ShortId, _offer.Slug);
+
     protected override async Task OnInitializedAsync()
     {
-        _offer = await JobOfferService.GetAsync(Id);
+        _offer = await JobOfferService.GetAsync(ShortIdKey.ShortIdOf(Key));
 
         if (_offer is null)
         {
             NavigationManager.NotFound();
+            return;
+        }
+
+        // An old title or a mistyped slug still finds the offer: its form moves to its current URL.
+        if (Key != ShortIdKey.Of(_offer.ShortId, _offer.Slug))
+        {
+            var editHref = OfferRoutes.Edit(_offer.ShortId, _offer.Slug);
+            _offer = null;
+            NavigationManager.NavigateTo(editHref, replace: true);
             return;
         }
 
@@ -54,13 +66,14 @@
     {
         var result = await JobOfferService.UpdateAsync(_offer!.Id, Input);
 
-        if (!result.IsSuccess)
+        // A new title gives the offer a new slug: the page it goes back to has a new URL.
+        if (!result.TryGetValue(out var link))
         {
             // The only failure is an offer that no longer exists.
             NavigationManager.NotFound();
             return;
         }
 
-        NavigationManager.NavigateTo(OfferRoutes.Details(_offer.Id));
+        NavigationManager.NavigateTo(OfferRoutes.Details(link.ShortId, link.Slug));
     }
 }

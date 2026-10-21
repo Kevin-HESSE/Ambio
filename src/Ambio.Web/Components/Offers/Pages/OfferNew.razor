@@ -30,13 +30,13 @@
                         @foreach (var offer in _similarOffers)
                         {
                             <li class="offer-duplicate cluster">
-                                <span id="offer-duplicate-@offer.Id">
-                                    <a href="@OfferRoutes.Details(offer.Id)">@offer.Title · @offer.CompanyName</a>,
+                                <span id="offer-duplicate-@offer.ShortId">
+                                    <a href="@OfferRoutes.Details(offer.ShortId, offer.Slug)">@offer.Title · @offer.CompanyName</a>,
                                     published <time datetime="@offer.RegisterAt.ToString("yyyy-MM-dd")">@offer.RegisterAt.ToShortDisplayDate()</time>
                                     with @offer.PostingCount @OfferLabels.PostingWord(offer.PostingCount).
                                 </span>
-                                <button type="submit" name="@nameof(ExistingOfferId)" value="@offer.Id" class="btn btn-secondary btn-sm"
-                                        aria-describedby="offer-duplicate-@offer.Id">
+                                <button type="submit" name="@nameof(ExistingOfferShortId)" value="@offer.ShortId" class="btn btn-secondary btn-sm"
+                                        aria-describedby="offer-duplicate-@offer.ShortId">
                                     Add this posting to this offer
                                 </button>
                             </li>
@@ -113,13 +113,13 @@
 
     /// <summary>The existing offer whose button was clicked in the banner.</summary>
     [SupplyParameterFromForm(FormName = AddPostingFormName)]
-    private Guid? ExistingOfferId { get; set; }
+    private string? ExistingOfferShortId { get; set; }
 
     private IReadOnlyList<string> _companyNames = [];
     private IReadOnlyList<JobOfferSummaryDto> _similarOffers = [];
 
     // A posted form is only handled when the page renders it: the banner's form stays while its post is handled.
-    private bool ShowsBanner => _similarOffers.Count > 0 || ExistingOfferId is not null;
+    private bool ShowsBanner => _similarOffers.Count > 0 || ExistingOfferShortId is not null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -141,19 +141,20 @@
             }
         }
 
-        var id = await JobOfferService.CreateAsync(Input);
-        NavigationManager.NavigateTo(OfferRoutes.Details(id));
+        var link = await JobOfferService.CreateAsync(Input);
+        NavigationManager.NavigateTo(OfferRoutes.Details(link.ShortId, link.Slug));
     }
 
     private async Task AddPostingToOfferAsync()
     {
-        if (ExistingOfferId is not { } offerId)
+        var offer = ExistingOfferShortId is not null ? await JobOfferService.GetAsync(ExistingOfferShortId) : null;
+        if (offer is null)
         {
             NavigationManager.NotFound();
             return;
         }
 
-        var result = await JobOfferService.AddPostingAsync(offerId, Posting);
+        var result = await JobOfferService.AddPostingAsync(offer.Id, Posting);
 
         if (result.GetMessage == JobOfferErrors.NotFound)
         {
@@ -162,6 +163,6 @@
         }
 
         // Added, or the offer already had this link: either way, the posting is on the offer.
-        NavigationManager.NavigateTo(OfferRoutes.Details(offerId));
+        NavigationManager.NavigateTo(OfferRoutes.Details(offer.ShortId, offer.Slug));
     }
 }

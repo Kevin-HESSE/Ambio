@@ -151,7 +151,7 @@
 
     private async Task SelectOfferAsync(JobOfferSummaryDto summary)
     {
-        var offer = await JobOfferService.GetAsync(summary.Id);
+        var offer = await JobOfferService.GetAsync(summary.ShortId);
 
         if (offer is null)
         {

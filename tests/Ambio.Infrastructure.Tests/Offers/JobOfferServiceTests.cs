@@ -20,6 +20,7 @@ public class JobOfferServiceTests : IAsyncLifetime
     private const string CompanyName = "Kelvio";
     private const string CompanySlug = "kelvio";
     private const string Title = "Full-stack Engineer";
+    private const string OfferSlug = "full-stack-engineer-kelvio";
     private const string SimilarTitle = "full stack engineer";
     private const string DifferentTitle = "Frontend Developer";
     private const string AccentedTitle = "Développeur backend";
@@ -70,7 +71,7 @@ public class JobOfferServiceTests : IAsyncLifetime
         var summary = Assert.Single(await ListAsync());
 
         Assert.Equal(
-            new JobOfferSummaryDto(offer.Id, offer.Title, company.Name, company.Slug, offer.ContractType, offer.RemotePolicy, 2, Now.UtcDateTime),
+            new JobOfferSummaryDto(offer.Id, offer.ShortId, offer.Title, company.Name, company.Slug, offer.ContractType, offer.RemotePolicy, 2, Now.UtcDateTime),
             summary);
     }
 
@@ -138,7 +139,7 @@ public class JobOfferServiceTests : IAsyncLifetime
         var summary = Assert.Single(await SearchAsync(UnaccentedSearch));
 
         Assert.Equal(
-            new JobOfferSummaryDto(offer.Id, AccentedTitle, CompanyName, company.Slug, offer.ContractType, offer.RemotePolicy, 1, Now.UtcDateTime),
+            new JobOfferSummaryDto(offer.Id, offer.ShortId, AccentedTitle, CompanyName, company.Slug, offer.ContractType, offer.RemotePolicy, 1, Now.UtcDateTime),
             summary);
     }
 
@@ -193,7 +194,7 @@ public class JobOfferServiceTests : IAsyncLifetime
         var summary = Assert.Single(await FindSimilarAsync(company.Name, SimilarTitle));
 
         Assert.Equal(
-            new JobOfferSummaryDto(offer.Id, Title, company.Name, company.Slug, offer.ContractType, offer.RemotePolicy, 2, Now.UtcDateTime),
+            new JobOfferSummaryDto(offer.Id, offer.ShortId, Title, company.Name, company.Slug, offer.ContractType, offer.RemotePolicy, 2, Now.UtcDateTime),
             summary);
     }
 
@@ -258,9 +259,9 @@ public class JobOfferServiceTests : IAsyncLifetime
         var company = await AddCompanyAsync();
         var input = _newJobOfferInputFactory.Generate() with { CompanyName = company.Name };
 
-        var id = await CreateAsync(input);
+        var link = await CreateAsync(input);
 
-        var offer = await FindAsync(id);
+        var offer = await FindAsync(link.ShortId);
         Assert.Equal(
             (company.Id, input.Title, input.ContractType, input.RemotePolicy, input.Location, input.Salary, input.Description, Now.UtcDateTime),
             (offer.CompanyId, offer.Title, offer.ContractType, offer.RemotePolicy, offer.Location, offer.Salary, offer.Description, offer.CreatedAt));
@@ -274,9 +275,9 @@ public class JobOfferServiceTests : IAsyncLifetime
     {
         var input = _newJobOfferInputFactory.Generate();
 
-        var id = await CreateAsync(input with { Title = $" {input.Title} ", Location = $" {input.Location} ", Salary = " " });
+        var link = await CreateAsync(input with { Title = $" {input.Title} ", Location = $" {input.Location} ", Salary = " " });
 
-        var offer = await FindAsync(id);
+        var offer = await FindAsync(link.ShortId);
         Assert.Equal((input.Title, input.Location, null), (offer.Title, offer.Location, offer.Salary));
     }
 
@@ -287,9 +288,9 @@ public class JobOfferServiceTests : IAsyncLifetime
         var company = _companyFactory.WithCustomName(CompanyName).Generate();
         await _services.AddAsync(company);
 
-        var id = await CreateAsync(_newJobOfferInputFactory.WithCustomCompanyName(name).Generate());
+        var link = await CreateAsync(_newJobOfferInputFactory.WithCustomCompanyName(name).Generate());
 
-        Assert.Equal(company.Id, (await FindAsync(id)).CompanyId);
+        Assert.Equal(company.Id, (await FindAsync(link.ShortId)).CompanyId);
         Assert.Single(await ListCompaniesAsync());
     }
 
@@ -299,9 +300,9 @@ public class JobOfferServiceTests : IAsyncLifetime
         var archived = _companyFactory.Generate(CompanyFactory.IsArchivedRuleSet);
         await _services.AddAsync(archived);
 
-        var id = await CreateAsync(_newJobOfferInputFactory.WithCustomCompanyName(archived.Name).Generate());
+        var link = await CreateAsync(_newJobOfferInputFactory.WithCustomCompanyName(archived.Name).Generate());
 
-        Assert.Equal(archived.Id, (await FindAsync(id)).CompanyId);
+        Assert.Equal(archived.Id, (await FindAsync(link.ShortId)).CompanyId);
     }
 
     [Fact]
@@ -309,9 +310,9 @@ public class JobOfferServiceTests : IAsyncLifetime
     {
         await AddCompanyAsync();
 
-        var id = await CreateAsync(_newJobOfferInputFactory.WithCustomCompanyName($" {CompanyName} ").Generate());
+        var link = await CreateAsync(_newJobOfferInputFactory.WithCustomCompanyName($" {CompanyName} ").Generate());
 
-        var offer = await FindAsync(id);
+        var offer = await FindAsync(link.ShortId);
         Assert.Equal((CompanyName, CompanySlug, CompanyKind.Employer), (offer.Company.Name, offer.Company.Slug, offer.Company.Kind));
         Assert.Equal(2, (await ListCompaniesAsync()).Count);
     }
@@ -321,17 +322,28 @@ public class JobOfferServiceTests : IAsyncLifetime
     {
         await _services.AddAsync(_companyFactory.WithCustomName("Acme Inc.").Generate());
 
-        var id = await CreateAsync(_newJobOfferInputFactory.WithCustomCompanyName("Acme, Inc").Generate());
+        var link = await CreateAsync(_newJobOfferInputFactory.WithCustomCompanyName("Acme, Inc").Generate());
 
-        Assert.Equal("acme-inc-2", (await FindAsync(id)).Company.Slug);
+        Assert.Equal("acme-inc-2", (await FindAsync(link.ShortId)).Company.Slug);
     }
 
     [Fact]
     public async Task CreateAsync_SavesTheOfferWithANumericShortId()
     {
-        var id = await CreateAsync(_newJobOfferInputFactory.Generate());
+        var link = await CreateAsync(_newJobOfferInputFactory.Generate());
 
-        Assert.Matches(ShortIdPattern, (await FindAsync(id)).ShortId);
+        Assert.Matches(ShortIdPattern, (await FindAsync(link.ShortId)).ShortId);
+    }
+
+    [Fact]
+    public async Task CreateAsync_WithNameOfExistingCompanyInAnotherCase_ReturnsItsShortIdAndSlug()
+    {
+        var company = _companyFactory.WithCustomName(CompanyName).Generate();
+        await _services.AddAsync(company);
+
+        var link = await CreateAsync(_newJobOfferInputFactory.WithCustomCompanyName("KELVIO").Generate() with { Title = Title });
+
+        Assert.Equal(new JobOfferLinkDto((await FindAsync(company.Id, Title)).ShortId, OfferSlug), link);
     }
 
     [Fact]
@@ -351,11 +363,12 @@ public class JobOfferServiceTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task GetAsync_WithUnknownId_ReturnsNull()
+    public async Task GetAsync_WithUnknownShortId_ReturnsNull()
     {
-        await new JobOfferStory().WithJobOffers(1, numberOfPosting: 1).SaveAsync(_services);
+        var story = new JobOfferStory().WithJobOffers(1, numberOfPosting: 1);
+        await story.SaveAsync(_services);
 
-        Assert.Null(await GetAsync(Guid.CreateVersion7()));
+        Assert.Null(await GetAsync($"{story.JobOffers[0].ShortId}0"));
     }
 
     [Fact]
@@ -367,12 +380,12 @@ public class JobOfferServiceTests : IAsyncLifetime
         var offer = story.JobOffers[0];
         var posting = offer.Postings[0];
 
-        var details = await GetAsync(offer.Id);
+        var details = await GetAsync(offer.ShortId);
 
         Assert.NotNull(details);
         Assert.Equal(
-            (offer.Id, offer.Title, company.Name, company.Slug, offer.ContractType, offer.RemotePolicy, offer.Location, offer.Salary, offer.Description, Now.UtcDateTime),
-            (details.Id, details.Title, details.CompanyName, details.CompanySlug, details.ContractType, details.RemotePolicy, details.Location, details.Salary, details.Description, details.RegisterAt));
+            (offer.Id, offer.ShortId, offer.Title, company.Name, company.Slug, offer.ContractType, offer.RemotePolicy, offer.Location, offer.Salary, offer.Description, Now.UtcDateTime),
+            (details.Id, details.ShortId, details.Title, details.CompanyName, details.CompanySlug, details.ContractType, details.RemotePolicy, details.Location, details.Salary, details.Description, details.RegisterAt));
         Assert.Equal([new JobOfferPostingDto(posting.Id, posting.Site, posting.Url, Now.UtcDateTime)], details.Postings);
     }
 
@@ -384,7 +397,7 @@ public class JobOfferServiceTests : IAsyncLifetime
         var input = _jobOfferPostingInputFactory.Generate();
         await AddPostingAsync(offer.Id, input);
 
-        var details = await GetAsync(offer.Id);
+        var details = await GetAsync(offer.ShortId);
 
         Assert.NotNull(details);
         Assert.Equal(
@@ -398,7 +411,7 @@ public class JobOfferServiceTests : IAsyncLifetime
         var story = new JobOfferStory().WithJobOffers(1, numberOfPosting: 1, JobOfferFactory.IsArchivedRuleSet);
         await story.SaveAsync(_services);
 
-        Assert.NotNull(await GetAsync(story.JobOffers[0].Id));
+        Assert.NotNull(await GetAsync(story.JobOffers[0].ShortId));
     }
 
     [Fact]
@@ -411,7 +424,8 @@ public class JobOfferServiceTests : IAsyncLifetime
 
         var result = await UpdateAsync(offer.Id, input);
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.TryGetValue(out var link));
+        Assert.Equal(new JobOfferLinkDto(offer.ShortId, JobOfferSlug.From(input.Title, story.Company.Name)), link);
         var saved = await FindAsync(offer.Id);
         Assert.Equal(
             (story.Company.Id, input.Title, input.ContractType, input.RemotePolicy, input.Location, input.Salary, input.Description),
@@ -561,6 +575,16 @@ public class JobOfferServiceTests : IAsyncLifetime
             .Include(o => o.Postings)
             .SingleAsync(o => o.Id == id, TestContext.Current.CancellationToken));
 
+    private Task<JobOffer> FindAsync(Guid companyId, string title) =>
+        _services.QueryAsync(context => context.JobOffers
+            .SingleAsync(o => o.CompanyId == companyId && o.Title == title, TestContext.Current.CancellationToken));
+
+    private Task<JobOffer> FindAsync(string shortId) =>
+        _services.QueryAsync(context => context.JobOffers
+            .Include(o => o.Company)
+            .Include(o => o.Postings)
+            .SingleAsync(o => o.ShortId == shortId, TestContext.Current.CancellationToken));
+
     private Task<IReadOnlyList<JobOfferSummaryDto>> ListAsync() =>
         _services.CallAsync((IJobOfferService service) => service.ListAsync(TestContext.Current.CancellationToken));
 
@@ -573,13 +597,13 @@ public class JobOfferServiceTests : IAsyncLifetime
     private Task<IReadOnlyList<JobOfferSummaryDto>> SearchAsync(string text) =>
         _services.CallAsync((IJobOfferService service) => service.SearchAsync(text, TestContext.Current.CancellationToken));
 
-    private Task<Guid> CreateAsync(NewJobOfferInput input) =>
+    private Task<JobOfferLinkDto> CreateAsync(NewJobOfferInput input) =>
         _services.CallAsync((IJobOfferService service) => service.CreateAsync(input, TestContext.Current.CancellationToken));
 
-    private Task<JobOfferDetailsDto?> GetAsync(Guid id) =>
-        _services.CallAsync((IJobOfferService service) => service.GetAsync(id, TestContext.Current.CancellationToken));
+    private Task<JobOfferDetailsDto?> GetAsync(string shortId) =>
+        _services.CallAsync((IJobOfferService service) => service.GetAsync(shortId, TestContext.Current.CancellationToken));
 
-    private Task<ServiceResult> UpdateAsync(Guid id, JobOfferInput input) =>
+    private Task<ServiceResult<JobOfferLinkDto>> UpdateAsync(Guid id, JobOfferInput input) =>
         _services.CallAsync((IJobOfferService service) => service.UpdateAsync(id, input, TestContext.Current.CancellationToken));
 
     private Task<ServiceResult> AddPostingAsync(Guid offerId, JobOfferPostingInput input) =>

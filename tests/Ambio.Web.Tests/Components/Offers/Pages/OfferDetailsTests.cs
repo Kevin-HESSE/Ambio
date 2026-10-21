@@ -7,11 +7,13 @@ using Ambio.Web.Components.JobApplications.Shared;
 using Ambio.Web.Components.Offers;
 using Ambio.Web.Components.Offers.Pages;
 using Ambio.Web.Components.Offers.Shared;
+using Ambio.Web.Components.Shared;
 using Ambio.Web.Tests.Fixtures;
 
 using Bogus;
 
 using Bunit;
+using Bunit.TestDoubles;
 
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
@@ -48,7 +50,7 @@ public class OfferDetailsTests : BunitContext
         var offer = _jobOfferDetailsFactory.Generate() with { RegisterAt = Published };
         GivenOffer(offer);
 
-        var cut = RenderDetails(offer.Id);
+        var cut = RenderDetails(Key(offer));
 
         Assert.Equal(offer.Title, cut.Find("h1").TextContent);
         Assert.Equal(
@@ -63,7 +65,7 @@ public class OfferDetailsTests : BunitContext
         var offer = _jobOfferDetailsFactory.Generate();
         GivenOffer(offer);
 
-        var cut = RenderDetails(offer.Id);
+        var cut = RenderDetails(Key(offer));
 
         Assert.Equal(
             [offer.ContractType.ToLabel(), offer.RemotePolicy.ToLabel(), offer.Salary!],
@@ -76,7 +78,7 @@ public class OfferDetailsTests : BunitContext
         var offer = _jobOfferDetailsFactory.Generate(JobOfferDetailsFactory.RequiredOnlyRuleSet);
         GivenOffer(offer);
 
-        var cut = RenderDetails(offer.Id);
+        var cut = RenderDetails(Key(offer));
 
         Assert.Empty(cut.FindAll(".offer-location"));
         Assert.Equal(2, cut.FindAll(".detail-tags .tag").Count);
@@ -89,7 +91,7 @@ public class OfferDetailsTests : BunitContext
         var offer = _jobOfferDetailsFactory.Generate();
         GivenOffer(offer);
 
-        var cut = RenderDetails(offer.Id);
+        var cut = RenderDetails(Key(offer));
 
         Assert.Equal(offer.Description, cut.Find(".offer-description").TextContent);
     }
@@ -104,7 +106,7 @@ public class OfferDetailsTests : BunitContext
         };
         GivenOffer(offer);
 
-        var cut = RenderDetails(offer.Id);
+        var cut = RenderDetails(Key(offer));
 
         var postings = cut.FindAll(".offer-posting").Select(posting => (
             posting.QuerySelector(".offer-posting-site")!.TextContent,
@@ -125,7 +127,7 @@ public class OfferDetailsTests : BunitContext
         var offer = _jobOfferDetailsFactory.Generate();
         GivenOffer(offer);
 
-        var cut = RenderDetails(offer.Id);
+        var cut = RenderDetails(Key(offer));
 
         Assert.Equal("Offers", cut.Find($".detail-breadcrumb a[href='{OfferRoutes.List}']").TextContent);
     }
@@ -136,18 +138,32 @@ public class OfferDetailsTests : BunitContext
         var offer = _jobOfferDetailsFactory.Generate();
         GivenOffer(offer);
 
-        var cut = RenderDetails(offer.Id);
+        var cut = RenderDetails(Key(offer));
 
-        Assert.Equal("Edit", cut.Find($".detail-actions a[href='{OfferRoutes.Edit(offer.Id)}']").TextContent.Trim());
+        Assert.Equal("Edit", cut.Find($".detail-actions a[href='{OfferRoutes.Edit(offer.ShortId, offer.Slug)}']").TextContent.Trim());
+    }
+
+    [Theory]
+    [InlineData("-old-title")]
+    [InlineData("")]
+    public void Render_WithAnotherSlug_RedirectsToTheCanonicalUrl(string slugPart)
+    {
+        var offer = _jobOfferDetailsFactory.Generate();
+        GivenOffer(offer);
+        var navigation = Services.GetRequiredService<BunitNavigationManager>();
+
+        RenderDetails($"{offer.ShortId}{slugPart}");
+
+        Assert.EndsWith($"/{OfferRoutes.Details(offer.ShortId, offer.Slug)}", navigation.Uri);
     }
 
     [Fact]
-    public void Render_WithUnknownId_RequestsNotFound()
+    public void Render_WithUnknownShortId_RequestsNotFound()
     {
         var notFound = false;
         Services.GetRequiredService<NavigationManager>().OnNotFound += (_, _) => notFound = true;
 
-        var cut = RenderDetails(Guid.CreateVersion7());
+        var cut = RenderDetails("999999-backend-developer-kelvio");
 
         Assert.True(notFound);
         Assert.Empty(cut.FindAll("h1"));
@@ -163,7 +179,7 @@ public class OfferDetailsTests : BunitContext
         GivenOffer(offer);
         _jobApplicationService.ListByOfferAsync(offer.Id, Arg.Any<CancellationToken>()).Returns([sent, draft]);
 
-        var cut = RenderDetails(offer.Id);
+        var cut = RenderDetails(Key(offer));
 
         Assert.Equal("2", cut.Find(".offer-applications-count").TextContent);
         var items = cut.FindAll(".offer-applications .application-item").Select(item => (
@@ -187,16 +203,18 @@ public class OfferDetailsTests : BunitContext
         var offer = _jobOfferDetailsFactory.Generate();
         GivenOffer(offer);
 
-        var cut = RenderDetails(offer.Id);
+        var cut = RenderDetails(Key(offer));
 
         Assert.Equal("0", cut.Find(".offer-applications-count").TextContent);
         Assert.Equal("No application yet.", cut.Find(".offer-applications-empty").TextContent);
-        Assert.Equal(JobApplicationRoutes.NewForOffer(offer.Id), cut.Find("a.offer-applications-new").GetAttribute("href"));
+        Assert.Equal(JobApplicationRoutes.NewForOffer(offer.ShortId), cut.Find("a.offer-applications-new").GetAttribute("href"));
     }
 
     private void GivenOffer(JobOfferDetailsDto offer) =>
-        _jobOfferService.GetAsync(offer.Id, Arg.Any<CancellationToken>()).Returns(offer);
+        _jobOfferService.GetAsync(offer.ShortId, Arg.Any<CancellationToken>()).Returns(offer);
 
-    private IRenderedComponent<OfferDetails> RenderDetails(Guid id) =>
-        Render<OfferDetails>(parameters => parameters.Add(page => page.Id, id));
+    private static string Key(JobOfferDetailsDto offer) => ShortIdKey.Of(offer.ShortId, offer.Slug);
+
+    private IRenderedComponent<OfferDetails> RenderDetails(string key) =>
+        Render<OfferDetails>(parameters => parameters.Add(page => page.Key, key));
 }

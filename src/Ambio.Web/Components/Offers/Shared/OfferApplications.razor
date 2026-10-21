@@ -5,7 +5,7 @@
             Applications
             <CountBadge Count="Applications.Count" class="offer-applications-count" />
         </h2>
-        <ButtonLink Href="@JobApplicationRoutes.NewForOffer(OfferId)" Icon="plus-lg" class="btn-sm offer-applications-new">New</ButtonLink>
+        <ButtonLink Href="@JobApplicationRoutes.NewForOffer(OfferShortId)" Icon="plus-lg" class="btn-sm offer-applications-new">New</ButtonLink>
     </div>
     @if (Applications.Count == 0)
     {
@@ -26,7 +26,7 @@
 
 @code {
     [Parameter, EditorRequired]
-    public Guid OfferId { get; set; }
+    public string OfferShortId { get; set; } = "";
 
     [Parameter, EditorRequired]
     public IReadOnlyList<JobApplicationSummaryDto> Applications { get; set; } = [];
