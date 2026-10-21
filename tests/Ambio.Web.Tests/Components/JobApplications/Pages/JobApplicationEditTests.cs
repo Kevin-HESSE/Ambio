@@ -6,6 +6,7 @@ using Ambio.Application.Offers.Dtos;
 using Ambio.Domain.JobApplications;
 using Ambio.Web.Components.JobApplications;
 using Ambio.Web.Components.JobApplications.Pages;
+using Ambio.Web.Components.Shared;
 using Ambio.Web.Tests.Fixtures;
 
 using Bunit;
@@ -205,7 +206,7 @@ public class JobApplicationEditTests : BunitContext
     private void GivenApplication(JobApplicationDetailsDto application) =>
         _jobApplicationService.GetAsync(application.ShortId, Arg.Any<CancellationToken>()).Returns(application);
 
-    private static string Key(JobApplicationDetailsDto application) => JobApplicationRoutes.Key(application.ShortId, application.Slug);
+    private static string Key(JobApplicationDetailsDto application) => ShortIdKey.Of(application.ShortId, application.Slug);
 
     private IRenderedComponent<JobApplicationEdit> RenderEdit(string key) =>
         Render<JobApplicationEdit>(parameters => parameters.Add(page => page.Key, key));

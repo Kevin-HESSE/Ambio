@@ -164,7 +164,7 @@ public class JobApplicationDetailsTests : BunitContext
     private void GivenApplication(JobApplicationDetailsDto application) =>
         _jobApplicationService.GetAsync(application.ShortId, Arg.Any<CancellationToken>()).Returns(application);
 
-    private static string Key(JobApplicationDetailsDto application) => JobApplicationRoutes.Key(application.ShortId, application.Slug);
+    private static string Key(JobApplicationDetailsDto application) => ShortIdKey.Of(application.ShortId, application.Slug);
 
     private static IEnumerable<(string Term, string Description)> Overview(IRenderedComponent<JobApplicationDetails> cut) =>
         cut.FindAll(".application-overview-list > div").Select(row => (
