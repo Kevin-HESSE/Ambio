@@ -5,6 +5,7 @@ namespace Ambio.Domain.Tests.Offers;
 public class JobOfferTests
 {
     private const string Title = "Backend Developer";
+    private const string ShortId = "482913";
     private const string Site = "LinkedIn";
     private const string Url = "https://www.linkedin.com/jobs/view/4102938475";
     private const string OtherUrl = "https://www.welcometothejungle.com/fr/companies/kelvio/jobs/backend";
@@ -40,6 +41,13 @@ public class JobOfferTests
     public void Title_WhenBlank_ThrowsArgumentException(string title)
     {
         Assert.Throws<ArgumentException>(() => NewOffer(title));
+    }
+
+    [Theory]
+    [MemberData(nameof(BlankValues))]
+    public void ShortId_WhenBlank_ThrowsArgumentException(string shortId)
+    {
+        Assert.Throws<ArgumentException>(() => NewOffer(shortId: shortId));
     }
 
     [Fact]
@@ -159,8 +167,9 @@ public class JobOfferTests
         Assert.Equal(2, offer.Postings.Count);
     }
 
-    private static JobOffer NewOffer(string title = Title) => new()
+    private static JobOffer NewOffer(string title = Title, string shortId = ShortId) => new()
     {
+        ShortId = shortId,
         CompanyId = Guid.CreateVersion7(),
         Title = title,
         ContractType = ContractType.Permanent,

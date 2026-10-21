@@ -29,6 +29,7 @@ public static class OfferApplicationDetailsFactory
             .RuleFor(a => a.Notes, faker => faker.Lorem.Paragraph())
             .RuleFor(a => a.CreatedAt, faker => faker.Date.Past())
             .RuleFor(a => a.JobOfferId, Guid.CreateVersion7)
+            .RuleFor(a => a.JobOfferShortId, faker => faker.Random.String2(6, "0123456789"))
             .RuleFor(a => a.Location, faker => faker.Address.City())
             .RuleFor(a => a.ContractType, faker => faker.PickRandom<ContractType>())
             .RuleFor(a => a.RemotePolicy, faker => faker.PickRandom<RemotePolicy>())

@@ -36,8 +36,8 @@ public class JobApplicationNewTests : BunitContext
     [Fact]
     public void Render_WithOfferInTheUrl_GivesItToTheForm()
     {
-        _jobOfferService.GetAsync(_offer.Id, Arg.Any<CancellationToken>()).Returns(_offer);
-        Services.GetRequiredService<BunitNavigationManager>().NavigateTo(JobApplicationRoutes.NewForOffer(_offer.Id));
+        _jobOfferService.GetAsync(_offer.ShortId, Arg.Any<CancellationToken>()).Returns(_offer);
+        Services.GetRequiredService<BunitNavigationManager>().NavigateTo(JobApplicationRoutes.NewForOffer(_offer.ShortId));
 
         var cut = Render<JobApplicationNew>();
 
@@ -47,7 +47,7 @@ public class JobApplicationNewTests : BunitContext
     [Fact]
     public void Render_WithUnknownOfferInTheUrl_ShowsTheSearch()
     {
-        Services.GetRequiredService<BunitNavigationManager>().NavigateTo(JobApplicationRoutes.NewForOffer(_offer.Id));
+        Services.GetRequiredService<BunitNavigationManager>().NavigateTo(JobApplicationRoutes.NewForOffer(_offer.ShortId));
 
         var cut = Render<JobApplicationNew>();
 
@@ -62,7 +62,7 @@ public class JobApplicationNewTests : BunitContext
         var cut = Render<JobApplicationNew>();
 
         Assert.NotNull(cut.Find("input#application-offer[type='search']"));
-        _jobOfferService.DidNotReceive().GetAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+        _jobOfferService.DidNotReceive().GetAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]

@@ -14,6 +14,12 @@ public class JobOfferConfiguration : IEntityTypeConfiguration<JobOffer>
         builder.Property(o => o.Id)
             .ValueGeneratedNever();
 
+        builder.Property(o => o.ShortId)
+            .IsRequired();
+
+        builder.HasIndex(o => o.ShortId)
+            .IsUnique();
+
         builder.Property(o => o.Title)
             .IsRequired();
 

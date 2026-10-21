@@ -1,5 +1,5 @@
 @* An offer in the mobile list (< 992 px), linking to its page. *@
-<ListCard Title="@Offer.Title" Href="@OfferRoutes.Details(Offer.Id)" Subtitle="@Offer.CompanyName">
+<ListCard Title="@Offer.Title" Href="@OfferRoutes.Details(Offer.ShortId, Offer.Slug)" Subtitle="@Offer.CompanyName">
     <Aside><time datetime="@Offer.RegisterAt.ToString("yyyy-MM-dd")">@Offer.RegisterAt.ToShortDisplayDate()</time></Aside>
     <Tags>
         <OfferTags ContractType="Offer.ContractType" RemotePolicy="Offer.RemotePolicy" />

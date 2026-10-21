@@ -28,5 +28,6 @@ A decision that can serve as a basis for the official version (domain, data, bus
 | [0022](0022-test-data-with-bogus.md) | Test data built with Bogus, random on every run | Accepted |
 | [0023](0023-interactive-islands-in-static-pages.md) | Interactive islands in static pages | Accepted |
 | [0024](0024-proof-of-concept.md) | Ambio becomes a proof of concept | Accepted |
+| [0025](0025-short-id-and-slug-urls-for-offers.md) | Short id and slug in offer URLs | Accepted |
 
 New ADRs copy the structure of an existing one and take the next number. An ADR is never edited once accepted: a new ADR supersedes it.

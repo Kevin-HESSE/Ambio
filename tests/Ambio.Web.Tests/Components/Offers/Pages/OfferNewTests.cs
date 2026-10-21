@@ -26,6 +26,8 @@ public class OfferNewTests : BunitContext
     private const string Url = "https://www.linkedin.com/jobs/view/4102938475";
     private const string Description = "We are looking for a backend developer.";
 
+    private static readonly JobOfferLinkDto Created = new("482913", "backend-developer-kelvio");
+
     private readonly IJobOfferService _jobOfferService = Substitute.For<IJobOfferService>();
     private readonly ICompanyService _companyService = Substitute.For<ICompanyService>();
     private readonly IReadOnlyList<CompanySummaryDto> _companies;
@@ -103,8 +105,7 @@ public class OfferNewTests : BunitContext
     [Fact]
     public void Submit_WithValidInput_CreatesOfferAndNavigatesToItsPage()
     {
-        var id = Guid.CreateVersion7();
-        _jobOfferService.CreateAsync(Arg.Any<NewJobOfferInput>(), Arg.Any<CancellationToken>()).Returns(id);
+        _jobOfferService.CreateAsync(Arg.Any<NewJobOfferInput>(), Arg.Any<CancellationToken>()).Returns(Created);
         var cut = Render<OfferNew>();
 
         cut.Find("#offer-company").Change(CompanyName);
@@ -128,7 +129,7 @@ public class OfferNewTests : BunitContext
                 && input.Description == Description),
             Arg.Any<CancellationToken>());
         Assert.Empty(cut.FindAll(".banner"));
-        Assert.EndsWith($"/{OfferRoutes.Details(id)}", Services.GetRequiredService<NavigationManager>().Uri);
+        Assert.EndsWith($"/{OfferRoutes.Details(Created.ShortId, Created.Slug)}", Services.GetRequiredService<NavigationManager>().Uri);
     }
 
     [Fact]
@@ -173,7 +174,7 @@ public class OfferNewTests : BunitContext
         Assert.Equal("This offer may already exist", cut.Find(".offer-duplicates .banner-title").TextContent);
         Assert.Contains($"add this {Site} link to one of them", cut.Find(".offer-duplicates-text").TextContent);
         var links = cut.FindAll(".offer-duplicate a");
-        Assert.Equal(_similarOffers.Select(offer => OfferRoutes.Details(offer.Id)), links.Select(link => link.GetAttribute("href")));
+        Assert.Equal(_similarOffers.Select(offer => OfferRoutes.Details(offer.ShortId, offer.Slug)), links.Select(link => link.GetAttribute("href")));
         Assert.Equal(_similarOffers.Select(offer => $"{offer.Title} · {offer.CompanyName}"), links.Select(link => link.TextContent));
         AssertNotCreated();
     }
@@ -186,8 +187,8 @@ public class OfferNewTests : BunitContext
         var form = cut.Find(".offer-duplicates form");
         Assert.Equal([Site, Url], form.QuerySelectorAll("input[type=hidden]").Select(input => input.GetAttribute("value")));
         var buttons = form.QuerySelectorAll("button[type=submit]");
-        Assert.All(buttons, button => Assert.Equal("ExistingOfferId", button.GetAttribute("name")));
-        Assert.Equal(_similarOffers.Select(offer => offer.Id.ToString()), buttons.Select(button => button.GetAttribute("value")));
+        Assert.All(buttons, button => Assert.Equal("ExistingOfferShortId", button.GetAttribute("name")));
+        Assert.Equal(_similarOffers.Select(offer => offer.ShortId), buttons.Select(button => button.GetAttribute("value")));
     }
 
     [Fact]

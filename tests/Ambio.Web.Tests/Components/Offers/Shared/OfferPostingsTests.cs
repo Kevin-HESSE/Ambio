@@ -77,7 +77,7 @@ public class OfferPostingsTests : BunitContext
         var added = _jobOfferPostingFactory.Generate() with { Site = Site, Url = Url };
         _jobOfferService.AddPostingAsync(offer.Id, Arg.Any<JobOfferPostingInput>(), Arg.Any<CancellationToken>())
             .Returns(ServiceResult.Success());
-        _jobOfferService.GetAsync(offer.Id, Arg.Any<CancellationToken>())
+        _jobOfferService.GetAsync(offer.ShortId, Arg.Any<CancellationToken>())
             .Returns(offer with { Postings = [.. offer.Postings, added] });
         var cut = RenderPostings(offer);
 
@@ -131,7 +131,7 @@ public class OfferPostingsTests : BunitContext
             .Returns(ServiceResult.Failure(JobOfferErrors.PostingAlreadyExists));
         _jobOfferService.AddPostingAsync(offer.Id, Arg.Is<JobOfferPostingInput>(input => input.Url == Url), Arg.Any<CancellationToken>())
             .Returns(ServiceResult.Success());
-        _jobOfferService.GetAsync(offer.Id, Arg.Any<CancellationToken>()).Returns(offer);
+        _jobOfferService.GetAsync(offer.ShortId, Arg.Any<CancellationToken>()).Returns(offer);
         var cut = RenderPostings(offer);
         cut.Find("#posting-site").Change(Site);
         cut.Find("#posting-url").Change(offer.Postings[0].Url);
@@ -193,7 +193,7 @@ public class OfferPostingsTests : BunitContext
         var removed = offer.Postings[0];
         _jobOfferService.RemovePostingAsync(offer.Id, removed.Id, Arg.Any<CancellationToken>())
             .Returns(ServiceResult.Success());
-        _jobOfferService.GetAsync(offer.Id, Arg.Any<CancellationToken>())
+        _jobOfferService.GetAsync(offer.ShortId, Arg.Any<CancellationToken>())
             .Returns(offer with { Postings = [offer.Postings[1]] });
         var cut = RenderPostings(offer);
 
@@ -208,6 +208,7 @@ public class OfferPostingsTests : BunitContext
     private IRenderedComponent<OfferPostings> RenderPostings(JobOfferDetailsDto offer) =>
         Render<OfferPostings>(parameters => parameters
             .Add(card => card.OfferId, offer.Id)
+            .Add(card => card.OfferShortId, offer.ShortId)
             .Add(card => card.Postings, offer.Postings));
 
     private void AssertNotAdded() =>

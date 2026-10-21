@@ -123,7 +123,7 @@ public class OfferListTests : BunitContext
 
         var cut = Render<OfferList>();
 
-        var expected = _offers.Select(offer => OfferRoutes.Details(offer.Id));
+        var expected = _offers.Select(offer => OfferRoutes.Details(offer.ShortId, offer.Slug));
         Assert.Equal(expected, cut.FindAll("tbody tr a.offer-title").Select(link => link.GetAttribute("href")));
         Assert.Equal(expected, cut.FindAll("a.list-card").Select(link => link.GetAttribute("href")));
     }

@@ -59,6 +59,7 @@ erDiagram
     }
     JOB_OFFER {
         guid Id
+        string ShortId "NanoId, unique, used in URLs"
         guid CompanyId "end client, nullable"
         guid RecruiterCompanyId "agency, nullable"
         string Title
@@ -163,6 +164,7 @@ A job ad, independent of whether you apply to it.
 - `RemotePolicy`: `OnSite`, `Hybrid`, `FullRemote`, `Unknown`.
 - `Salary` is free text, kept as announced ("45–55 k€", "TJM 500").
 - **No publication date is entered.** The date shown as "Published" is the day the offer was recorded in Ambio, its `CreatedAt`, so there is no `PublishedOn` column.
+- **URL**: `/offers/482913-backend-developer-kelvio`, a `ShortId` followed by a slug of the title and the company name, as for applications (see the URL section of the [application hierarchy](#application-hierarchy), [ADR 0025](adr/0025-short-id-and-slug-urls-for-offers.md)). Offer titles aren't unique, so a stored slug alone, as for companies, can't identify an offer. The fallback slug is `offer`.
 
 ### JobOfferPosting
 
@@ -199,7 +201,7 @@ The base class carries everything they share:
 - `Notes`.
 - The cover letters, CVs, interactions and contacts.
 
-**URL: short id + slug**. Each application has a `ShortId`: a short random string generated with [NanoId](https://github.com/codeyu/nanoid-net), stored as `TEXT` with a unique index. The application's URL is built from it:
+**URL: short id + slug**. Each application has a `ShortId`, and so does each offer ([JobOffer](#joboffer)): a short random string generated with [NanoId](https://github.com/codeyu/nanoid-net), stored as `TEXT` with a unique index. The application's URL is built from it:
 
 ```text
 /applications/482913-backend-developer-acme
@@ -209,9 +211,10 @@ The base class carries everything they share:
 
 - The **short id** identifies the application. It keeps two applications with the same title (the same job applied to twice, or the same title at two companies) apart.
 - The **slug** makes the URL readable. It isn't stored: it's computed from the title (offer title or `TargetPosition`) and the effective company name. A `Slug.From(...)` helper in Application keeps lowercase ASCII letters and digits only: it removes accents, spells out `œ`, `æ` and `ß`, replaces any other run of characters with one `-`, truncates to 60 characters, and returns a fallback given by the caller when nothing is left.
+- Applications and offers have their own unique index: an application and an offer can share a short id, as the first segment of the URL tells them apart. The offer's slug is built from its title and company name.
 - The page looks the application up by `ShortId` only. When the slug in the URL doesn't match the current one (the title changed, the link was mistyped), the page redirects to the canonical URL, so old links keep working.
 - The short id is **random rather than sequential**, so the URL doesn't reveal how many applications exist ([ADR 0013](adr/0013-guid-v7-primary-keys.md)).
-- **Generation**: the creating service in Infrastructure draws it through `Common/ShortIdGenerator`, which calls `Nanoid.Generate(alphabet, size)`. The domain doesn't depend on the library: it receives the value. The generator draws again while the id is already taken, up to 100 times before failing, and the unique index is the final guard.
+- **Generation**: the creating service in Infrastructure (applications or offers) draws it through `Common/ShortIdGenerator`, which calls `Nanoid.Generate(alphabet, size)`. The domain doesn't depend on the library: it receives the value. The generator draws again while the id is already taken, up to 100 times before failing, and the unique index is the final guard.
 - **Alphabet and size** are a single setting (`ShortIdOptions`, section `Ambio:ShortId`, validated at startup):
   - It starts **numeric**: alphabet `0123456789`, size 6, so 10⁶ values.
   - It can move to **alphanumeric** (`0123456789abcdefghijklmnopqrstuvwxyz`, 36⁶ ≈ 2 billion values) without a migration, because the column is already text and existing ids stay valid.
@@ -343,6 +346,7 @@ At the data volume of a single user, both costs are negligible.
 
 - Lists are sorted newest first: by sending day, or by creation day for a draft, then by creation time.
 - Summary and detail DTOs carry `ShortId` and the computed `Slug` (`JobApplicationSlug.From(title, companyName)`, a read-only property, `application` when nothing is left), so links are built without another query.
+- Offer summary and detail DTOs carry `ShortId` and the computed `Slug` (`JobOfferSlug.From(title, companyName)`) the same way. `OfferApplicationDetailsDto` also carries `JobOfferShortId` and `JobOfferSlug`, so the application page links to its offer. Creating or editing an offer returns a `JobOfferLinkDto` (`ShortId`, `Slug`): a new title gives a new slug.
 - **Details** use one DTO per subtype, `OfferApplicationDetailsDto` and `SpontaneousApplicationDetailsDto`, deriving from the abstract `JobApplicationDetailsDto`. The service reads them with one projection per subtype (`OfType<…>()`): a single projection can't build either type.
 
 ## Common queries

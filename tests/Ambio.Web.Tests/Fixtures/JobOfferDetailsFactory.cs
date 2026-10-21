@@ -21,6 +21,7 @@ public static class JobOfferDetailsFactory
         return new Faker<JobOfferDetailsDto>()
             .WithRecord()
             .RuleFor(o => o.Id, Guid.CreateVersion7)
+            .RuleFor(o => o.ShortId, f => f.Random.String2(6, "0123456789"))
             .RuleFor(o => o.Title, f => f.Name.JobTitle())
             .RuleFor(o => o.CompanyName, f => f.Company.CompanyName())
             .RuleFor(o => o.CompanySlug, (f, o) => Slug.From(o.CompanyName, "company"))

@@ -220,7 +220,7 @@ public class JobApplicationServiceTests : IAsyncLifetime
             new OfferApplicationDetailsDto(
                 application.Id, application.ShortId, offer.Title, story.Company.Name, story.Company.Slug, ApplicationStatus.Applied,
                 application.Channel, application.ChannelDetail, application.AppliedOn, application.Notes, Now.UtcDateTime,
-                offer.Id, offer.Location, offer.ContractType, offer.RemotePolicy, offer.Salary, offer.Postings[0].Id,
+                offer.Id, offer.ShortId, offer.Location, offer.ContractType, offer.RemotePolicy, offer.Salary, offer.Postings[0].Id,
                 offer.Postings[0].Site, offer.Postings[0].Url),
             details);
     }

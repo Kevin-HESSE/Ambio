@@ -45,6 +45,7 @@ public static class JobApplicationMappingExtensions
             Notes: a.Notes,
             CreatedAt: a.CreatedAt,
             JobOfferId: a.JobOfferId,
+            JobOfferShortId: a.JobOffer.ShortId,
             Location: a.JobOffer.Location,
             ContractType: a.JobOffer.ContractType,
             RemotePolicy: a.JobOffer.RemotePolicy,

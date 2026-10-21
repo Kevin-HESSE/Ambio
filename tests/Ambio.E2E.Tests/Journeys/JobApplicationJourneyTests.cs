@@ -20,7 +20,7 @@ public class JobApplicationJourneyTests : IClassFixture<AmbioAppFixture>
 
     private const string ApplicationsPath = "applications";
     private const string NewOfferPath = "offers/new";
-    private const string OfferPathPattern = "/offers/[0-9a-f-]{36}$";
+    private const string OfferPathPattern = "/offers/[0-9]{6}-developpeur-donnees-lumen-health$";
     private const string CompanyName = "Lumen Health";
     private const string Title = "Développeur données";
     private const string Search = "developpeur lumen";

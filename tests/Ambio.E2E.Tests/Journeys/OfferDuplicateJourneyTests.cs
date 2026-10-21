@@ -19,7 +19,7 @@ public class OfferDuplicateJourneyTests : IClassFixture<AmbioAppFixture>
     }
 
     private const string NewOfferPath = "offers/new";
-    private const string OfferPathPattern = "/offers/[0-9a-f-]{36}$";
+    private const string OfferPathPattern = "/offers/[0-9]{6}-full-stack-engineer-brightwave$";
     private const string CompanyName = "Brightwave";
     private const string Title = "Full-stack Engineer";
     private const string SimilarTitle = "Full stack engineer";

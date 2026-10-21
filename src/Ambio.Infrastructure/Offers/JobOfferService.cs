@@ -2,6 +2,7 @@ using Ambio.Application.Common;
 using Ambio.Application.Offers;
 using Ambio.Application.Offers.Dtos;
 using Ambio.Domain.Offers;
+using Ambio.Infrastructure.Common;
 using Ambio.Infrastructure.Companies;
 using Ambio.Infrastructure.Persistence;
 
@@ -12,10 +13,12 @@ namespace Ambio.Infrastructure.Offers;
 internal class JobOfferService : IJobOfferService
 {
     private readonly IDbContextFactory<ApplicationDbContext> _dbFactory;
+    private readonly ShortIdGenerator _shortIds;
 
-    public JobOfferService(IDbContextFactory<ApplicationDbContext> dbFactory)
+    public JobOfferService(IDbContextFactory<ApplicationDbContext> dbFactory, ShortIdGenerator shortIds)
     {
         _dbFactory = dbFactory;
+        _shortIds = shortIds;
     }
 
     public async Task<IReadOnlyList<JobOfferSummaryDto>> ListAsync(CancellationToken cancellationToken = default)
@@ -79,45 +82,51 @@ internal class JobOfferService : IJobOfferService
         return offers.Where(o => TextSearch.Matches($"{o.Title} {o.CompanyName}", text)).ToList();
     }
 
-    public async Task<Guid> CreateAsync(NewJobOfferInput input, CancellationToken cancellationToken = default)
+    public async Task<JobOfferLinkDto> CreateAsync(NewJobOfferInput input, CancellationToken cancellationToken = default)
     {
         await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
 
         var companyId = await CompanyLookup.FindOrAddAsync(db, input.CompanyName, cancellationToken);
+        var shortId = await _shortIds.FreeAsync(candidate =>
+            db.JobOffers.AnyAsync(o => o.ShortId == candidate, cancellationToken));
 
         // Saved with the new company, if any, in a single transaction.
-        var offer = input.ToEntity(companyId);
+        var offer = input.ToEntity(companyId, shortId);
         db.JobOffers.Add(offer);
         await db.SaveChangesAsync(cancellationToken);
 
-        return offer.Id;
+        // The name typed matches the company's ignoring case only, which the slug ignores too.
+        return new JobOfferLinkDto(shortId, JobOfferSlug.From(offer.Title, input.CompanyName));
     }
 
-    public async Task<JobOfferDetailsDto?> GetAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<JobOfferDetailsDto?> GetAsync(string shortId, CancellationToken cancellationToken = default)
     {
         await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
 
         return await db.JobOffers
             .AsNoTracking()
-            .Where(o => o.Id == id)
+            .Where(o => o.ShortId == shortId)
             .ToDetailsDto()
             .SingleOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<ServiceResult> UpdateAsync(Guid id, JobOfferInput input, CancellationToken cancellationToken = default)
+    public async Task<ServiceResult<JobOfferLinkDto>> UpdateAsync(Guid id, JobOfferInput input, CancellationToken cancellationToken = default)
     {
         await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
 
-        var offer = await db.JobOffers.SingleOrDefaultAsync(o => o.Id == id, cancellationToken);
+        var offer = await db.JobOffers
+            .Include(o => o.Company)
+            .SingleOrDefaultAsync(o => o.Id == id, cancellationToken);
         if (offer is null)
         {
-            return ServiceResult.Failure(JobOfferErrors.NotFound);
+            return ServiceResult<JobOfferLinkDto>.Failure(JobOfferErrors.NotFound);
         }
 
         input.ApplyTo(offer);
         await db.SaveChangesAsync(cancellationToken);
 
-        return ServiceResult.Success();
+        return ServiceResult<JobOfferLinkDto>.Success(
+            new JobOfferLinkDto(offer.ShortId, JobOfferSlug.From(offer.Title, offer.Company.Name)));
     }
 
     public async Task<ServiceResult> AddPostingAsync(Guid offerId, JobOfferPostingInput input, CancellationToken cancellationToken = default)

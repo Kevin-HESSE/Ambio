@@ -27,11 +27,26 @@ public class JobOfferConfigurationTests : IAsyncLifetime
             .SingleAsync(TestContext.Current.CancellationToken));
 
         Assert.Equal(
-            (offer.Title, offer.Description, offer.Location, offer.ContractType, offer.RemotePolicy, offer.Salary, story.Company.Name),
-            (saved.Title, saved.Description, saved.Location, saved.ContractType, saved.RemotePolicy, saved.Salary, saved.Company.Name));
+            (offer.ShortId, offer.Title, offer.Description, offer.Location, offer.ContractType, offer.RemotePolicy, offer.Salary, story.Company.Name),
+            (saved.ShortId, saved.Title, saved.Description, saved.Location, saved.ContractType, saved.RemotePolicy, saved.Salary, saved.Company.Name));
         Assert.Equal(
             offer.Postings.Select(p => (p.Id, p.Site, p.Url)).Order(),
             saved.Postings.Select(p => (p.Id, p.Site, p.Url)).Order());
+    }
+
+    [Fact]
+    public async Task SaveChangesAsync_ShortIdAlreadyTaken_IsRefused()
+    {
+        var story = new JobOfferStory().WithJobOffers(1);
+        await story.SaveAsync(_services);
+        var duplicate = JobOfferFactory.GetGenerator(story.Company.Id)
+            .RuleFor(o => o.ShortId, story.JobOffers[0].ShortId)
+            .Generate();
+
+        await using var context = await _services.CreateDbContextAsync();
+        context.JobOffers.Add(duplicate);
+
+        await Assert.ThrowsAsync<DbUpdateException>(() => context.SaveChangesAsync(TestContext.Current.CancellationToken));
     }
 
     [Fact]

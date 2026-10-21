@@ -168,7 +168,7 @@ public class CompanyDetailsTests : BunitContext
         var cut = RenderDetails(company.Slug);
 
         Assert.Equal(
-            offers.Select(offer => OfferRoutes.Details(offer.Id)),
+            offers.Select(offer => OfferRoutes.Details(offer.ShortId, offer.Slug)),
             cut.FindAll("a.offer-item").Select(link => link.GetAttribute("href")));
     }
 

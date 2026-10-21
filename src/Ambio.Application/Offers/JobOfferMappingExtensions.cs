@@ -10,6 +10,7 @@ public static class JobOfferMappingExtensions
     public static IQueryable<JobOfferSummaryDto> ToSummaryDto(this IQueryable<JobOffer> offers) =>
         offers.Select(o => new JobOfferSummaryDto(
             Id: o.Id,
+            ShortId: o.ShortId,
             Title: o.Title,
             CompanyName: o.Company.Name,
             CompanySlug: o.Company.Slug,
@@ -22,6 +23,7 @@ public static class JobOfferMappingExtensions
     public static IQueryable<JobOfferDetailsDto> ToDetailsDto(this IQueryable<JobOffer> offers) =>
         offers.Select(o => new JobOfferDetailsDto(
             Id: o.Id,
+            ShortId: o.ShortId,
             Title: o.Title,
             CompanyName: o.Company.Name,
             CompanySlug: o.Company.Slug,
@@ -42,10 +44,11 @@ public static class JobOfferMappingExtensions
 
     /// <summary>A new offer of the company with the fields of the form, see <see cref="ApplyTo"/>, and its first
     /// posting.</summary>
-    public static JobOffer ToEntity(this NewJobOfferInput input, Guid companyId)
+    public static JobOffer ToEntity(this NewJobOfferInput input, Guid companyId, string shortId)
     {
         var offer = new JobOffer
         {
+            ShortId = shortId,
             CompanyId = companyId,
             Title = input.Title,
             ContractType = input.ContractType,

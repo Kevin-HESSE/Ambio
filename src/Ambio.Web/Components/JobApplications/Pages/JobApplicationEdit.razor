@@ -41,7 +41,7 @@
     private const string OfferFormName = "edit-offer-application";
     private const string SpontaneousFormName = "edit-spontaneous-application";
 
-    /// <summary>The short id and the slug of the application (<see cref="JobApplicationRoutes.Key"/>).</summary>
+    /// <summary>The short id and the slug of the application (<see cref="ShortIdKey"/>).</summary>
     [Parameter]
     public string Key { get; set; } = "";
 
@@ -66,7 +66,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _application = await JobApplicationService.GetAsync(JobApplicationRoutes.ShortIdOf(Key));
+        _application = await JobApplicationService.GetAsync(ShortIdKey.ShortIdOf(Key));
 
         if (_application is null)
         {
@@ -75,7 +75,7 @@
         }
 
         // An old title or a mistyped slug still finds the application: its form moves to its current URL.
-        if (Key != JobApplicationRoutes.Key(_application.ShortId, _application.Slug))
+        if (Key != ShortIdKey.Of(_application.ShortId, _application.Slug))
         {
             var editHref = JobApplicationRoutes.Edit(_application.ShortId, _application.Slug);
             _application = null;
@@ -87,7 +87,7 @@
         if (_application is OfferApplicationDetailsDto offer)
         {
             OfferInput ??= offer.ToInput();
-            _postings = (await JobOfferService.GetAsync(offer.JobOfferId))?.Postings ?? [];
+            _postings = (await JobOfferService.GetAsync(offer.JobOfferShortId))?.Postings ?? [];
         }
         else if (_application is SpontaneousApplicationDetailsDto spontaneous)
         {

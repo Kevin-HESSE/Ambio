@@ -20,16 +20,17 @@ public interface IJobOfferService
     /// case and accents (<see cref="TextSearch.Matches"/>), newest first. Empty for a text without any word.</summary>
     public Task<IReadOnlyList<JobOfferSummaryDto>> SearchAsync(string text, CancellationToken cancellationToken = default);
 
-    /// <summary>Creates the offer with its first posting and returns its id. The offer goes to the company with
-    /// this name ignoring case, archived or not; when there is none, the company is created as an employer.</summary>
-    public Task<Guid> CreateAsync(NewJobOfferInput input, CancellationToken cancellationToken = default);
+    /// <summary>Creates the offer with its first posting and returns what its URL is built from. The offer goes to the
+    /// company with this name ignoring case, archived or not; when there is none, the company is created as an
+    /// employer.</summary>
+    public Task<JobOfferLinkDto> CreateAsync(NewJobOfferInput input, CancellationToken cancellationToken = default);
 
-    /// <summary>The offer with its postings, archived or not, or null when no offer has this id.</summary>
-    public Task<JobOfferDetailsDto?> GetAsync(Guid id, CancellationToken cancellationToken = default);
+    /// <summary>The offer with its postings, archived or not, or null when no offer has this short id.</summary>
+    public Task<JobOfferDetailsDto?> GetAsync(string shortId, CancellationToken cancellationToken = default);
 
-    /// <summary>Replaces the fields of the offer, but not its company nor its postings, or fails with
-    /// <see cref="JobOfferErrors.NotFound"/>.</summary>
-    public Task<ServiceResult> UpdateAsync(Guid id, JobOfferInput input, CancellationToken cancellationToken = default);
+    /// <summary>Replaces the fields of the offer, but not its company nor its postings, and returns what its URL is
+    /// now built from (a new title gives it a new slug), or fails with <see cref="JobOfferErrors.NotFound"/>.</summary>
+    public Task<ServiceResult<JobOfferLinkDto>> UpdateAsync(Guid id, JobOfferInput input, CancellationToken cancellationToken = default);
 
     /// <summary>Records another site where the offer was seen, or fails with <see cref="JobOfferErrors.NotFound"/>,
     /// or with <see cref="JobOfferErrors.PostingAlreadyExists"/> when the offer already has this link.</summary>

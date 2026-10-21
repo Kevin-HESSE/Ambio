@@ -14,6 +14,7 @@ public class JobOfferMappingExtensionsTests
     private const string Description = "We are looking for a backend developer.";
     private const string Site = "LinkedIn";
     private const string Url = "https://www.linkedin.com/jobs/view/4102938475";
+    private const string ShortId = "482913";
 
     private static readonly Guid CompanyId = Guid.CreateVersion7();
 
@@ -31,11 +32,11 @@ public class JobOfferMappingExtensionsTests
             Site = Site,
             Url = Url,
             Description = Description,
-        }.ToEntity(CompanyId);
+        }.ToEntity(CompanyId, ShortId);
 
         Assert.Equal(
-            (CompanyId, Title, ContractType.Freelance, RemotePolicy.FullRemote, Location, Salary, Description),
-            (offer.CompanyId, offer.Title, offer.ContractType, offer.RemotePolicy, offer.Location, offer.Salary, offer.Description));
+            (CompanyId, ShortId, Title, ContractType.Freelance, RemotePolicy.FullRemote, Location, Salary, Description),
+            (offer.CompanyId, offer.ShortId, offer.Title, offer.ContractType, offer.RemotePolicy, offer.Location, offer.Salary, offer.Description));
         var posting = Assert.Single(offer.Postings);
         Assert.Equal((Site, Url), (posting.Site, posting.Url));
     }
@@ -52,7 +53,7 @@ public class JobOfferMappingExtensionsTests
             Site = $" {Site} ",
             Url = $" {Url} ",
             Description = "",
-        }.ToEntity(CompanyId);
+        }.ToEntity(CompanyId, ShortId);
 
         Assert.Equal((Title, Location, null, null), (offer.Title, offer.Location, offer.Salary, offer.Description));
         var posting = Assert.Single(offer.Postings);
@@ -70,7 +71,7 @@ public class JobOfferMappingExtensionsTests
     [Fact]
     public void ApplyTo_ReplacesTheFieldsButKeepsTheCompanyAndThePostings()
     {
-        var offer = new NewJobOfferInput { CompanyName = CompanyName, Title = Title, Site = Site, Url = Url }.ToEntity(CompanyId);
+        var offer = new NewJobOfferInput { CompanyName = CompanyName, Title = Title, Site = Site, Url = Url }.ToEntity(CompanyId, ShortId);
         var posting = Assert.Single(offer.Postings);
 
         new JobOfferInput
@@ -94,6 +95,7 @@ public class JobOfferMappingExtensionsTests
     {
         var details = new JobOfferDetailsDto(
             Id: Guid.CreateVersion7(),
+            ShortId: ShortId,
             Title: Title,
             CompanyName: CompanyName,
             CompanySlug: "kelvio",

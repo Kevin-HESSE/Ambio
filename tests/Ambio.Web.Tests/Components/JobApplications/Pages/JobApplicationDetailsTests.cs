@@ -73,7 +73,7 @@ public class JobApplicationDetailsTests : BunitContext
         Assert.Equal(
             (application.Channel.ToLabel(), application.ChannelDetail),
             (cut.Find(".application-channel .tag").TextContent.Trim(), cut.Find(".application-channel-detail").TextContent));
-        Assert.Equal(OfferRoutes.Details(application.JobOfferId), cut.Find(".application-offer").GetAttribute("href"));
+        Assert.Equal(OfferRoutes.Details(application.JobOfferShortId, application.JobOfferSlug), cut.Find(".application-offer").GetAttribute("href"));
         Assert.NotNull(cut.Find($".application-via a[href='{application.AppliedViaUrl}'][target='_blank']"));
         Assert.Equal(application.Notes, cut.Find(".application-notes-text").TextContent);
     }
@@ -164,7 +164,7 @@ public class JobApplicationDetailsTests : BunitContext
     private void GivenApplication(JobApplicationDetailsDto application) =>
         _jobApplicationService.GetAsync(application.ShortId, Arg.Any<CancellationToken>()).Returns(application);
 
-    private static string Key(JobApplicationDetailsDto application) => JobApplicationRoutes.Key(application.ShortId, application.Slug);
+    private static string Key(JobApplicationDetailsDto application) => ShortIdKey.Of(application.ShortId, application.Slug);
 
     private static IEnumerable<(string Term, string Description)> Overview(IRenderedComponent<JobApplicationDetails> cut) =>
         cut.FindAll(".application-overview-list > div").Select(row => (

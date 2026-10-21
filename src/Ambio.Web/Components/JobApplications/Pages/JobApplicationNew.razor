@@ -19,7 +19,7 @@
 @code {
     /// <summary>The offer already chosen, such as from the offer page (<see cref="JobApplicationRoutes.NewForOffer"/>).</summary>
     [SupplyParameterFromQuery(Name = "offer")]
-    public Guid? OfferId { get; set; }
+    public string? OfferShortId { get; set; }
 
     /// <summary>The company already chosen, such as from the company page (<see cref="JobApplicationRoutes.NewForCompany"/>):
     /// the form starts spontaneous. An offer given too wins.</summary>
@@ -33,9 +33,9 @@
     protected override async Task OnInitializedAsync()
     {
         // An unknown offer or company leaves the search open, as without one.
-        if (OfferId is { } offerId)
+        if (!string.IsNullOrWhiteSpace(OfferShortId))
         {
-            _offer = await JobOfferService.GetAsync(offerId);
+            _offer = await JobOfferService.GetAsync(OfferShortId);
         }
         else if (!string.IsNullOrWhiteSpace(CompanySlug))
         {
