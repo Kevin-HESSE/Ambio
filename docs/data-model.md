@@ -97,9 +97,10 @@ erDiagram
     }
     STATUS_CHANGE {
         guid Id
+        guid JobApplicationId
         enum From
         enum To
-        datetime ChangedAt
+        datetime ChangedAt "UTC, when it was recorded"
         string Comment
     }
     INTERACTION {
@@ -121,7 +122,7 @@ erDiagram
     }
 ```
 
-`OFFER_APPLICATION` and `SPONTANEOUS_APPLICATION` are subtypes of `JOB_APPLICATION`, stored in the same table (see [Application hierarchy](#application-hierarchy)). Every entity also has `CreatedAt` and `UpdatedAt`, which are left out of the diagram.
+`OFFER_APPLICATION` and `SPONTANEOUS_APPLICATION` are subtypes of `JOB_APPLICATION`, stored in the same table (see [Application hierarchy](#application-hierarchy)). Every entity also has `CreatedAt` and `UpdatedAt`, which are left out of the diagram, except `STATUS_CHANGE`: it's never updated, so `ChangedAt` is its only timestamp.
 
 ## Entities
 
@@ -196,7 +197,7 @@ The base class carries everything they share:
   - `InPerson`.
   - `Other`.
 - `ChannelDetail`: free text, such as a generic address like `jobs@…` or the name of the person who referred you.
-- `AppliedOn`, which is null while the application is a draft. `MarkAsSent` sets it when a draft is sent; `ChangeAppliedOn` corrects it afterwards, and refuses a draft.
+- `AppliedOn`, which is null while the application is a draft. `ChangeStatus` sets it when a draft is sent; `ChangeAppliedOn` corrects it afterwards, and refuses a draft.
 - An edit changes neither the offer nor the company of an application, nor its status.
 - `Notes`.
 - The cover letters, CVs, interactions and contacts.
@@ -221,7 +222,21 @@ The base class carries everything they share:
   - The alphabet must **never contain `-`**, because the first `-` separates the short id from the slug. This is why NanoId's default alphabet (which contains `-` and `_`) isn't used. Lowercase only, so URLs stay consistent.
 - `Guid Id` remains the primary key and the target of every foreign key. `ShortId` is only an alternate identifier for navigation.
 
-**Status workflow**: `Draft → Applied → Interview → Offer / Rejected / Withdrawn`. Every transition is checked by the domain and recorded as a `StatusChange`.
+**Status workflow**: `Draft → Applied → Interview → Offer / Rejected / Withdrawn` ([ADR 0026](adr/0026-status-workflow-and-history.md)). An application only moves forward:
+
+| From | Allowed next statuses |
+|---|---|
+| `Draft` | `Applied` (asks for `AppliedOn`), `Withdrawn` |
+| `Applied` | `Interview`, `Offer`, `Rejected`, `Withdrawn` |
+| `Interview` | `Offer`, `Rejected`, `Withdrawn` |
+| `Offer` | `Withdrawn` (the offer is declined) |
+| `Rejected`, `Withdrawn` | none: they are final |
+
+- The table lives in `StatusWorkflow` (`Next(status)`, `Allows(from, to)`). `Applied` is only reached from `Draft`: choosing it sends the draft.
+- `JobApplication.ChangeStatus(to, changedAt, comment, appliedOn)` refuses a transition the table doesn't allow (`InvalidOperationException`) and a draft sent without `appliedOn` (`ArgumentException`). It records the change, then moves the status. `appliedOn` isn't used by any other change. `CanChangeStatusTo(to)` lets the service check first.
+- Every application is born `Draft`. One created as already sent records `Draft → Applied` as its first change, at its creation, so the history explains every status but the first.
+- `ChangedAt` is when the change was recorded (`TimeProvider`, UTC), whereas `AppliedOn` is the day typed by the user.
+- An undo, and the lock on the status of an archived application ([ADR 0012](adr/0012-archive-instead-of-delete.md)), aren't built yet.
 
 **Effective company** of an application:
 - For an `OfferApplication`, `JobOffer.CompanyId` if it's known, otherwise `JobOffer.RecruiterCompanyId`.
@@ -229,7 +244,7 @@ The base class carries everything they share:
 
 ### StatusChange
 
-`From`, `To`, `ChangedAt` and an optional `Comment`. These rows are append-only and are deleted with their application.
+`From`, `To`, `ChangedAt` and an optional `Comment`, trimmed and stored as null when blank. These rows are append-only: only `JobApplication.ChangeStatus` creates them, through the application's `StatusChanges`, and they are deleted with their application. They have no `DbSet`, and are reached through their application.
 
 ### Interaction
 
@@ -348,6 +363,8 @@ At the data volume of a single user, both costs are negligible.
 - Summary and detail DTOs carry `ShortId` and the computed `Slug` (`JobApplicationSlug.From(title, companyName)`, a read-only property, `application` when nothing is left), so links are built without another query.
 - Offer summary and detail DTOs carry `ShortId` and the computed `Slug` (`JobOfferSlug.From(title, companyName)`) the same way. `OfferApplicationDetailsDto` also carries `JobOfferShortId` and `JobOfferSlug`, so the application page links to its offer. Creating or editing an offer returns a `JobOfferLinkDto` (`ShortId`, `Slug`): a new title gives a new slug.
 - **Details** use one DTO per subtype, `OfferApplicationDetailsDto` and `SpontaneousApplicationDetailsDto`, deriving from the abstract `JobApplicationDetailsDto`. The service reads them with one projection per subtype (`OfType<…>()`): a single projection can't build either type.
+- The details carry the `StatusHistory` (`StatusChangeDto`: `From`, `To`, `ChangedAt`, `Comment`), newest first, and the computed `NextStatuses` (`StatusWorkflow.Next(Status)`), which the change status sheet offers.
+- A status is changed with `ChangeStatusAsync(id, StatusChangeInput)`: the new status `To` (required), `SentOn` (required for `Applied`) and `Comment`. It fails with `NotFound`, or with `StatusNotAllowed` when the status can't follow the current one, such as when another tab changed it.
 
 ## Common queries
 

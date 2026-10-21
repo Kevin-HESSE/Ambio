@@ -51,6 +51,14 @@ Newest first. Each entry follows this format:
 - Change in the official version: what to do differently
 ```
 
+### 2026-10-21 — Status change and history (#30)
+
+- Kept: the transition table in the domain (`StatusWorkflow`, [ADR 0026](adr/0026-status-workflow-and-history.md)), with a single method that changes the status and records it. Creating an application as already sent goes through it too, so `MarkAsSent` is gone and the history is complete.
+- Kept: the details DTO carries the allowed next statuses, so the UI never repeats the workflow.
+- Kept: the change status sheet is an island inside a static card, and refreshes the static page once saved (`NavigationManager.Refresh()`). The page re-renders its status, sending day and history, and the island receives its new parameters, without reloading anything twice.
+- Not needed: nothing so far. `StatusChangeDto.From` isn't shown yet; the dashboard's recent activity (#37) may use it.
+- Change in the official version: `ChangedAt` is the time the change was recorded, not a date the user picks; an API could accept a past date for a change logged late. A mistaken status can't be undone here: the official version should decide between an undo and a way back.
+
 ### 2026-10-21 — Offers: readable URLs (#65)
 
 - Kept: the `{ShortId}-{slug}` URL of applications (ADR 0014) fits offers as is (ADR 0025). The generator, its setting and the redirect to the canonical slug were reused; only the key helper moved to a shared place.
