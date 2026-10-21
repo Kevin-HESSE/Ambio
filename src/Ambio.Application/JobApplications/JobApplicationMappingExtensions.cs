@@ -44,6 +44,14 @@ public static class JobApplicationMappingExtensions
             SentOn: a.AppliedOn,
             Notes: a.Notes,
             CreatedAt: a.CreatedAt,
+            StatusHistory: a.StatusChanges
+                .OrderByDescending(c => c.ChangedAt)
+                .Select(c => new StatusChangeDto(
+                    From: c.From,
+                    To: c.To,
+                    ChangedAt: c.ChangedAt,
+                    Comment: c.Comment))
+                .ToList(),
             JobOfferId: a.JobOfferId,
             JobOfferShortId: a.JobOffer.ShortId,
             Location: a.JobOffer.Location,
@@ -68,11 +76,20 @@ public static class JobApplicationMappingExtensions
             SentOn: a.AppliedOn,
             Notes: a.Notes,
             CreatedAt: a.CreatedAt,
+            StatusHistory: a.StatusChanges
+                .OrderByDescending(c => c.ChangedAt)
+                .Select(c => new StatusChangeDto(
+                    From: c.From,
+                    To: c.To,
+                    ChangedAt: c.ChangedAt,
+                    Comment: c.Comment))
+                .ToList(),
             CompanyLocation: a.Company.Location));
 
     /// <summary>A new application to the offer, sent through <paramref name="posting"/> when given, and already sent
-    /// when the form says so. The optional text fields are trimmed, and a blank one is stored as null.</summary>
-    public static OfferApplication ToEntity(this NewOfferApplicationInput input, Guid jobOfferId, string shortId, JobOfferPosting? posting)
+    /// when the form says so: its sending is then recorded at <paramref name="createdAt"/> (UTC). The optional text
+    /// fields are trimmed, and a blank one is stored as null.</summary>
+    public static OfferApplication ToEntity(this NewOfferApplicationInput input, Guid jobOfferId, string shortId, JobOfferPosting? posting, DateTime createdAt)
     {
         var application = new OfferApplication
         {
@@ -88,13 +105,14 @@ public static class JobApplicationMappingExtensions
             application.ApplyVia(posting);
         }
 
-        MarkAsSentWhenSent(input, application);
+        SendWhenSent(input, application, createdAt);
         return application;
     }
 
-    /// <summary>A new spontaneous application to the company, already sent when the form says so. The optional text
-    /// fields are trimmed, and a blank one is stored as null.</summary>
-    public static SpontaneousApplication ToEntity(this NewSpontaneousApplicationInput input, Guid companyId, string shortId)
+    /// <summary>A new spontaneous application to the company, already sent when the form says so: its sending is then
+    /// recorded at <paramref name="createdAt"/> (UTC). The optional text fields are trimmed, and a blank one is stored
+    /// as null.</summary>
+    public static SpontaneousApplication ToEntity(this NewSpontaneousApplicationInput input, Guid companyId, string shortId, DateTime createdAt)
     {
         var application = new SpontaneousApplication
         {
@@ -106,7 +124,7 @@ public static class JobApplicationMappingExtensions
             Notes = input.Notes.NullIfBlank(),
         };
 
-        MarkAsSentWhenSent(input, application);
+        SendWhenSent(input, application, createdAt);
         return application;
     }
 
@@ -169,12 +187,13 @@ public static class JobApplicationMappingExtensions
         }
     }
 
-    // The form requires the date once "Already sent" is checked.
-    private static void MarkAsSentWhenSent(JobApplicationInput input, JobApplication application)
+    // Every application is born a draft: one already sent records its sending as its first change. The form requires
+    // the date once "Already sent" is checked.
+    private static void SendWhenSent(JobApplicationInput input, JobApplication application, DateTime createdAt)
     {
         if (input is { AlreadySent: true, SentOn: { } sentOn })
         {
-            application.MarkAsSent(sentOn);
+            application.ChangeStatus(ApplicationStatus.Applied, createdAt, appliedOn: sentOn);
         }
     }
 }

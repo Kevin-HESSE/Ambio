@@ -23,5 +23,7 @@ public static class SpontaneousApplicationDetailsFactory
             .RuleFor(a => a.SentOn, faker => DateOnly.FromDateTime(faker.Date.Recent()))
             .RuleFor(a => a.Notes, faker => faker.Lorem.Paragraph())
             .RuleFor(a => a.CreatedAt, faker => faker.Date.Past())
+            // A single change, to its status.
+            .RuleFor(a => a.StatusHistory, (_, a) => [StatusChangeDtoFactory.GetGenerator().RuleFor(c => c.To, a.Status).Generate()])
             .RuleFor(a => a.CompanyLocation, faker => faker.Address.City());
 }

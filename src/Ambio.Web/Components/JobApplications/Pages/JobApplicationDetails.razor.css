@@ -1,0 +1,15 @@
+/* The history closes the content below 992 px, and follows the status card in the side column above. */
+.application-detail {
+    grid-template-areas: "head" "aside" "main" "history";
+}
+
+.application-detail-history {
+    grid-area: history;
+}
+
+@media (min-width: 992px) {
+    .application-detail {
+        grid-template-areas: "head head" "main aside" "main history";
+        grid-template-rows: auto auto 1fr;
+    }
+}

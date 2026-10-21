@@ -7,8 +7,6 @@ public class SpontaneousApplicationTests
     private const string ShortId = "662140";
     private const string TargetPosition = "Backend Developer";
 
-    private static readonly DateOnly SentOn = new(2026, 9, 3);
-
     [Fact]
     public void New_GeneratesVersion7Id()
     {
@@ -34,16 +32,6 @@ public class SpontaneousApplicationTests
     public void TargetPosition_IsTrimmed()
     {
         Assert.Equal(TargetPosition, NewApplication($"  {TargetPosition}\n").TargetPosition);
-    }
-
-    [Fact]
-    public void MarkAsSent_OnDraft_MovesToAppliedWithTheDate()
-    {
-        var application = NewApplication();
-
-        application.MarkAsSent(SentOn);
-
-        Assert.Equal((ApplicationStatus.Applied, SentOn), (application.Status, application.AppliedOn));
     }
 
     private static SpontaneousApplication NewApplication(string targetPosition = TargetPosition) => new()

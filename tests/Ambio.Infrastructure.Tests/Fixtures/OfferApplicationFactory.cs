@@ -22,7 +22,8 @@ public static class OfferApplicationFactory
             .RuleFor(a => a.ChannelDetail, faker => faker.Internet.Email())
             .RuleFor(a => a.Notes, faker => faker.Lorem.Sentence())
             .RuleSet(IsSent, set =>
-                set.FinishWith((faker, a) => a.MarkAsSent(DateOnly.FromDateTime(faker.Date.Past())))
+                set.FinishWith((faker, a) =>
+                    a.ChangeStatus(ApplicationStatus.Applied, faker.Date.Past().ToUniversalTime(), appliedOn: DateOnly.FromDateTime(faker.Date.Past())))
             )
             .RuleSet(IsArchived, set =>
                 set.RuleFor(a => a.ArchivedAt, faker => faker.Date.Past())

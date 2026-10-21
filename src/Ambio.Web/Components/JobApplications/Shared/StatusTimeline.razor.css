@@ -1,0 +1,36 @@
+/* A dot in the color of the status reached (css/statuses.css), joined to the next one by a line. */
+.status-timeline-item {
+    --gap: var(--ambio-space-4);
+    position: relative;
+    padding: 0 0 var(--ambio-space-16) var(--ambio-space-32);
+}
+
+.status-timeline-item::before {
+    content: "";
+    position: absolute;
+    top: 7px;
+    left: 6px;
+    width: 10px;
+    height: 10px;
+    border-radius: var(--ambio-radius-full);
+    background: var(--status-solid);
+    box-shadow: 0 0 0 3px var(--ambio-bg-surface);
+}
+
+.status-timeline-item::after {
+    content: "";
+    position: absolute;
+    top: 20px;
+    bottom: 0;
+    left: 10px;
+    width: 2px;
+    background: var(--ambio-border-default);
+}
+
+.status-timeline-item:last-child {
+    padding-bottom: 0;
+}
+
+.status-timeline-item:last-child::after {
+    display: none;
+}

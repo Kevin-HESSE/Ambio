@@ -27,7 +27,12 @@ public class JobApplicationDetailsTests : BunitContext
     private const string NoNotes = "No notes yet.";
     private const string ChannelTerm = "Channel";
 
+    private const string Comment = "First call with the HR team";
+
     private static readonly DateOnly SentOn = new(2026, 9, 3);
+    private static readonly DateTime CreatedAt = new(2026, 9, 1, 9, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTime SentAt = new(2026, 9, 3, 9, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTime InterviewAt = new(2026, 9, 12, 9, 0, 0, DateTimeKind.Utc);
 
     private readonly IJobApplicationService _jobApplicationService = Substitute.For<IJobApplicationService>();
 
@@ -111,6 +116,45 @@ public class JobApplicationDetailsTests : BunitContext
     }
 
     [Fact]
+    public void Render_WithStatusChanges_ListsThemNewestFirstThenTheCreationAsDraft()
+    {
+        var application = OfferApplicationDetailsFactory.GetGenerator().Generate() with
+        {
+            Status = ApplicationStatus.Interview,
+            CreatedAt = CreatedAt,
+            StatusHistory =
+            [
+                new StatusChangeDto(ApplicationStatus.Applied, ApplicationStatus.Interview, InterviewAt, Comment),
+                new StatusChangeDto(ApplicationStatus.Draft, ApplicationStatus.Applied, SentAt, null),
+            ],
+        };
+        GivenApplication(application);
+
+        var cut = RenderDetails(Key(application));
+
+        Assert.Equal(
+            [
+                $"{ApplicationStatus.Interview.ToLabel()} 12 Sep 2026 {Comment}",
+                $"{ApplicationStatus.Applied.ToLabel()} 3 Sep 2026",
+                $"{ApplicationStatus.Draft.ToLabel()} 1 Sep 2026",
+            ],
+            cut.FindAll(".status-timeline-item").Select(TimelineItem));
+        Assert.Equal("since 12 Sep", Normalize(cut.Find(".status-panel-since").TextContent));
+    }
+
+    [Fact]
+    public void Render_WithoutStatusChange_IsADraftSinceItsCreation()
+    {
+        var application = OfferApplicationDetailsFactory.GetGenerator().Generate(OfferApplicationDetailsFactory.IsDraftRuleSet) with { CreatedAt = CreatedAt };
+        GivenApplication(application);
+
+        var cut = RenderDetails(Key(application));
+
+        Assert.Equal($"{ApplicationStatus.Draft.ToLabel()} 1 Sep 2026", TimelineItem(cut.Find(".status-timeline-item")));
+        Assert.Equal("since 1 Sep", Normalize(cut.Find(".status-panel-since").TextContent));
+    }
+
+    [Fact]
     public void Render_WithApplication_LinksTheEditButtonsToTheEditPage()
     {
         var application = OfferApplicationDetailsFactory.GetGenerator().Generate();
@@ -169,7 +213,14 @@ public class JobApplicationDetailsTests : BunitContext
     private static IEnumerable<(string Term, string Description)> Overview(IRenderedComponent<JobApplicationDetails> cut) =>
         cut.FindAll(".application-overview-list > div").Select(row => (
             row.QuerySelector("dt")!.TextContent,
-            string.Join(' ', row.QuerySelector("dd")!.TextContent.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries))));
+            Normalize(row.QuerySelector("dd")!.TextContent)));
+
+    // The badge, the date and the comment of a history entry.
+    private static string TimelineItem(AngleSharp.Dom.IElement item) =>
+        string.Join(' ', item.Children.Select(part => Normalize(part.TextContent)));
+
+    // The text of an element, its whitespace collapsed.
+    private static string Normalize(string text) => string.Join(' ', text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
 
     private IRenderedComponent<JobApplicationDetails> RenderDetails(string key) =>
         Render<JobApplicationDetails>(parameters => parameters.Add(page => page.Key, key));
