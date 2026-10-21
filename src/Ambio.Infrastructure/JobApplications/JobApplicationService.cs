@@ -16,11 +16,13 @@ internal class JobApplicationService : IJobApplicationService
 {
     private readonly IDbContextFactory<ApplicationDbContext> _dbFactory;
     private readonly ShortIdGenerator _shortIds;
+    private readonly TimeProvider _timeProvider;
 
-    public JobApplicationService(IDbContextFactory<ApplicationDbContext> dbFactory, ShortIdGenerator shortIds)
+    public JobApplicationService(IDbContextFactory<ApplicationDbContext> dbFactory, ShortIdGenerator shortIds, TimeProvider timeProvider)
     {
         _dbFactory = dbFactory;
         _shortIds = shortIds;
+        _timeProvider = timeProvider;
     }
 
     public Task<IReadOnlyList<JobApplicationSummaryDto>> ListAsync(CancellationToken cancellationToken = default) =>
@@ -79,7 +81,7 @@ internal class JobApplicationService : IJobApplicationService
         var shortId = await _shortIds.FreeAsync(candidate =>
             db.JobApplications.AnyAsync(a => a.ShortId == candidate, cancellationToken));
 
-        db.JobApplications.Add(input.ToEntity(offer.Id, shortId, posting));
+        db.JobApplications.Add(input.ToEntity(offer.Id, shortId, posting, Now));
         await db.SaveChangesAsync(cancellationToken);
 
         return ServiceResult<JobApplicationLinkDto>.Success(
@@ -95,7 +97,7 @@ internal class JobApplicationService : IJobApplicationService
             db.JobApplications.AnyAsync(a => a.ShortId == candidate, cancellationToken));
 
         // Saved with the new company, if any, in a single transaction.
-        var application = input.ToEntity(companyId, shortId);
+        var application = input.ToEntity(companyId, shortId, Now);
         db.JobApplications.Add(application);
         await db.SaveChangesAsync(cancellationToken);
 
@@ -152,6 +154,30 @@ internal class JobApplicationService : IJobApplicationService
         return ServiceResult<JobApplicationLinkDto>.Success(
             new JobApplicationLinkDto(application.ShortId, JobApplicationSlug.From(application.TargetPosition, application.Company.Name)));
     }
+
+    public async Task<ServiceResult> ChangeStatusAsync(Guid id, StatusChangeInput input, CancellationToken cancellationToken = default)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
+
+        // The history isn't loaded: a change is only appended to it.
+        var application = await db.JobApplications.SingleOrDefaultAsync(a => a.Id == id, cancellationToken);
+        if (application is null)
+        {
+            return ServiceResult.Failure(JobApplicationErrors.NotFound);
+        }
+
+        if (input.To is not { } to || !application.CanChangeStatusTo(to))
+        {
+            return ServiceResult.Failure(JobApplicationErrors.StatusNotAllowed);
+        }
+
+        input.ApplyTo(application, Now);
+        await db.SaveChangesAsync(cancellationToken);
+
+        return ServiceResult.Success();
+    }
+
+    private DateTime Now => _timeProvider.GetUtcNow().UtcDateTime;
 
     /// <summary>The active applications of every kind that match <paramref name="predicate"/>, newest first: by
     /// sending day, or by creation day for a draft, then by creation time.</summary>

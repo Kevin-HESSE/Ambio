@@ -16,5 +16,6 @@ public record SpontaneousApplicationDetailsDto(
     DateOnly? SentOn,
     string? Notes,
     DateTime CreatedAt,
+    IReadOnlyList<StatusChangeDto> StatusHistory,
     string? CompanyLocation)
-    : JobApplicationDetailsDto(Id, ShortId, Title, CompanyName, CompanySlug, Status, Channel, ChannelDetail, SentOn, Notes, CreatedAt);
+    : JobApplicationDetailsDto(Id, ShortId, Title, CompanyName, CompanySlug, Status, Channel, ChannelDetail, SentOn, Notes, CreatedAt, StatusHistory);

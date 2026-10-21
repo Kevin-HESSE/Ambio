@@ -128,6 +128,35 @@ namespace Ambio.Infrastructure.Persistence.Migrations
                     b.UseTphMappingStrategy();
                 });
 
+            modelBuilder.Entity("Ambio.Domain.JobApplications.StatusChange", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("ChangedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Comment")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("From")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("JobApplicationId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("To")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JobApplicationId");
+
+                    b.ToTable("StatusChanges", (string)null);
+                });
+
             modelBuilder.Entity("Ambio.Domain.Offers.JobOffer", b =>
                 {
                     b.Property<Guid>("Id")
@@ -467,6 +496,15 @@ namespace Ambio.Infrastructure.Persistence.Migrations
                     b.HasDiscriminator().HasValue("Spontaneous");
                 });
 
+            modelBuilder.Entity("Ambio.Domain.JobApplications.StatusChange", b =>
+                {
+                    b.HasOne("Ambio.Domain.JobApplications.JobApplication", null)
+                        .WithMany("StatusChanges")
+                        .HasForeignKey("JobApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Ambio.Domain.Offers.JobOffer", b =>
                 {
                     b.HasOne("Ambio.Domain.Companies.Company", "Company")
@@ -616,6 +654,11 @@ namespace Ambio.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Company");
+                });
+
+            modelBuilder.Entity("Ambio.Domain.JobApplications.JobApplication", b =>
+                {
+                    b.Navigation("StatusChanges");
                 });
 
             modelBuilder.Entity("Ambio.Domain.Offers.JobOffer", b =>

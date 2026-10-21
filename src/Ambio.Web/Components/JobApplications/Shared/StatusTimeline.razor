@@ -1,0 +1,36 @@
+@* The "History" card of the application page (docs/ui.md#patterns): its status changes, newest first, then its
+   creation as a draft. *@
+<section class="card status-timeline" aria-labelledby="status-timeline-title">
+    <div class="card-header">
+        <h2 id="status-timeline-title" class="t-h3">History</h2>
+    </div>
+    <div class="card-body">
+        <ol class="status-timeline-list list-unstyled">
+            @foreach (var change in History)
+            {
+                <li class="status-timeline-item status-@change.To.ToString().ToLowerInvariant() stack align-items-start">
+                    <StatusBadge Status="change.To" />
+                    <time class="t-small t-muted" datetime="@change.ChangedAt.ToString("yyyy-MM-dd")">@change.ChangedAt.ToDisplayDate()</time>
+                    @if (change.Comment is not null)
+                    {
+                        <p class="status-timeline-comment t-small t-secondary prose">@change.Comment</p>
+                    }
+                </li>
+            }
+            <li class="status-timeline-item status-draft stack align-items-start">
+                <StatusBadge Status="ApplicationStatus.Draft" />
+                <time class="t-small t-muted" datetime="@CreatedAt.ToString("yyyy-MM-dd")">@CreatedAt.ToDisplayDate()</time>
+            </li>
+        </ol>
+    </div>
+</section>
+
+@code {
+    /// <summary>The status changes, newest first.</summary>
+    [Parameter, EditorRequired]
+    public IReadOnlyList<StatusChangeDto> History { get; set; } = [];
+
+    /// <summary>When the application was created (UTC), as a draft.</summary>
+    [Parameter, EditorRequired]
+    public DateTime CreatedAt { get; set; }
+}

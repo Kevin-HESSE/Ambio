@@ -9,8 +9,6 @@ public class OfferApplicationTests
     private const string Site = "LinkedIn";
     private const string Url = "https://www.linkedin.com/jobs/view/4102938475";
 
-    private static readonly DateOnly SentOn = new(2026, 9, 3);
-
     [Fact]
     public void New_GeneratesVersion7Id()
     {
@@ -32,25 +30,6 @@ public class OfferApplicationTests
     public void ShortId_WhenBlank_ThrowsArgumentException(string shortId)
     {
         Assert.Throws<ArgumentException>(() => NewApplication(Guid.CreateVersion7(), shortId));
-    }
-
-    [Fact]
-    public void MarkAsSent_OnDraft_MovesToAppliedWithTheDate()
-    {
-        var application = NewApplication(Guid.CreateVersion7());
-
-        application.MarkAsSent(SentOn);
-
-        Assert.Equal((ApplicationStatus.Applied, SentOn), (application.Status, application.AppliedOn));
-    }
-
-    [Fact]
-    public void MarkAsSent_WhenAlreadySent_ThrowsInvalidOperationException()
-    {
-        var application = NewApplication(Guid.CreateVersion7());
-        application.MarkAsSent(SentOn);
-
-        Assert.Throws<InvalidOperationException>(() => application.MarkAsSent(SentOn.AddDays(1)));
     }
 
     [Fact]
@@ -85,26 +64,6 @@ public class OfferApplicationTests
         application.ClearAppliedVia();
 
         Assert.Null(application.AppliedViaPostingId);
-    }
-
-    [Fact]
-    public void ChangeAppliedOn_WhenSent_ChangesTheDayButNotTheStatus()
-    {
-        var application = NewApplication(Guid.CreateVersion7());
-        application.MarkAsSent(SentOn);
-
-        application.ChangeAppliedOn(SentOn.AddDays(-1));
-
-        Assert.Equal((ApplicationStatus.Applied, SentOn.AddDays(-1)), (application.Status, application.AppliedOn));
-    }
-
-    [Fact]
-    public void ChangeAppliedOn_OnDraft_ThrowsInvalidOperationException()
-    {
-        var application = NewApplication(Guid.CreateVersion7());
-
-        Assert.Throws<InvalidOperationException>(() => application.ChangeAppliedOn(SentOn));
-        Assert.Null(application.AppliedOn);
     }
 
     private static OfferApplication NewApplication(Guid jobOfferId, string shortId = ShortId) => new()

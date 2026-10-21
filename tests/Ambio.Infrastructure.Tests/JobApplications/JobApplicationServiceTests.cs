@@ -26,6 +26,7 @@ public class JobApplicationServiceTests : IAsyncLifetime
     private const string TargetPosition = "Développeur Backend";
     private const string CompanyName = "Brightwave & Co";
     private const string ApplicationSlug = "developpeur-backend-brightwave-co";
+    private const string Comment = "First call with the HR team";
 
     private static readonly DateTimeOffset Now = new(2026, 9, 28, 10, 0, 0, TimeSpan.Zero);
     private static readonly DateOnly SentOn = new(2026, 9, 3);
@@ -81,8 +82,8 @@ public class JobApplicationServiceTests : IAsyncLifetime
         var generator = OfferApplicationFactory.GetGenerator(story.JobOffer.Id);
         var (sentLongAgo, draftOfToday, sentYesterday, draftOfLastWeek) =
             (generator.Generate(), generator.Generate(), generator.Generate(), generator.Generate());
-        sentLongAgo.MarkAsSent(DateOnly.FromDateTime(Now.UtcDateTime).AddDays(-30));
-        sentYesterday.MarkAsSent(DateOnly.FromDateTime(Now.UtcDateTime).AddDays(-1));
+        sentLongAgo.ChangeStatus(ApplicationStatus.Applied, Now.UtcDateTime, appliedOn: DateOnly.FromDateTime(Now.UtcDateTime).AddDays(-30));
+        sentYesterday.ChangeStatus(ApplicationStatus.Applied, Now.UtcDateTime, appliedOn: DateOnly.FromDateTime(Now.UtcDateTime).AddDays(-1));
         // Recorded today, but sent a month ago: it sorts by its sending day.
         await AddAtAsync(Now, sentLongAgo);
         await AddAtAsync(Now.AddHours(-1), draftOfToday);
@@ -216,11 +217,12 @@ public class JobApplicationServiceTests : IAsyncLifetime
 
         var details = await GetAsync(application.ShortId);
 
+        // The history has its own tests.
         Assert.Equal(
             new OfferApplicationDetailsDto(
                 application.Id, application.ShortId, offer.Title, story.Company.Name, story.Company.Slug, ApplicationStatus.Applied,
                 application.Channel, application.ChannelDetail, application.AppliedOn, application.Notes, Now.UtcDateTime,
-                offer.Id, offer.ShortId, offer.Location, offer.ContractType, offer.RemotePolicy, offer.Salary, offer.Postings[0].Id,
+                details!.StatusHistory, offer.Id, offer.ShortId, offer.Location, offer.ContractType, offer.RemotePolicy, offer.Salary, offer.Postings[0].Id,
                 offer.Postings[0].Site, offer.Postings[0].Url),
             details);
     }
@@ -245,11 +247,12 @@ public class JobApplicationServiceTests : IAsyncLifetime
 
         var details = await GetAsync(application.ShortId);
 
+        // The history has its own tests.
         Assert.Equal(
             new SpontaneousApplicationDetailsDto(
                 application.Id, application.ShortId, application.TargetPosition, story.Company.Name, story.Company.Slug,
                 ApplicationStatus.Applied, application.Channel, application.ChannelDetail, application.AppliedOn, application.Notes,
-                Now.UtcDateTime, story.Company.Location),
+                Now.UtcDateTime, details!.StatusHistory, story.Company.Location),
             details);
     }
 
@@ -274,6 +277,36 @@ public class JobApplicationServiceTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task GetAsync_WithStatusChanges_ReturnsTheHistoryNewestFirst()
+    {
+        var story = new OfferApplicationStory().WithApplications(1);
+        var application = story.Applications[0];
+        application.ChangeStatus(ApplicationStatus.Applied, Now.UtcDateTime, appliedOn: SentOn);
+        application.ChangeStatus(ApplicationStatus.Interview, Now.UtcDateTime.AddDays(2), Comment);
+        await story.SaveAsync(_services);
+
+        var details = await GetAsync(application.ShortId);
+
+        Assert.Equal(
+            [
+                new StatusChangeDto(ApplicationStatus.Applied, ApplicationStatus.Interview, Now.UtcDateTime.AddDays(2), Comment),
+                new StatusChangeDto(ApplicationStatus.Draft, ApplicationStatus.Applied, Now.UtcDateTime, null),
+            ],
+            details?.StatusHistory);
+    }
+
+    [Fact]
+    public async Task GetAsync_Draft_ReturnsAnEmptyHistory()
+    {
+        var story = new SpontaneousApplicationStory().WithApplications(1);
+        await story.SaveAsync(_services);
+
+        var details = await GetAsync(story.Applications[0].ShortId);
+
+        Assert.Empty(details!.StatusHistory);
+    }
+
+    [Fact]
     public async Task CreateAsync_Draft_SavesItWithANumericShortId()
     {
         var story = new OfferApplicationStory();
@@ -288,6 +321,7 @@ public class JobApplicationServiceTests : IAsyncLifetime
             (story.JobOffer.Id, ApplicationStatus.Draft, (DateOnly?)null, (Guid?)null, input.Channel, input.ChannelDetail, input.Notes),
             (saved.JobOfferId, saved.Status, saved.AppliedOn, saved.AppliedViaPostingId, saved.Channel, saved.ChannelDetail, saved.Notes));
         Assert.Matches(ShortIdPattern, saved.ShortId);
+        Assert.Empty(await FindStatusChangesAsync());
     }
 
     [Fact]
@@ -322,6 +356,7 @@ public class JobApplicationServiceTests : IAsyncLifetime
 
         var saved = await FindSingleAsync();
         Assert.Equal((ApplicationStatus.Applied, SentOn, posting.Id), (saved.Status, saved.AppliedOn, saved.AppliedViaPostingId));
+        AssertSentAtCreation(saved.Id, Assert.Single(await FindStatusChangesAsync()));
     }
 
     [Fact]
@@ -423,6 +458,7 @@ public class JobApplicationServiceTests : IAsyncLifetime
 
         var saved = await FindSingleSpontaneousAsync();
         Assert.Equal((ApplicationStatus.Applied, SentOn), (saved.Status, saved.AppliedOn));
+        AssertSentAtCreation(saved.Id, Assert.Single(await FindStatusChangesAsync()));
     }
 
     [Fact]
@@ -576,6 +612,74 @@ public class JobApplicationServiceTests : IAsyncLifetime
         Assert.Equal(JobApplicationErrors.NotFound, result.GetMessage);
     }
 
+    [Fact]
+    public async Task ChangeStatusAsync_DraftToApplied_SendsItAndRecordsTheChangeWithItsTrimmedComment()
+    {
+        var story = new OfferApplicationStory().WithApplications(1);
+        await story.SaveAsync(_services);
+        var application = story.Applications[0];
+
+        var result = await ChangeStatusAsync(
+            application.Id, new StatusChangeInput { To = ApplicationStatus.Applied, SentOn = SentOn, Comment = $"  {Comment}\n" });
+
+        Assert.True(result.IsSuccess);
+        var saved = await FindSingleAsync();
+        Assert.Equal((ApplicationStatus.Applied, SentOn), (saved.Status, saved.AppliedOn));
+        var change = Assert.Single(await FindStatusChangesAsync());
+        Assert.Equal(
+            (application.Id, ApplicationStatus.Draft, ApplicationStatus.Applied, Now.UtcDateTime, Comment),
+            (change.JobApplicationId, change.From, change.To, change.ChangedAt, change.Comment));
+    }
+
+    [Fact]
+    public async Task ChangeStatusAsync_WithBlankComment_StoresItAsNull()
+    {
+        var story = new OfferApplicationStory().WithApplications(1);
+        await story.SaveAsync(_services);
+
+        await ChangeStatusAsync(story.Applications[0].Id, new StatusChangeInput { To = ApplicationStatus.Withdrawn, Comment = " " });
+
+        Assert.Null(Assert.Single(await FindStatusChangesAsync()).Comment);
+    }
+
+    [Fact]
+    public async Task ChangeStatusAsync_SentApplication_KeepsItsSendingDay()
+    {
+        var story = new SpontaneousApplicationStory().WithApplications(1, SpontaneousApplicationFactory.IsSentRuleSet);
+        await story.SaveAsync(_services);
+        var application = story.Applications[0];
+
+        var result = await ChangeStatusAsync(application.Id, new StatusChangeInput { To = ApplicationStatus.Interview, SentOn = SentOn });
+
+        Assert.True(result.IsSuccess);
+        var saved = await FindSingleSpontaneousAsync();
+        Assert.Equal((ApplicationStatus.Interview, application.AppliedOn), (saved.Status, saved.AppliedOn));
+        Assert.Equal(
+            [ApplicationStatus.Applied, ApplicationStatus.Interview],
+            (await FindStatusChangesAsync()).OrderBy(c => c.ChangedAt).Select(c => c.To));
+    }
+
+    [Fact]
+    public async Task ChangeStatusAsync_StatusTheWorkflowRefuses_FailsWithStatusNotAllowed()
+    {
+        var story = new OfferApplicationStory().WithApplications(1);
+        await story.SaveAsync(_services);
+
+        var result = await ChangeStatusAsync(story.Applications[0].Id, new StatusChangeInput { To = ApplicationStatus.Interview });
+
+        Assert.Equal(JobApplicationErrors.StatusNotAllowed, result.GetMessage);
+        Assert.Equal(ApplicationStatus.Draft, (await FindSingleAsync()).Status);
+        Assert.Empty(await FindStatusChangesAsync());
+    }
+
+    [Fact]
+    public async Task ChangeStatusAsync_UnknownApplication_FailsWithNotFound()
+    {
+        var result = await ChangeStatusAsync(Guid.CreateVersion7(), new StatusChangeInput { To = ApplicationStatus.Withdrawn });
+
+        Assert.Equal(JobApplicationErrors.NotFound, result.GetMessage);
+    }
+
     [Theory]
     [MemberData(nameof(InvalidShortIdOptions))]
     public async Task ShortIdOptions_WithInvalidAlphabetOrSize_FailValidation(string alphabet, int size)
@@ -609,6 +713,15 @@ public class JobApplicationServiceTests : IAsyncLifetime
         await _services.AddAsync(application);
     }
 
+    // Every application is born a draft: one created as already sent records its sending, when it is created.
+    private static void AssertSentAtCreation(Guid applicationId, StatusChange change) =>
+        Assert.Equal(
+            (applicationId, ApplicationStatus.Draft, ApplicationStatus.Applied, Now.UtcDateTime, (string?)null),
+            (change.JobApplicationId, change.From, change.To, change.ChangedAt, change.Comment));
+
+    private Task<List<StatusChange>> FindStatusChangesAsync() =>
+        _services.QueryAsync(context => context.Set<StatusChange>().ToListAsync(TestContext.Current.CancellationToken));
+
     private Task<OfferApplication> FindSingleAsync() =>
         _services.QueryAsync(context => context.Set<OfferApplication>().SingleAsync(TestContext.Current.CancellationToken));
 
@@ -638,6 +751,9 @@ public class JobApplicationServiceTests : IAsyncLifetime
 
     private Task<ServiceResult<JobApplicationLinkDto>> UpdateAsync(Guid id, SpontaneousApplicationInput input) =>
         _services.CallAsync((IJobApplicationService service) => service.UpdateAsync(id, input, TestContext.Current.CancellationToken));
+
+    private Task<ServiceResult> ChangeStatusAsync(Guid id, StatusChangeInput input) =>
+        _services.CallAsync((IJobApplicationService service) => service.ChangeStatusAsync(id, input, TestContext.Current.CancellationToken));
 
     public static TheoryData<string, int> InvalidShortIdOptions => new()
     {

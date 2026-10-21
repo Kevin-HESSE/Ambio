@@ -12,6 +12,9 @@ public class JobApplicationConfigurationTests : IAsyncLifetime
 {
     private const string OfferKind = "Offer";
     private const string SpontaneousKind = "Spontaneous";
+    private const string Comment = "First call with the HR team";
+
+    private static readonly DateTime ChangedAt = DateTime.UtcNow;
 
     private SqliteServiceProvider _services = null!;
 
@@ -137,6 +140,38 @@ public class JobApplicationConfigurationTests : IAsyncLifetime
         var saved = await _services.QueryAsync(context =>
             context.Set<OfferApplication>().SingleAsync(TestContext.Current.CancellationToken));
         Assert.Null(saved.AppliedViaPostingId);
+    }
+
+    [Fact]
+    public async Task SaveChangesAsync_ApplicationWithStatusChanges_SavesThemWithEveryField()
+    {
+        var story = new OfferApplicationStory().WithApplications(1, OfferApplicationFactory.IsSentRuleSet);
+        var application = story.Applications[0];
+        application.ChangeStatus(ApplicationStatus.Interview, ChangedAt, Comment);
+        await story.SaveAsync(_services);
+
+        var saved = await _services.QueryAsync(context => context.Set<OfferApplication>()
+            .Include(a => a.StatusChanges)
+            .SingleAsync(TestContext.Current.CancellationToken));
+
+        Assert.Equal(
+            application.StatusChanges.Select(c => (c.Id, c.JobApplicationId, c.From, c.To, c.ChangedAt, c.Comment)),
+            saved.StatusChanges.OrderBy(c => c.ChangedAt).Select(c => (c.Id, c.JobApplicationId, c.From, c.To, c.ChangedAt, c.Comment)));
+    }
+
+    [Fact]
+    public async Task SaveChangesAsync_DeletedApplication_DeletesItsStatusChanges()
+    {
+        await new OfferApplicationStory().WithApplications(1, OfferApplicationFactory.IsSentRuleSet).SaveAsync(_services);
+
+        await using (var context = await _services.CreateDbContextAsync())
+        {
+            context.JobApplications.Remove(await context.JobApplications.SingleAsync(TestContext.Current.CancellationToken));
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+        }
+
+        Assert.Empty(await _services.QueryAsync(context =>
+            context.Set<StatusChange>().ToListAsync(TestContext.Current.CancellationToken)));
     }
 
     public static TheoryData<string, string> ColumnsBreakingTheKind => new()

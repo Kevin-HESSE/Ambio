@@ -41,11 +41,21 @@
         </DetailHeader>
 
         <div class="application-detail-aside detail-aside stack">
-            <StatusPanel Status="_application.Status" />
+            <StatusPanel Status="_application.Status" Since="StatusSince">
+                @if (_application.NextStatuses.Count > 0)
+                {
+                    <ChangeStatusSheet @rendermode="InteractiveServer" ApplicationId="_application.Id" Status="_application.Status"
+                                       NextStatuses="_application.NextStatuses" />
+                }
+            </StatusPanel>
         </div>
 
         <div class="application-detail-main detail-main stack">
             <JobApplicationOverview Application="_application" EditHref="@EditHref" />
+        </div>
+
+        <div class="application-detail-history">
+            <StatusTimeline History="_application.StatusHistory" CreatedAt="_application.CreatedAt" />
         </div>
     </div>
 }
@@ -58,6 +68,9 @@
     private JobApplicationDetailsDto? _application;
 
     private string EditHref => JobApplicationRoutes.Edit(_application!.ShortId, _application.Slug);
+
+    /// <summary>When the application reached its status: its last change, or its creation.</summary>
+    private DateTime StatusSince => _application!.StatusHistory.FirstOrDefault()?.ChangedAt ?? _application.CreatedAt;
 
     /// <summary>Where the job is: the offer's location, or the company's for a spontaneous application.</summary>
     private string? Location => _application switch

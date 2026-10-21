@@ -28,6 +28,8 @@ public static class OfferApplicationDetailsFactory
             .RuleFor(a => a.SentOn, faker => DateOnly.FromDateTime(faker.Date.Recent()))
             .RuleFor(a => a.Notes, faker => faker.Lorem.Paragraph())
             .RuleFor(a => a.CreatedAt, faker => faker.Date.Past())
+            // A single change, to its status.
+            .RuleFor(a => a.StatusHistory, (_, a) => [StatusChangeDtoFactory.GetGenerator().RuleFor(c => c.To, a.Status).Generate()])
             .RuleFor(a => a.JobOfferId, Guid.CreateVersion7)
             .RuleFor(a => a.JobOfferShortId, faker => faker.Random.String2(6, "0123456789"))
             .RuleFor(a => a.Location, faker => faker.Address.City())
@@ -39,6 +41,7 @@ public static class OfferApplicationDetailsFactory
             .RuleFor(a => a.AppliedViaUrl, faker => faker.Internet.Url())
             .RuleSet(IsDraft, set => set
                 .RuleFor(a => a.Status, ApplicationStatus.Draft)
+                .RuleFor(a => a.StatusHistory, [])
                 .RuleFor(a => a.SentOn, (DateOnly?)null)
                 .RuleFor(a => a.Notes, (string?)null)
                 .RuleFor(a => a.AppliedViaPostingId, (Guid?)null)

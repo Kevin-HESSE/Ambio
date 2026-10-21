@@ -14,8 +14,9 @@ public interface IJobApplicationService
     /// <summary>Active applications to the company, to its offers or spontaneous, newest first.</summary>
     public Task<IReadOnlyList<JobApplicationSummaryDto>> ListByCompanyAsync(Guid companyId, CancellationToken cancellationToken = default);
 
-    /// <summary>The application with this short id, archived or not: an <see cref="OfferApplicationDetailsDto"/> or a
-    /// <see cref="SpontaneousApplicationDetailsDto"/>, or null when no application has it.</summary>
+    /// <summary>The application with this short id, archived or not, with its status history: an
+    /// <see cref="OfferApplicationDetailsDto"/> or a <see cref="SpontaneousApplicationDetailsDto"/>, or null when no
+    /// application has it.</summary>
     public Task<JobApplicationDetailsDto?> GetAsync(string shortId, CancellationToken cancellationToken = default);
 
     /// <summary>Creates an application to the offer, as a draft or already sent, with a free short id, and returns
@@ -38,4 +39,9 @@ public interface IJobApplicationService
     /// what its URL is built from, whose slug follows a new target position. The sending day is corrected only once
     /// sent. Fails with <see cref="JobApplicationErrors.NotFound"/>.</summary>
     public Task<ServiceResult<JobApplicationLinkDto>> UpdateAsync(Guid id, SpontaneousApplicationInput input, CancellationToken cancellationToken = default);
+
+    /// <summary>Moves the application to the new status, as the status workflow allows, and records the change with its
+    /// comment; sending a draft records the day it was sent. Fails with <see cref="JobApplicationErrors.NotFound"/>, or
+    /// with <see cref="JobApplicationErrors.StatusNotAllowed"/> when the new status can't follow the current one.</summary>
+    public Task<ServiceResult> ChangeStatusAsync(Guid id, StatusChangeInput input, CancellationToken cancellationToken = default);
 }

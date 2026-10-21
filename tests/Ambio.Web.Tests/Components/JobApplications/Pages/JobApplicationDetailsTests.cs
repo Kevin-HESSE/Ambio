@@ -27,13 +27,20 @@ public class JobApplicationDetailsTests : BunitContext
     private const string NoNotes = "No notes yet.";
     private const string ChannelTerm = "Channel";
 
+    private const string Comment = "First call with the HR team";
+
     private static readonly DateOnly SentOn = new(2026, 9, 3);
+    private static readonly DateTime CreatedAt = new(2026, 9, 1, 9, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTime SentAt = new(2026, 9, 3, 9, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTime InterviewAt = new(2026, 9, 12, 9, 0, 0, DateTimeKind.Utc);
 
     private readonly IJobApplicationService _jobApplicationService = Substitute.For<IJobApplicationService>();
 
     public JobApplicationDetailsTests()
     {
         Services.AddSingleton(_jobApplicationService);
+        // The page is static; its change status sheet is interactive once the circuit is up.
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
     }
 
     [Fact]
@@ -50,7 +57,7 @@ public class JobApplicationDetailsTests : BunitContext
         Assert.Equal(
             [application.ContractType.ToLabel(), application.RemotePolicy.ToLabel(), application.Salary],
             cut.FindAll(".detail-tags .tag").Select(tag => tag.TextContent.Trim()));
-        Assert.Equal(application.Status.ToLabel(), cut.Find(".status-panel .status-badge").TextContent.Trim());
+        Assert.Equal(application.Status.ToLabel(), cut.Find(".status-panel-status .status-badge").TextContent.Trim());
     }
 
     [Fact]
@@ -108,6 +115,58 @@ public class JobApplicationDetailsTests : BunitContext
         Assert.Equal(
             CompanyRoutes.Details(application.CompanySlug),
             cut.Find(".application-overview-list a").GetAttribute("href"));
+    }
+
+    [Fact]
+    public void Render_WithStatusChanges_ListsThemNewestFirstThenTheCreationAsDraft()
+    {
+        var application = OfferApplicationDetailsFactory.GetGenerator().Generate() with
+        {
+            Status = ApplicationStatus.Interview,
+            CreatedAt = CreatedAt,
+            StatusHistory =
+            [
+                new StatusChangeDto(ApplicationStatus.Applied, ApplicationStatus.Interview, InterviewAt, Comment),
+                new StatusChangeDto(ApplicationStatus.Draft, ApplicationStatus.Applied, SentAt, null),
+            ],
+        };
+        GivenApplication(application);
+
+        var cut = RenderDetails(Key(application));
+
+        Assert.Equal(
+            [
+                $"{ApplicationStatus.Interview.ToLabel()} 12 Sep 2026 {Comment}",
+                $"{ApplicationStatus.Applied.ToLabel()} 3 Sep 2026",
+                $"{ApplicationStatus.Draft.ToLabel()} 1 Sep 2026",
+            ],
+            cut.FindAll(".status-timeline-item").Select(TimelineItem));
+        Assert.Equal("since 12 Sep", Normalize(cut.Find(".status-panel-since").TextContent));
+    }
+
+    [Fact]
+    public void Render_WithoutStatusChange_IsADraftSinceItsCreation()
+    {
+        var application = OfferApplicationDetailsFactory.GetGenerator().Generate(OfferApplicationDetailsFactory.IsDraftRuleSet) with { CreatedAt = CreatedAt };
+        GivenApplication(application);
+
+        var cut = RenderDetails(Key(application));
+
+        Assert.Equal($"{ApplicationStatus.Draft.ToLabel()} 1 Sep 2026", TimelineItem(cut.Find(".status-timeline-item")));
+        Assert.Equal("since 1 Sep", Normalize(cut.Find(".status-panel-since").TextContent));
+    }
+
+    [Theory]
+    [InlineData(ApplicationStatus.Draft, true)]
+    [InlineData(ApplicationStatus.Rejected, false)]
+    public void Render_WithStatus_OffersToChangeItUnlessItIsFinal(ApplicationStatus status, bool canChange)
+    {
+        var application = OfferApplicationDetailsFactory.GetGenerator().Generate() with { Status = status };
+        GivenApplication(application);
+
+        var cut = RenderDetails(Key(application));
+
+        Assert.Equal(canChange, cut.FindAll(".status-panel .change-status-open").Count == 1);
     }
 
     [Fact]
@@ -169,7 +228,14 @@ public class JobApplicationDetailsTests : BunitContext
     private static IEnumerable<(string Term, string Description)> Overview(IRenderedComponent<JobApplicationDetails> cut) =>
         cut.FindAll(".application-overview-list > div").Select(row => (
             row.QuerySelector("dt")!.TextContent,
-            string.Join(' ', row.QuerySelector("dd")!.TextContent.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries))));
+            Normalize(row.QuerySelector("dd")!.TextContent)));
+
+    // The badge, the date and the comment of a history entry.
+    private static string TimelineItem(AngleSharp.Dom.IElement item) =>
+        string.Join(' ', item.Children.Select(part => Normalize(part.TextContent)));
+
+    // The text of an element, its whitespace collapsed.
+    private static string Normalize(string text) => string.Join(' ', text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
 
     private IRenderedComponent<JobApplicationDetails> RenderDetails(string key) =>
         Render<JobApplicationDetails>(parameters => parameters.Add(page => page.Key, key));

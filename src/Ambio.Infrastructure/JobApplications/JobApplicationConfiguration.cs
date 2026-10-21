@@ -45,5 +45,14 @@ public class JobApplicationConfiguration : IEntityTypeConfiguration<JobApplicati
 
         builder.Property(a => a.Channel)
             .HasConversion<string>();
+
+        // The history goes with its application.
+        builder.HasMany(a => a.StatusChanges)
+            .WithOne()
+            .HasForeignKey(c => c.JobApplicationId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(a => a.StatusChanges)
+            .HasField("_statusChanges");
     }
 }

@@ -18,6 +18,7 @@ public record OfferApplicationDetailsDto(
     DateOnly? SentOn,
     string? Notes,
     DateTime CreatedAt,
+    IReadOnlyList<StatusChangeDto> StatusHistory,
     Guid JobOfferId,
     string JobOfferShortId,
     string? Location,
@@ -27,7 +28,7 @@ public record OfferApplicationDetailsDto(
     Guid? AppliedViaPostingId,
     string? AppliedViaSite,
     string? AppliedViaUrl)
-    : JobApplicationDetailsDto(Id, ShortId, Title, CompanyName, CompanySlug, Status, Channel, ChannelDetail, SentOn, Notes, CreatedAt)
+    : JobApplicationDetailsDto(Id, ShortId, Title, CompanyName, CompanySlug, Status, Channel, ChannelDetail, SentOn, Notes, CreatedAt, StatusHistory)
 {
     /// <summary>The readable part of the offer's URL, after its <see cref="JobOfferShortId"/>: the application's title
     /// and company are the offer's.</summary>
