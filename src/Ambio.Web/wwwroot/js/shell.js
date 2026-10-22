@@ -47,6 +47,16 @@
         }
     });
 
+    // A static form sent from its sheet, such as the Filters sheet, closes it first. Enhanced navigation would otherwise
+    // drop the open attribute of the dialog without closing it, and leave the page inert behind it.
+    document.addEventListener("submit", (event) => {
+        if (event.target.matches("form[data-enhance]")) {
+            for (const sheet of event.target.querySelectorAll("dialog.sheet[open]")) {
+                sheet.close();
+            }
+        }
+    });
+
     // A filter form leaves its empty fields out of the URL: "?status=applied" rather than "?q=&status=applied&…".
     document.addEventListener("formdata", (event) => {
         if (event.target.matches("form[data-filter-form]")) {
