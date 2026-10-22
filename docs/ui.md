@@ -46,6 +46,7 @@ The screens of the MVP ([Phase 1](roadmap.md#phase-1--application-tracking-mvp))
 - Mobile: cards (title, company, `StatusBadge`, tags, date), a search field and a **Filters** button that opens a bottom sheet. The applications list also has horizontally scrolling status chips.
 - Archived rows are hidden unless "Show archived" is on. When shown, they are dimmed and carry the `Archived` tag.
 - Sorted by date, newest first. "Load more" rather than numbered pages.
+- The filters live in the query string, sent by static GET forms (`data-enhance`) whose result is loaded by enhanced navigation, so a filtered list can be linked to. The empty fields stay out of the URL, and a select of the desktop bar applies as soon as it changes (`wwwroot/js/shell.js`).
 
 **Detail pages**
 - A header: breadcrumb (desktop), title, company, tags, then Edit and a ⋯ menu (Archive…).
@@ -78,7 +79,7 @@ The screens of the MVP ([Phase 1](roadmap.md#phase-1--application-tracking-mvp))
 |---|---|---|---|---|
 | 1 | Log in | `/Account/Login` | Logo, email, password, "Remember me". Registration link only while no account exists ([ADR 0002](adr/0002-single-user-application.md)). | — |
 | 2 | Dashboard | `/` | Pipeline bar and a counter per status (each opens the filtered list), **Follow up**, recent activity. | Upcoming interviews (2b) |
-| 3 | Applications — list | `/applications` | Filters, table or cards. | — |
+| 3 | Applications — list | `/applications`, filtered with `?q=…&status=…&company={slug}&kind=offer\|spontaneous` | Search on the title and the company (every word, ignoring case and accents), status, company and kind; table or cards, 25 at first and 25 more with each "Load more" (`?shown=50`). Desktop: inline bar and "Clear filters". Mobile: search, a Filters sheet (company, kind, with their count on its button) and status chips counting what each would show with the other criteria. A filter without result keeps the filters and offers to clear them. The dashboard counters link to `?status=…` (`JobApplicationRoutes.Filtered`). | — |
 | 4 | Applications — empty | `/applications` | Empty state with "New application" and "Add an offer". | — |
 | 5 | Application — Overview | `/applications/{ShortId}-{slug}`, edit at `/applications/{ShortId}-{slug}/edit` | Company and location (the offer's, or the company's for a spontaneous application) under the title; the offer's contract, remote policy and salary as tags, or the Spontaneous tag. Offer, posting, channel, sending date, short id, creation date, notes; status panel (status, "since" the last change or the creation, "Change status") and history (changes newest first, with their comment, closed by the creation as Draft). Any other slug, or none, redirects to the current URL. Opened from the applications list, the offer page and the Applications tab of the company page. Edit (header, app bar, Notes card) changes the posting used (offer) or the target position (spontaneous, which changes the slug), the channel, the sending date once sent, and the notes; neither the offer, the company nor the status. | Interactions and Contacts tabs (2b) |
 | 6 | Application — Cover letters | `…?tab=letters` | Letter list, plain-text editor, Copy and Save. | — |
@@ -114,8 +115,8 @@ What the mockups are built from, and the Blazor component each becomes. Stock Bo
 | Search as you type | — | `Shared/SearchField.razor` (generic: waits 300 ms after the last keystroke, results as buttons, optional empty line and last line), inside an interactive component; wrapped by `Offers/Shared/OfferSearch.razor` and `Companies/Shared/CompanySearch.razor` |
 | Status badge | `status-badge status-{status}` | `JobApplications/Shared/StatusBadge.razor` |
 | Tag | `tag`, `tag-accent`, `tag-archived` | `Tag.razor` (`TagVariant.Neutral` or `Accent`); `JobApplications/Shared/SpontaneousTag.razor` for spontaneous applications |
-| Filter chip | `chip` | `FilterChip.razor` |
-| List card (mobile) / table row (desktop) | `app-card` / `table` | `ResponsiveList.razor` (cards below 992 px, table above) and `ListTable.razor` (header, rows, `num` cells), filled by each feature's card and table: `CompanyCard.razor` / `CompanyTable.razor`, `OfferCard.razor` / `OfferTable.razor`, `JobApplicationCard.razor` / `JobApplicationTable.razor`. Each card is a `ListCard.razor` (title, aside such as a date, subtitle, tags; a link with `Href`) |
+| Filter chip | `chip` | `FilterChip.razor` (a link with an optional icon, its label and count, `aria-current` when active; a `status-*` class tints the icon) |
+| List card (mobile) / table row (desktop) | `app-card` / `table` | `ResponsiveList.razor` (cards below 992 px, table above) and `ListTable.razor` (header, rows, `num` cells), filled by each feature's card and table: `CompanyCard.razor` / `CompanyTable.razor`, `OfferCard.razor` / `OfferTable.razor`, `JobApplicationCard.razor` / `JobApplicationTable.razor`. Each card is a `ListCard.razor` (title, aside such as a date, subtitle, tags; a link with `Href`). An optional `Footer` closes both, such as `ListFooter.razor` ("Showing 25 of 61" and "Load more") |
 | Tabs | `tabs`, `tab` | `TabNav.razor` (links carrying `?tab=`) |
 | Count | `n`, `card-sub` | `CountBadge.razor` (tab counts, postings of an offer) |
 | Status panel and history | `status-panel`, `timeline` | `JobApplications/Shared/StatusPanel.razor` (badge, "since", and the action as child content), `ChangeStatusSheet.razor` (interactive island: the "Change status" button and its sheet), `StatusTimeline.razor` (the History card) |
@@ -141,7 +142,7 @@ Layout and text patterns repeated across components are global classes. The mark
 | `mobile-only` / `desktop-only` | `css/layout.css` | Hidden from 992 px / below 992 px |
 | `list-divided` | `css/lists.css` | A list without bullets or padding, with a border between items |
 | `detail-layout`, `detail-aside`, `detail-main` | `css/layout.css` | The grid of a detail page: header, side column, then content below 992 px; content and a 320 px side column above |
-| `status-draft`, `status-applied`… | `css/statuses.css` | The colors of a status (`--status-bg`, `--status-fg`, `--status-border`, `--status-solid`), read by `StatusBadge` and the dots of the history |
+| `status-draft`, `status-applied`… | `css/statuses.css` | The colors of a status (`--status-bg`, `--status-fg`, `--status-border`, `--status-solid`), read by `StatusBadge`, the status `FilterChip`s and the dots of the history |
 | `prose` | `css/typography.css` | Plain text typed or pasted by the user (description, ad copy): line breaks kept, long words wrapped |
 
 `app.css` resets the margins of headings, paragraphs, lists and `figure`/`blockquote`.
