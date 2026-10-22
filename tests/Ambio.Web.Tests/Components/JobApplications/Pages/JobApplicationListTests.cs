@@ -134,5 +134,6 @@ public class JobApplicationListTests : BunitContext
     }
 
     private void GivenApplications(params JobApplicationSummaryDto[] applications) =>
-        _jobApplicationService.ListAsync(Arg.Any<CancellationToken>()).Returns(applications);
+        _jobApplicationService.ListAsync(Arg.Any<JobApplicationFilter>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(new JobApplicationListDto(applications, applications.Length, new Dictionary<ApplicationStatus, int>()));
 }

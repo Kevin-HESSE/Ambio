@@ -37,5 +37,6 @@ else if (_applications is not null)
 @code {
     private IReadOnlyList<JobApplicationSummaryDto>? _applications;
 
-    protected override async Task OnInitializedAsync() => _applications = await JobApplicationService.ListAsync();
+    protected override async Task OnInitializedAsync() =>
+        _applications = (await JobApplicationService.ListAsync(new JobApplicationFilter(), int.MaxValue)).Applications;
 }
