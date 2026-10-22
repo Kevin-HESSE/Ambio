@@ -1,0 +1,41 @@
+.filter-chip {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ambio-space-6);
+    height: 36px;
+    padding-inline: var(--ambio-space-12);
+    border: 1px solid var(--ambio-border-strong);
+    border-radius: var(--ambio-radius-full);
+    background: var(--ambio-bg-surface);
+    color: var(--ambio-text-secondary);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.filter-chip:hover {
+    background: var(--ambio-bg-subtle);
+    color: var(--ambio-text-primary);
+}
+
+/* The solid color of a status class, or the text color without one. */
+.filter-chip .bi {
+    font-size: 12px;
+    color: var(--status-solid, currentColor);
+}
+
+.filter-chip-count {
+    color: var(--ambio-text-muted);
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+}
+
+.filter-chip[aria-current] {
+    border-color: var(--ambio-accent-default);
+    background: var(--ambio-accent-subtle);
+    color: var(--ambio-accent-text);
+}
+
+.filter-chip[aria-current] .filter-chip-count {
+    color: var(--ambio-accent-text);
+}

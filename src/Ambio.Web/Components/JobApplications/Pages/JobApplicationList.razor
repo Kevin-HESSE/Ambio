@@ -25,7 +25,7 @@
 }
 else if (_list is not null)
 {
-    <JobApplicationFilters Filter="_filter" Companies="_companies" />
+    <JobApplicationFilters Filter="_filter" Companies="_companies" CountsByStatus="_list.CountsByStatus" />
 
     @if (_list.Total == 0)
     {

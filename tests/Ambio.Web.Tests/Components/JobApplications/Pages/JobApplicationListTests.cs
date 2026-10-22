@@ -259,6 +259,82 @@ public class JobApplicationListTests : BunitContext
         Assert.Empty(cut.FindAll(".list-footer"));
     }
 
+    [Fact]
+    public void Render_WithCounts_ShowsAStatusChipForAllAndForEachStatusWithItsCount()
+    {
+        var counts = Enum.GetValues<ApplicationStatus>().ToDictionary(status => status, status => (int)status + 1);
+        GivenList(new JobApplicationListDto(_applications, _applications.Length, counts));
+
+        var cut = Render<JobApplicationList>();
+
+        Assert.Equal(
+            [("All", counts.Values.Sum()), .. Enum.GetValues<ApplicationStatus>().Select(status => (status.ToLabel(), counts[status]))],
+            cut.FindAll(".status-chips a").Select(chip => (
+                chip.QuerySelector(".filter-chip-label")!.TextContent,
+                int.Parse(chip.QuerySelector(".filter-chip-count")!.TextContent))));
+    }
+
+    [Fact]
+    public void Render_WithFilter_LinksEachStatusChipToItsStatusKeepingTheOtherCriteria()
+    {
+        var filter = new JobApplicationFilter(ApplicationStatus.Interview, _companies[0].Slug, ApplicationKind.Offer, Search);
+        GivenApplications(_applications);
+        NavigateTo(JobApplicationRoutes.Filtered(filter, shown: 2 * JobApplicationList.PageSize));
+
+        var cut = Render<JobApplicationList>();
+
+        Assert.Equal(
+            [
+                JobApplicationRoutes.Filtered(filter with { Status = null }),
+                .. Enum.GetValues<ApplicationStatus>().Select(status => JobApplicationRoutes.Filtered(filter with { Status = status })),
+            ],
+            cut.FindAll(".status-chips a").Select(chip => chip.GetAttribute("href")));
+        Assert.Equal(ApplicationStatus.Interview.ToLabel(), cut.Find(".status-chips a[aria-current] .filter-chip-label").TextContent);
+    }
+
+    [Fact]
+    public void Render_WithoutStatus_MarksTheAllChipAsCurrent()
+    {
+        GivenApplications(_applications);
+
+        var cut = Render<JobApplicationList>();
+
+        Assert.Equal("All", cut.Find(".status-chips a[aria-current] .filter-chip-label").TextContent);
+    }
+
+    [Fact]
+    public void Render_WithFilter_KeepsItsValuesInTheMobileFormAndItsSheet()
+    {
+        var company = _companies[1];
+        var filter = new JobApplicationFilter(ApplicationStatus.Applied, company.Slug, ApplicationKind.Spontaneous, Search);
+        GivenApplications(_applications);
+        NavigateTo(JobApplicationRoutes.Filtered(filter));
+
+        var cut = Render<JobApplicationList>();
+
+        var form = cut.Find("form.application-filters-mobile");
+        Assert.Equal(Search, form.QuerySelector($"input[name='{JobApplicationRoutes.SearchQuery}']")!.GetAttribute("value"));
+        Assert.Equal("applied", form.QuerySelector($"input[type='hidden'][name='{JobApplicationRoutes.StatusQuery}']")!.GetAttribute("value"));
+        Assert.Equal(
+            [company.Name, ApplicationKind.Spontaneous.ToLabel()],
+            form.QuerySelectorAll($"#{JobApplicationFilters.SheetId} option[selected]").Select(option => option.TextContent));
+        Assert.Equal("2", form.QuerySelector($"[data-sheet-open='{JobApplicationFilters.SheetId}'] .count-badge")!.TextContent);
+        Assert.Equal(
+            JobApplicationRoutes.Filtered(filter with { CompanySlug = null, Kind = null }),
+            form.QuerySelector($"#{JobApplicationFilters.SheetId} .sheet-actions a")!.GetAttribute("href"));
+    }
+
+    [Fact]
+    public void Render_WithoutSheetCriteria_ShowsNoCountOnTheFiltersButton()
+    {
+        GivenApplications(_applications);
+        NavigateTo(JobApplicationRoutes.Filtered(new JobApplicationFilter(Status: ApplicationStatus.Applied, Search: Search)));
+
+        var cut = Render<JobApplicationList>();
+
+        Assert.Empty(cut.FindAll($"[data-sheet-open='{JobApplicationFilters.SheetId}'] .count-badge"));
+    }
+
     private void GivenApplications(params JobApplicationSummaryDto[] applications) =>
         GivenList(new JobApplicationListDto(applications, applications.Length, new Dictionary<ApplicationStatus, int>()));
 

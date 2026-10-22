@@ -1,5 +1,5 @@
-/* The colors of each application status (docs/design-system.md#application-statuses), read by the status badge and
-   the dots of the history: background, label, border and solid color. */
+/* The colors of each application status (docs/design-system.md#application-statuses), read by the status badge, the
+   status filter chips and the dots of the history: background, label, border and solid color. */
 .status-draft {
     --status-bg: var(--ambio-status-draft-bg);
     --status-fg: var(--ambio-status-draft-fg);
