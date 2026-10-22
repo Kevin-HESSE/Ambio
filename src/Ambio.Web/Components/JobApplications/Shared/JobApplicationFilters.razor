@@ -1,0 +1,56 @@
+@* The filters of the applications list (docs/ui.md#patterns), sent in the query string by a static GET form whose
+   result is loaded by enhanced navigation. On desktop, an inline bar: the search applies on Enter and each select as
+   soon as it changes (data-auto-submit, wwwroot/js/shell.js). The empty fields stay out of the URL
+   (data-filter-form). *@
+<form method="get" action="@JobApplicationRoutes.List" class="application-filters cluster desktop-only" role="search"
+      aria-label="Filter the applications" data-enhance data-filter-form data-auto-submit>
+    @SearchInput("Search by title or company")
+    <select name="@JobApplicationRoutes.StatusQuery" class="form-select w-auto" aria-label="Status">
+        <option value="" selected="@(Filter.Status is null)">All statuses</option>
+        @foreach (var status in Enum.GetValues<ApplicationStatus>())
+        {
+            <option value="@QueryValue.Of(status)" selected="@(Filter.Status == status)">@status.ToLabel()</option>
+        }
+    </select>
+    @CompanySelect()
+    @KindSelect()
+    @if (!Filter.IsEmpty)
+    {
+        <ButtonLink Href="@JobApplicationRoutes.List" Variant="ButtonVariant.Secondary">Clear filters</ButtonLink>
+    }
+</form>
+
+@code {
+    /// <summary>The criteria of the list, shown in the fields.</summary>
+    [Parameter, EditorRequired]
+    public JobApplicationFilter Filter { get; set; } = null!;
+
+    /// <summary>The choices of the company filter.</summary>
+    [Parameter, EditorRequired]
+    public IReadOnlyList<CompanySummaryDto> Companies { get; set; } = [];
+
+    private RenderFragment SearchInput(string placeholder) =>
+        @<div class="filter-search">
+            <i class="bi bi-search" aria-hidden="true"></i>
+            <input type="search" name="@JobApplicationRoutes.SearchQuery" class="form-control" value="@Filter.Search"
+                   placeholder="@placeholder" aria-label="Search" />
+        </div>;
+
+    private RenderFragment CompanySelect() =>
+        @<select name="@JobApplicationRoutes.CompanyQuery" class="form-select w-auto" aria-label="Company">
+            <option value="" selected="@(Filter.CompanySlug is null)">All companies</option>
+            @foreach (var company in Companies)
+            {
+                <option value="@company.Slug" selected="@(Filter.CompanySlug == company.Slug)">@company.Name</option>
+            }
+        </select>;
+
+    private RenderFragment KindSelect() =>
+        @<select name="@JobApplicationRoutes.KindQuery" class="form-select w-auto" aria-label="Kind">
+            <option value="" selected="@(Filter.Kind is null)">Offer and spontaneous</option>
+            @foreach (var kind in Enum.GetValues<ApplicationKind>())
+            {
+                <option value="@QueryValue.Of(kind)" selected="@(Filter.Kind == kind)">@kind.ToLabel()</option>
+            }
+        </select>;
+}

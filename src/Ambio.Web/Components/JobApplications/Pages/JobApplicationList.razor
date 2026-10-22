@@ -11,7 +11,7 @@
     </Actions>
 </PageHeader>
 
-@if (_applications is { Count: 0 })
+@if (_list is { Total: 0 } && _filter.IsEmpty)
 {
     <section class="card">
         <EmptyState Icon="inbox" Title="No applications yet">
@@ -23,20 +23,72 @@
         </EmptyState>
     </section>
 }
-else if (_applications is not null)
+else if (_list is not null)
 {
-    <ResponsiveList Items="_applications">
-        <Card Context="application"><JobApplicationCard Application="application" /></Card>
-        <Table><JobApplicationTable Applications="_applications" /></Table>
-    </ResponsiveList>
+    <JobApplicationFilters Filter="_filter" Companies="_companies" />
+
+    @if (_list.Total == 0)
+    {
+        <section class="card">
+            <EmptyState Icon="search" Title="No matching applications">
+                <ChildContent>No application matches this search or these filters. Change them, or clear them to see every application.</ChildContent>
+                <Actions>
+                    <ButtonLink Href="@JobApplicationRoutes.List" Variant="ButtonVariant.Secondary">Clear filters</ButtonLink>
+                </Actions>
+            </EmptyState>
+        </section>
+    }
+    else
+    {
+        <ResponsiveList Items="_list.Applications">
+            <Card Context="application"><JobApplicationCard Application="application" /></Card>
+            <Table><JobApplicationTable Applications="_list.Applications" /></Table>
+            <Footer>
+                @if (_list.Applications.Count < _list.Total)
+                {
+                    <ListFooter Shown="_list.Applications.Count" Total="_list.Total"
+                                MoreHref="@JobApplicationRoutes.Filtered(_filter, _list.Applications.Count + PageSize)" />
+                }
+            </Footer>
+        </ResponsiveList>
+    }
 }
 
 @* On mobile, the page's main action floats above the tab bar (docs/ui.md#layout). *@
 <ButtonLink Href="@JobApplicationRoutes.New" Variant="ButtonVariant.Primary" Icon="plus-lg" class="btn-fab mobile-only" aria-label="New application" />
 
 @code {
-    private IReadOnlyList<JobApplicationSummaryDto>? _applications;
+    /// <summary>The number of applications shown at first, and added by each "Load more".</summary>
+    public const int PageSize = 25;
 
-    protected override async Task OnInitializedAsync() =>
-        _applications = (await JobApplicationService.ListAsync(new JobApplicationFilter(), int.MaxValue)).Applications;
+    [SupplyParameterFromQuery(Name = JobApplicationRoutes.SearchQuery)]
+    public string? Search { get; set; }
+
+    [SupplyParameterFromQuery(Name = JobApplicationRoutes.StatusQuery)]
+    public string? Status { get; set; }
+
+    [SupplyParameterFromQuery(Name = JobApplicationRoutes.CompanyQuery)]
+    public string? Company { get; set; }
+
+    [SupplyParameterFromQuery(Name = JobApplicationRoutes.KindQuery)]
+    public string? Kind { get; set; }
+
+    [SupplyParameterFromQuery(Name = JobApplicationRoutes.ShownQuery)]
+    public int? Shown { get; set; }
+
+    private JobApplicationFilter _filter = new();
+    private JobApplicationListDto? _list;
+    private IReadOnlyList<CompanySummaryDto> _companies = [];
+
+    // A value that names no status or kind is ignored, as is a number shown smaller than a page.
+    protected override async Task OnInitializedAsync()
+    {
+        _filter = new JobApplicationFilter(
+            Status: QueryValue.Parse<ApplicationStatus>(Status),
+            CompanySlug: string.IsNullOrWhiteSpace(Company) ? null : Company,
+            Kind: QueryValue.Parse<ApplicationKind>(Kind),
+            Search: string.IsNullOrWhiteSpace(Search) ? null : Search.Trim());
+        _list = await JobApplicationService.ListAsync(_filter, Math.Max(PageSize, Shown ?? 0));
+        _companies = await JobApplicationService.ListCompaniesAsync();
+    }
 }
