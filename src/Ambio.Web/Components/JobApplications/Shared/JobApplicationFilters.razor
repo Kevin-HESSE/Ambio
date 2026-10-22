@@ -1,0 +1,109 @@
+@* The filters of the applications list (docs/ui.md#patterns), sent in the query string by static GET forms whose
+   result is loaded by enhanced navigation. The empty fields stay out of the URL (data-filter-form, wwwroot/js/shell.js).
+   On desktop, an inline bar: the search applies on Enter and each select as soon as it changes (data-auto-submit).
+   On mobile, the search, a Filters sheet for the company and the kind, and status chips that link to their list. *@
+<form method="get" action="@JobApplicationRoutes.List" class="application-filters cluster desktop-only" role="search"
+      aria-label="Filter the applications" data-enhance data-filter-form data-auto-submit>
+    @SearchInput("Search by title or company")
+    <select name="@JobApplicationRoutes.StatusQuery" class="form-select w-auto" aria-label="Status">
+        <option value="" selected="@(Filter.Status is null)">All statuses</option>
+        @foreach (var status in Enum.GetValues<ApplicationStatus>())
+        {
+            <option value="@QueryValue.Of(status)" selected="@(Filter.Status == status)">@status.ToLabel()</option>
+        }
+    </select>
+    <select name="@JobApplicationRoutes.CompanyQuery" class="form-select w-auto" aria-label="Company">@CompanyOptions</select>
+    <select name="@JobApplicationRoutes.KindQuery" class="form-select w-auto" aria-label="Kind">@KindOptions</select>
+    @if (!Filter.IsEmpty)
+    {
+        <ButtonLink Href="@JobApplicationRoutes.List" Variant="ButtonVariant.Secondary">Clear filters</ButtonLink>
+    }
+</form>
+
+@* The sheet sits inside the form, so its selects are sent with the search; the status chosen with a chip is kept. *@
+<form method="get" action="@JobApplicationRoutes.List" class="application-filters-mobile mobile-only" role="search"
+      aria-label="Filter the applications" data-enhance data-filter-form>
+    @SearchInput("Search")
+    <button type="button" class="btn btn-secondary" data-sheet-open="@SheetId" aria-haspopup="dialog" aria-controls="@SheetId">
+        <i class="bi bi-sliders" aria-hidden="true"></i>
+        Filters
+        @if (SheetFilterCount > 0)
+        {
+            <CountBadge Count="SheetFilterCount" />
+        }
+    </button>
+    <input type="hidden" name="@JobApplicationRoutes.StatusQuery" value="@(Filter.Status is { } chosen ? QueryValue.Of(chosen) : null)" />
+    <Sheet Id="@SheetId" Title="Filters">
+        <div class="sheet-content">
+            <div class="field">
+                <label class="form-label t-small" for="filter-company">Company</label>
+                <select id="filter-company" name="@JobApplicationRoutes.CompanyQuery" class="form-select">@CompanyOptions</select>
+            </div>
+            <div class="field">
+                <label class="form-label t-small" for="filter-kind">Kind</label>
+                <select id="filter-kind" name="@JobApplicationRoutes.KindQuery" class="form-select">@KindOptions</select>
+            </div>
+        </div>
+        <div class="sheet-actions">
+            <ButtonLink Href="@JobApplicationRoutes.Filtered(Filter with { CompanySlug = null, Kind = null })"
+                        Variant="ButtonVariant.Secondary">Reset</ButtonLink>
+            <button type="submit" class="btn btn-primary">Show results</button>
+        </div>
+    </Sheet>
+</form>
+
+<nav class="status-chips mobile-only" aria-label="Status">
+    <FilterChip Href="@JobApplicationRoutes.Filtered(Filter with { Status = null })" Label="All"
+                Count="CountsByStatus.Values.Sum()" Active="Filter.Status is null" />
+    @foreach (var status in Enum.GetValues<ApplicationStatus>())
+    {
+        <FilterChip Href="@JobApplicationRoutes.Filtered(Filter with { Status = status })" Label="@status.ToLabel()"
+                    Icon="@status.ToIcon()" Count="CountsByStatus.GetValueOrDefault(status)" Active="Filter.Status == status"
+                    class="@($"status-{QueryValue.Of(status)}")" />
+    }
+</nav>
+
+@code {
+    /// <summary>Id of the Filters sheet.</summary>
+    public const string SheetId = "application-filters";
+
+    /// <summary>The criteria of the list, shown in the fields.</summary>
+    [Parameter, EditorRequired]
+    public JobApplicationFilter Filter { get; set; } = null!;
+
+    /// <summary>The choices of the company filter.</summary>
+    [Parameter, EditorRequired]
+    public IReadOnlyList<CompanySummaryDto> Companies { get; set; } = [];
+
+    /// <summary>The number of applications each status chip shows.</summary>
+    [Parameter, EditorRequired]
+    public IReadOnlyDictionary<ApplicationStatus, int> CountsByStatus { get; set; } = null!;
+
+    /// <summary>The criteria set in the sheet, counted on its button.</summary>
+    private int SheetFilterCount => (Filter.CompanySlug is null ? 0 : 1) + (Filter.Kind is null ? 0 : 1);
+
+    private RenderFragment SearchInput(string placeholder) =>
+        @<div class="filter-search">
+            <i class="bi bi-search" aria-hidden="true"></i>
+            <input type="search" name="@JobApplicationRoutes.SearchQuery" class="form-control" value="@Filter.Search"
+                   placeholder="@placeholder" aria-label="Search" />
+        </div>;
+
+    private RenderFragment CompanyOptions =>
+        @<text>
+            <option value="" selected="@(Filter.CompanySlug is null)">All companies</option>
+            @foreach (var company in Companies)
+            {
+                <option value="@company.Slug" selected="@(Filter.CompanySlug == company.Slug)">@company.Name</option>
+            }
+        </text>;
+
+    private RenderFragment KindOptions =>
+        @<text>
+            <option value="" selected="@(Filter.Kind is null)">Offer and spontaneous</option>
+            @foreach (var kind in Enum.GetValues<ApplicationKind>())
+            {
+                <option value="@QueryValue.Of(kind)" selected="@(Filter.Kind == kind)">@kind.ToLabel()</option>
+            }
+        </text>;
+}

@@ -1,0 +1,17 @@
+@* The end of a list showing its first items only (docs/ui.md#patterns): how many are shown, and "Load more". *@
+<div class="list-footer cluster">
+    <span class="t-small t-muted">Showing @Shown of @Total</span>
+    <ButtonLink Href="@MoreHref" Variant="ButtonVariant.Secondary" class="btn-sm">Load more</ButtonLink>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public int Shown { get; set; }
+
+    [Parameter, EditorRequired]
+    public int Total { get; set; }
+
+    /// <summary>Base-relative URL of the same list showing more items.</summary>
+    [Parameter, EditorRequired]
+    public string MoreHref { get; set; } = "";
+}

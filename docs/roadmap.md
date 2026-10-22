@@ -55,7 +55,7 @@ Each item is a vertical slice: domain, persistence, service, page and tests for 
 - [x] Application detail and edit, with readable URLs `/applications/482913-backend-developer-acme` (`ShortId` + slug) and a redirect to the canonical slug ([ADR 0014](adr/0014-short-id-and-slug-urls.md))
 - [x] Offers: readable URLs `/offers/482913-backend-developer-kelvio` (`ShortId` + slug) with a redirect to the canonical slug ([ADR 0025](adr/0025-short-id-and-slug-urls-for-offers.md))
 - [x] Status change and history: `Draft → Applied → Interview → Offer / Rejected / Withdrawn`, every change recorded as a timestamped `StatusChange`, and an end-to-end journey from a company to a status change
-- [ ] Applications list: filters by status, company and kind, search, sort by date
+- [x] Applications list: filters by status, company and kind, search, sort by date
 - [ ] Archiving instead of deleting ([ADR 0012](adr/0012-archive-instead-of-delete.md)) for companies, offers and applications, with an "Archived" filter, an Undo toast and a restore action
 - [ ] **Cover letters**: plain text, 1..n per application, textarea editor, copy to clipboard
 - [ ] **CV upload**: attach the PDF that was actually sent (`CvDocument` with `Source = Uploaded`), stored through `IDocumentStorage` under `/data/documents`

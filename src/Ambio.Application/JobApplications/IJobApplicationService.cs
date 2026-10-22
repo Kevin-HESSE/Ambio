@@ -1,12 +1,19 @@
 using Ambio.Application.Common;
+using Ambio.Application.Companies.Dtos;
 using Ambio.Application.JobApplications.Dtos;
 
 namespace Ambio.Application.JobApplications;
 
 public interface IJobApplicationService
 {
-    /// <summary>Active applications (not archived), newest first: by sending day, or by creation day for a draft.</summary>
-    public Task<IReadOnlyList<JobApplicationSummaryDto>> ListAsync(CancellationToken cancellationToken = default);
+    /// <summary>The first <paramref name="count"/> active applications (not archived) that match the filter, newest
+    /// first: by sending day, or by creation day for a draft. The search matches every word in the title and the
+    /// company, ignoring case and accents (<see cref="TextSearch.Matches"/>).</summary>
+    public Task<JobApplicationListDto> ListAsync(JobApplicationFilter filter, int count, CancellationToken cancellationToken = default);
+
+    /// <summary>The companies the active applications were sent to, to their offers or spontaneously, by name: the
+    /// choices of the company filter. A company archived since is kept.</summary>
+    public Task<IReadOnlyList<CompanySummaryDto>> ListCompaniesAsync(CancellationToken cancellationToken = default);
 
     /// <summary>Active applications to the offer, newest first.</summary>
     public Task<IReadOnlyList<JobApplicationSummaryDto>> ListByOfferAsync(Guid offerId, CancellationToken cancellationToken = default);

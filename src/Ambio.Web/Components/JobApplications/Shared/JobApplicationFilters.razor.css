@@ -1,0 +1,41 @@
+/* A search field with its icon inside, on the left. */
+.filter-search {
+    position: relative;
+}
+
+.filter-search .bi {
+    position: absolute;
+    inset-inline-start: var(--ambio-space-12);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--ambio-text-muted);
+    pointer-events: none;
+}
+
+.filter-search .form-control {
+    padding-inline-start: calc(var(--ambio-space-12) + 1em + var(--ambio-space-12));
+}
+
+.application-filters .filter-search {
+    flex: 1 1 260px;
+}
+
+/* On mobile: the search, then the Filters button, stretched to its height. */
+.application-filters-mobile {
+    display: flex;
+    gap: var(--ambio-space-8);
+}
+
+.application-filters-mobile .filter-search {
+    flex: 1;
+}
+
+/* The status chips scroll sideways across the whole width, taking back the side padding of the page. */
+.status-chips {
+    display: flex;
+    gap: var(--ambio-space-8);
+    margin-inline: calc(-1 * var(--ambio-space-16));
+    padding: var(--ambio-space-2) var(--ambio-space-16);
+    overflow-x: auto;
+    scrollbar-width: none;
+}

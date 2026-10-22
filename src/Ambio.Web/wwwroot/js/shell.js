@@ -1,5 +1,5 @@
-// App shell behaviors. They work on every page without an interactive circuit, the static Identity
-// pages included.
+// App shell behaviors, and those of the static filter forms. They work on every page without an interactive circuit,
+// the static Identity pages included.
 (() => {
     const closeSheets = () => {
         for (const sheet of document.querySelectorAll("dialog.sheet[open]")) {
@@ -39,7 +39,34 @@
             window.ambio.theme.set(event.target.value);
             syncThemeSelectors();
         }
+
+        // A filter applies as soon as its select changes. requestSubmit fires the submit event, which enhanced
+        // navigation intercepts; submit() would reload the whole page.
+        if (event.target.matches("form[data-auto-submit] select")) {
+            event.target.form.requestSubmit();
+        }
     });
+
+    // A static form sent from its sheet, such as the Filters sheet, closes it first. Enhanced navigation would otherwise
+    // drop the open attribute of the dialog without closing it, and leave the page inert behind it.
+    document.addEventListener("submit", (event) => {
+        if (event.target.matches("form[data-enhance]")) {
+            for (const sheet of event.target.querySelectorAll("dialog.sheet[open]")) {
+                sheet.close();
+            }
+        }
+    });
+
+    // A filter form leaves its empty fields out of the URL: "?status=applied" rather than "?q=&status=applied&…".
+    document.addEventListener("formdata", (event) => {
+        if (event.target.matches("form[data-filter-form]")) {
+            for (const [name, value] of [...event.formData]) {
+                if (value === "") {
+                    event.formData.delete(name);
+                }
+            }
+        }
+    }, true);
 
     syncThemeSelectors();
     window.addEventListener("storage", syncThemeSelectors);

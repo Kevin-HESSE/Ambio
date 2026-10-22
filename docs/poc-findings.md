@@ -51,6 +51,14 @@ Newest first. Each entry follows this format:
 - Change in the official version: what to do differently
 ```
 
+### 2026-10-22 — Applications list: filters and search (#51)
+
+- Kept: the filters in the query string, sent by static GET forms and loaded by enhanced navigation. A filtered list is a link, which the dashboard counters will use, and no island is needed. Enhanced navigation keeps the scroll position when only the query string changes.
+- Kept: the status counts follow the other criteria, so each chip says what it would show.
+- Not needed: nothing so far.
+- Change in the official version: the search runs in memory once the active applications are loaded, as for offers and companies, because SQLite compares neither ignoring accents nor word by word; "Load more" reloads the whole list with a larger `shown`. An API needs a searchable column (folded text, a collation or full-text search) and a cursor to page.
+- Change in the official version: a static form sent from inside an open `<dialog>` must close it first. Enhanced navigation drops the `open` attribute without calling `close()`, and the page stays inert behind the dialog. A SPA closes its sheet in its own state.
+
 ### 2026-10-21 — Status change and history (#30)
 
 - Kept: the transition table in the domain (`StatusWorkflow`, [ADR 0026](adr/0026-status-workflow-and-history.md)), with a single method that changes the status and records it. Creating an application as already sent goes through it too, so `MarkAsSent` is gone and the history is complete.

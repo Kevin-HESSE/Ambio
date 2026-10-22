@@ -12,6 +12,12 @@
     border-color: var(--ambio-focus-ring);
 }
 
+/* 44 px touch target below 992 px, 40 px above (docs/ui.md#layout), in a field or not, such as in a filter bar. */
+.form-control,
+.form-select {
+    min-height: 44px;
+}
+
 .form-check-input:checked, .form-check-input[type=checkbox]:indeterminate {
     background-color: var(--ambio-accent-default);
     border-color: var(--ambio-accent-default);
@@ -83,11 +89,6 @@
     color: var(--ambio-text-muted);
 }
 
-/* 44 px touch target below 992 px, 40 px above (docs/ui.md#layout). */
-.field .form-control,
-.field .form-select {
-    min-height: 44px;
-}
 
 .field textarea.form-control {
     min-height: 6lh;
@@ -150,8 +151,8 @@
         grid-column: 1 / -1;
     }
 
-    .field .form-control,
-    .field .form-select {
+    .form-control,
+    .form-select {
         min-height: 40px;
     }
 

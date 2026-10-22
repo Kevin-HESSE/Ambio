@@ -1,6 +1,8 @@
 using System.Linq.Expressions;
 
 using Ambio.Application.Common;
+using Ambio.Application.Companies;
+using Ambio.Application.Companies.Dtos;
 using Ambio.Application.JobApplications;
 using Ambio.Application.JobApplications.Dtos;
 using Ambio.Domain.JobApplications;
@@ -25,8 +27,62 @@ internal class JobApplicationService : IJobApplicationService
         _timeProvider = timeProvider;
     }
 
-    public Task<IReadOnlyList<JobApplicationSummaryDto>> ListAsync(CancellationToken cancellationToken = default) =>
-        ListWhereAsync(_ => true, cancellationToken);
+    public async Task<JobApplicationListDto> ListAsync(JobApplicationFilter filter, int count, CancellationToken cancellationToken = default)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
+
+        var query = db.JobApplications.AsNoTracking().Where(a => a.ArchivedAt == null);
+        if (filter.Kind is { } kind)
+        {
+            query = kind == ApplicationKind.Spontaneous
+                ? query.Where(a => a is SpontaneousApplication)
+                : query.Where(a => a is OfferApplication);
+        }
+        if (filter.CompanySlug is { } companySlug)
+        {
+            query = query.Where(a => a is OfferApplication
+                ? ((OfferApplication)a).JobOffer.Company.Slug == companySlug
+                : ((SpontaneousApplication)a).Company.Slug == companySlug);
+        }
+
+        IEnumerable<JobApplicationSummaryDto> applications = await NewestFirst(query)
+            .ToSummaryDto()
+            .ToListAsync(cancellationToken);
+
+        // SQLite compares neither ignoring accents nor word by word: the applications are searched once loaded, then
+        // counted by status before the status filter, so each count says what its status would show.
+        if (!string.IsNullOrWhiteSpace(filter.Search))
+        {
+            applications = applications.Where(a => TextSearch.Matches($"{a.Title} {a.CompanyName}", filter.Search));
+        }
+
+        var matching = applications.ToList();
+        var counts = matching.CountBy(a => a.Status).ToDictionary();
+        if (filter.Status is { } status)
+        {
+            matching = matching.Where(a => a.Status == status).ToList();
+        }
+
+        return new JobApplicationListDto(
+            Applications: matching.Take(count).ToList(),
+            Total: matching.Count,
+            CountsByStatus: Enum.GetValues<ApplicationStatus>().ToDictionary(s => s, s => counts.GetValueOrDefault(s)));
+    }
+
+    public async Task<IReadOnlyList<CompanySummaryDto>> ListCompaniesAsync(CancellationToken cancellationToken = default)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
+
+        var active = db.JobApplications.Where(a => a.ArchivedAt == null);
+
+        return await db.Companies
+            .AsNoTracking()
+            .Where(c => active.OfType<SpontaneousApplication>().Any(a => a.CompanyId == c.Id)
+                || active.OfType<OfferApplication>().Any(a => a.JobOffer.CompanyId == c.Id))
+            .OrderBy(c => c.Name)
+            .ToSummaryDto()
+            .ToListAsync(cancellationToken);
+    }
 
     public Task<IReadOnlyList<JobApplicationSummaryDto>> ListByOfferAsync(Guid offerId, CancellationToken cancellationToken = default) =>
         ListWhereAsync(a => a is OfferApplication && ((OfferApplication)a).JobOfferId == offerId, cancellationToken);
@@ -179,20 +235,23 @@ internal class JobApplicationService : IJobApplicationService
 
     private DateTime Now => _timeProvider.GetUtcNow().UtcDateTime;
 
-    /// <summary>The active applications of every kind that match <paramref name="predicate"/>, newest first: by
-    /// sending day, or by creation day for a draft, then by creation time.</summary>
+    /// <summary>The active applications of every kind that match <paramref name="predicate"/>, newest first.</summary>
     private async Task<IReadOnlyList<JobApplicationSummaryDto>> ListWhereAsync(
         Expression<Func<JobApplication, bool>> predicate, CancellationToken cancellationToken)
     {
         await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
 
-        return await db.JobApplications
-            .AsNoTracking()
-            .Where(a => a.ArchivedAt == null)
-            .Where(predicate)
-            .OrderByDescending(a => a.AppliedOn ?? DateOnly.FromDateTime(a.CreatedAt))
-            .ThenByDescending(a => a.CreatedAt)
+        return await NewestFirst(db.JobApplications
+                .AsNoTracking()
+                .Where(a => a.ArchivedAt == null)
+                .Where(predicate))
             .ToSummaryDto()
             .ToListAsync(cancellationToken);
     }
+
+    /// <summary>Newest first: by sending day, or by creation day for a draft, then by creation time.</summary>
+    private static IQueryable<JobApplication> NewestFirst(IQueryable<JobApplication> applications) =>
+        applications
+            .OrderByDescending(a => a.AppliedOn ?? DateOnly.FromDateTime(a.CreatedAt))
+            .ThenByDescending(a => a.CreatedAt);
 }

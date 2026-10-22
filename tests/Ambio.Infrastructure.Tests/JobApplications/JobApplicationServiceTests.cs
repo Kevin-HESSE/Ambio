@@ -1,4 +1,5 @@
 using Ambio.Application.Common;
+using Ambio.Application.Companies.Dtos;
 using Ambio.Application.JobApplications;
 using Ambio.Application.JobApplications.Dtos;
 using Ambio.Domain.Companies;
@@ -27,6 +28,10 @@ public class JobApplicationServiceTests : IAsyncLifetime
     private const string CompanyName = "Brightwave & Co";
     private const string ApplicationSlug = "developpeur-backend-brightwave-co";
     private const string Comment = "First call with the HR team";
+    private const string SearchInTitleAndCompany = "developpeur BRIGHTWAVE";
+    private const string SearchInCompany = "brightwave";
+    private const string FirstCompanyByName = "Acme";
+    private const string LastCompanyByName = "Zephyr Labs";
 
     private static readonly DateTimeOffset Now = new(2026, 9, 28, 10, 0, 0, TimeSpan.Zero);
     private static readonly DateOnly SentOn = new(2026, 9, 3);
@@ -205,6 +210,157 @@ public class JobApplicationServiceTests : IAsyncLifetime
         var summary = Assert.Single(await ListAsync());
 
         Assert.Equal(ApplicationSlug, summary.Slug);
+    }
+
+    [Fact]
+    public async Task ListAsync_WithStatus_ReturnsOnlyTheApplicationsInIt()
+    {
+        var story = new OfferApplicationStory()
+            .WithApplications(1)
+            .WithApplications(1, OfferApplicationFactory.IsSentRuleSet);
+        await story.SaveAsync(_services);
+
+        var summary = Assert.Single((await ListAsync(new JobApplicationFilter(Status: ApplicationStatus.Applied))).Applications);
+
+        Assert.Equal(story.Applications[1].Id, summary.Id);
+    }
+
+    [Theory]
+    [InlineData(ApplicationKind.Offer)]
+    [InlineData(ApplicationKind.Spontaneous)]
+    public async Task ListAsync_WithKind_ReturnsOnlyTheApplicationsOfThatKind(ApplicationKind kind)
+    {
+        var story = new OfferApplicationStory().WithApplications(1);
+        await story.SaveAsync(_services);
+        var spontaneous = SpontaneousApplicationFactory.GetGenerator(story.Company.Id).Generate();
+        await _services.AddAsync(spontaneous);
+
+        var summary = Assert.Single((await ListAsync(new JobApplicationFilter(Kind: kind))).Applications);
+
+        Assert.Equal(kind == ApplicationKind.Offer ? story.Applications[0].Id : spontaneous.Id, summary.Id);
+    }
+
+    [Fact]
+    public async Task ListAsync_WithCompany_ReturnsTheApplicationsToItsOffersAndTheSpontaneousOnes()
+    {
+        var story = new OfferApplicationStory().WithApplications(1);
+        await story.SaveAsync(_services);
+        var spontaneous = SpontaneousApplicationFactory.GetGenerator(story.Company.Id).Generate();
+        await _services.AddAsync(spontaneous);
+        await new OfferApplicationStory().WithApplications(1).SaveAsync(_services);
+        await new SpontaneousApplicationStory().WithApplications(1).SaveAsync(_services);
+
+        var ids = (await ListAsync(new JobApplicationFilter(CompanySlug: story.Company.Slug))).Applications.Select(a => a.Id).Order();
+
+        Assert.Equal(new[] { story.Applications[0].Id, spontaneous.Id }.Order(), ids);
+    }
+
+    [Theory]
+    [InlineData(SearchInTitleAndCompany)]
+    [InlineData(SearchInCompany)]
+    public async Task ListAsync_WithSearch_MatchesEveryWordInTheTitleAndTheCompanyIgnoringCaseAndAccents(string search)
+    {
+        var story = new SpontaneousApplicationStory().WithApplications(1);
+        story.Applications[0].TargetPosition = TargetPosition;
+        story.Company.Name = CompanyName;
+        await story.SaveAsync(_services);
+        await new SpontaneousApplicationStory().WithApplications(1).SaveAsync(_services);
+
+        var summary = Assert.Single((await ListAsync(new JobApplicationFilter(Search: search))).Applications);
+
+        Assert.Equal(story.Applications[0].Id, summary.Id);
+    }
+
+    [Fact]
+    public async Task ListAsync_WithSearchMissingAWord_ReturnsNothing()
+    {
+        var story = new SpontaneousApplicationStory().WithApplications(1);
+        story.Applications[0].TargetPosition = TargetPosition;
+        await story.SaveAsync(_services);
+
+        var list = await ListAsync(new JobApplicationFilter(Search: SearchInTitleAndCompany));
+
+        Assert.Equal(0, list.Total);
+    }
+
+    [Fact]
+    public async Task ListAsync_WithStatus_CountsByStatusTheApplicationsMatchingTheOtherCriteria()
+    {
+        var story = new OfferApplicationStory()
+            .WithApplications(2)
+            .WithApplications(1, OfferApplicationFactory.IsSentRuleSet);
+        await story.SaveAsync(_services);
+        await new SpontaneousApplicationStory().WithApplications(1, SpontaneousApplicationFactory.IsSentRuleSet).SaveAsync(_services);
+
+        var list = await ListAsync(new JobApplicationFilter(Status: ApplicationStatus.Applied, CompanySlug: story.Company.Slug));
+
+        Assert.Equal(story.Applications[2].Id, Assert.Single(list.Applications).Id);
+        Assert.Equal(1, list.Total);
+        Assert.Equal(
+            Enum.GetValues<ApplicationStatus>().ToDictionary(
+                status => status,
+                status => status switch
+                {
+                    ApplicationStatus.Draft => 2,
+                    ApplicationStatus.Applied => 1,
+                    _ => 0,
+                }),
+            list.CountsByStatus);
+    }
+
+    [Fact]
+    public async Task ListAsync_WithCount_ReturnsTheNewestOnesAndTheTotal()
+    {
+        var story = new OfferApplicationStory();
+        await story.SaveAsync(_services);
+        var generator = OfferApplicationFactory.GetGenerator(story.JobOffer.Id);
+        var (ofToday, ofYesterday, ofLastWeek) = (generator.Generate(), generator.Generate(), generator.Generate());
+        await AddAtAsync(Now.AddDays(-7), ofLastWeek);
+        await AddAtAsync(Now, ofToday);
+        await AddAtAsync(Now.AddDays(-1), ofYesterday);
+
+        var list = await ListAsync(new JobApplicationFilter(), count: 2);
+
+        Assert.Equal([ofToday.Id, ofYesterday.Id], list.Applications.Select(a => a.Id));
+        Assert.Equal(3, list.Total);
+    }
+
+    [Fact]
+    public async Task ListCompaniesAsync_WithApplicationsOfBothKinds_ReturnsTheirCompaniesOnceByName()
+    {
+        var offerStory = new OfferApplicationStory().WithApplications(2);
+        offerStory.Company.Name = LastCompanyByName;
+        await offerStory.SaveAsync(_services);
+        await _services.AddAsync(SpontaneousApplicationFactory.GetGenerator(offerStory.Company.Id).Generate());
+        var spontaneousStory = new SpontaneousApplicationStory().WithApplications(1);
+        spontaneousStory.Company.Name = FirstCompanyByName;
+        await spontaneousStory.SaveAsync(_services);
+
+        var companies = await ListCompaniesAsync();
+
+        Assert.Equal([spontaneousStory.Company.Id, offerStory.Company.Id], companies.Select(c => c.Id));
+    }
+
+    [Fact]
+    public async Task ListCompaniesAsync_CompanyWithoutActiveApplication_LeavesItOut()
+    {
+        await new OfferApplicationStory().WithApplications(1, OfferApplicationFactory.IsArchivedRuleSet).SaveAsync(_services);
+        await new SpontaneousApplicationStory().WithApplications(1, SpontaneousApplicationFactory.IsArchivedRuleSet).SaveAsync(_services);
+        await _services.AddAsync(CompanyFactory.GetGenerator().Generate());
+
+        Assert.Empty(await ListCompaniesAsync());
+    }
+
+    [Fact]
+    public async Task ListCompaniesAsync_ArchivedCompanyWithActiveApplication_KeepsIt()
+    {
+        var story = new SpontaneousApplicationStory().WithApplications(1);
+        story.Company.ArchivedAt = Now.UtcDateTime;
+        await story.SaveAsync(_services);
+
+        var company = Assert.Single(await ListCompaniesAsync());
+
+        Assert.Equal(story.Company.Id, company.Id);
     }
 
     [Fact]
@@ -687,7 +843,7 @@ public class JobApplicationServiceTests : IAsyncLifetime
         await using var services = await CreateServicesAsync(alphabet, size);
 
         await Assert.ThrowsAsync<OptionsValidationException>(() =>
-            services.CallAsync((IJobApplicationService service) => service.ListAsync(TestContext.Current.CancellationToken)));
+            services.CallAsync((IJobApplicationService service) => service.ListCompaniesAsync(TestContext.Current.CancellationToken)));
     }
 
     private async Task<SqliteServiceProvider> CreateServicesAsync(string? alphabet = null, int? size = null)
@@ -728,8 +884,14 @@ public class JobApplicationServiceTests : IAsyncLifetime
     private Task<SpontaneousApplication> FindSingleSpontaneousAsync() =>
         _services.QueryAsync(context => context.Set<SpontaneousApplication>().SingleAsync(TestContext.Current.CancellationToken));
 
-    private Task<IReadOnlyList<JobApplicationSummaryDto>> ListAsync() =>
-        _services.CallAsync((IJobApplicationService service) => service.ListAsync(TestContext.Current.CancellationToken));
+    private async Task<IReadOnlyList<JobApplicationSummaryDto>> ListAsync() =>
+        (await ListAsync(new JobApplicationFilter())).Applications;
+
+    private Task<JobApplicationListDto> ListAsync(JobApplicationFilter filter, int count = int.MaxValue) =>
+        _services.CallAsync((IJobApplicationService service) => service.ListAsync(filter, count, TestContext.Current.CancellationToken));
+
+    private Task<IReadOnlyList<CompanySummaryDto>> ListCompaniesAsync() =>
+        _services.CallAsync((IJobApplicationService service) => service.ListCompaniesAsync(TestContext.Current.CancellationToken));
 
     private Task<IReadOnlyList<JobApplicationSummaryDto>> ListByOfferAsync(Guid offerId) =>
         _services.CallAsync((IJobApplicationService service) => service.ListByOfferAsync(offerId, TestContext.Current.CancellationToken));

@@ -1,0 +1,41 @@
+@* A filter as a rounded chip linking to the list it gives (docs/ui.md#components): an optional icon, its label and the
+   number of items it shows. The active chip is marked with aria-current. A class passed by the caller is added to its
+   own, such as status-applied, whose solid color tints the icon (css/statuses.css); other attributes pass through. *@
+<a href="@Href" class="@ComponentClass" aria-current="@(Active ? "true" : null)" @attributes="OtherAttributes">
+    @if (Icon is not null)
+    {
+        <i class="bi bi-@Icon" aria-hidden="true"></i>
+    }
+    <span class="filter-chip-label">@Label</span>
+    <span class="filter-chip-count">@Count</span>
+</a>
+
+@code {
+    /// <summary>Base-relative URL of the list with this filter.</summary>
+    [Parameter, EditorRequired]
+    public string Href { get; set; } = "";
+
+    [Parameter, EditorRequired]
+    public string Label { get; set; } = "";
+
+    /// <summary>The number of items the filter shows.</summary>
+    [Parameter, EditorRequired]
+    public int Count { get; set; }
+
+    /// <summary>Bootstrap Icons name, without the <c>bi-</c> prefix.</summary>
+    [Parameter]
+    public string? Icon { get; set; }
+
+    /// <summary>The filter of the list shown.</summary>
+    [Parameter]
+    public bool Active { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string ComponentClass => CssClassHelper
+        .Serialize(["filter-chip", "t-small", "text-nowrap"], [], AdditionalAttributes);
+
+    private IEnumerable<KeyValuePair<string, object>>? OtherAttributes =>
+        AdditionalAttributes?.Where(attribute => attribute.Key != "class");
+}
