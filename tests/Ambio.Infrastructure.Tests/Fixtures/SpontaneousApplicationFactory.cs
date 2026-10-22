@@ -12,6 +12,10 @@ public static class SpontaneousApplicationFactory
     public const string IsSentRuleSet = $"default,{IsSent}";
     public const string IsArchivedRuleSet = $"default,{IsArchived}";
 
+    // A sent application is sent within the year before this day, which comes before the frozen clock of the service
+    // tests: a change they make always follows its sending, whatever the day the tests run.
+    private static readonly DateTime SentBefore = new(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
     /// <summary>Drafts to the company, with every optional field and a random 6-digit short id. Build them through
     /// <c>SpontaneousApplicationStory</c>, which saves their company first.</summary>
     public static Faker<SpontaneousApplication> GetGenerator(Guid companyId) =>
@@ -24,7 +28,10 @@ public static class SpontaneousApplicationFactory
             .RuleFor(a => a.Notes, faker => faker.Lorem.Sentence())
             .RuleSet(IsSent, set =>
                 set.FinishWith((faker, a) =>
-                    a.ChangeStatus(ApplicationStatus.Applied, faker.Date.Past().ToUniversalTime(), appliedOn: DateOnly.FromDateTime(faker.Date.Past())))
+                {
+                    var sentAt = faker.Date.Past(refDate: SentBefore);
+                    a.ChangeStatus(ApplicationStatus.Applied, sentAt, appliedOn: DateOnly.FromDateTime(sentAt));
+                })
             )
             .RuleSet(IsArchived, set =>
                 set.RuleFor(a => a.ArchivedAt, faker => faker.Date.Past())
