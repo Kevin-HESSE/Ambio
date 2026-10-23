@@ -1,0 +1,19 @@
+@* The filter of a list that has no other one, such as the companies list: a static GET form holding the "Show
+   archived" checkbox, applied as soon as it changes (data-auto-submit, wwwroot/js/shell.js). *@
+<form method="get" action="@Action" class="archived-filter" role="search" aria-label="@Label"
+      data-enhance data-filter-form data-auto-submit>
+    <ShowArchived Id="show-archived" Checked="Checked" />
+</form>
+
+@code {
+    /// <summary>Base-relative URL of the list.</summary>
+    [Parameter, EditorRequired]
+    public string Action { get; set; } = "";
+
+    /// <summary>The accessible name of the form, such as "Filter the companies".</summary>
+    [Parameter, EditorRequired]
+    public string Label { get; set; } = "";
+
+    [Parameter]
+    public bool Checked { get; set; }
+}

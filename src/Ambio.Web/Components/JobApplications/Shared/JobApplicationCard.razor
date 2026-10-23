@@ -1,5 +1,6 @@
-@* An application in the mobile list (< 992 px), linking to its page. *@
-<ListCard Title="@Application.Title" Href="@JobApplicationRoutes.Details(Application.ShortId, Application.Slug)" Subtitle="@Application.CompanyName">
+@* An application in the mobile list (< 992 px), linking to its page, dimmed when archived. *@
+<ListCard Title="@Application.Title" Href="@JobApplicationRoutes.Details(Application.ShortId, Application.Slug)" Subtitle="@Application.CompanyName"
+          Archived="Application.IsArchived">
     <Aside>
         @if (Application.SentOn is { } sentOn)
         {
@@ -15,6 +16,10 @@
         @if (Application.Kind == ApplicationKind.Spontaneous)
         {
             <SpontaneousTag />
+        }
+        @if (Application.IsArchived)
+        {
+            <ArchivedTag />
         }
     </Tags>
 </ListCard>

@@ -1,9 +1,14 @@
+using Ambio.Web.Components.Shared;
+
 namespace Ambio.Web.Components.Companies;
 
 /// <summary>Base-relative URLs of the company pages, for links and redirects.</summary>
 public static class CompanyRoutes
 {
     public const string List = "companies";
+
+    /// <summary>The list with the archived companies too (<see cref="ShowArchived"/>).</summary>
+    public const string ListWithArchived = $"{List}?{ShowArchived.Query}=true";
 
     public const string New = "companies/new";
 

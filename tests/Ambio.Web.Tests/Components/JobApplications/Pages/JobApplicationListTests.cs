@@ -6,6 +6,7 @@ using Ambio.Web.Components.JobApplications;
 using Ambio.Web.Components.JobApplications.Pages;
 using Ambio.Web.Components.JobApplications.Shared;
 using Ambio.Web.Components.Offers;
+using Ambio.Web.Components.Shared;
 using Ambio.Web.Tests.Fixtures;
 
 using Bunit;
@@ -151,6 +152,61 @@ public class JobApplicationListTests : BunitContext
         Render<JobApplicationList>();
 
         _jobApplicationService.Received().ListAsync(filter, JobApplicationList.PageSize, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public void Render_WithArchived_ListsAndOffersTheCompaniesOfTheArchivedApplicationsToo()
+    {
+        GivenApplications(_applications);
+        NavigateTo(JobApplicationRoutes.Filtered(new JobApplicationFilter(IncludeArchived: true)));
+
+        Render<JobApplicationList>();
+
+        _jobApplicationService.Received().ListAsync(new JobApplicationFilter(IncludeArchived: true), JobApplicationList.PageSize, Arg.Any<CancellationToken>());
+        _jobApplicationService.Received().ListCompaniesAsync(true, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public void Render_WithArchived_ChecksShowArchivedInTheBarAndTheSheetAndCountsItOnTheFiltersButton()
+    {
+        var filter = new JobApplicationFilter(IncludeArchived: true);
+        GivenApplications(_applications);
+        NavigateTo(JobApplicationRoutes.Filtered(filter));
+
+        var cut = Render<JobApplicationList>();
+
+        Assert.Equal(
+            [true, true],
+            cut.FindAll($"form input[name='{ShowArchived.Query}']").Select(checkbox => checkbox.HasAttribute("checked")));
+        var form = cut.Find("form.application-filters-mobile");
+        Assert.Equal("1", form.QuerySelector($"[data-sheet-open='{JobApplicationFilters.SheetId}'] .count-badge")!.TextContent);
+        Assert.Equal(
+            JobApplicationRoutes.List,
+            form.QuerySelector($"#{JobApplicationFilters.SheetId} .sheet-actions a")!.GetAttribute("href"));
+    }
+
+    [Fact]
+    public void Render_WithArchivedApplication_DimsItsRowAndCardAndTagsThem()
+    {
+        GivenApplications(_applications[0], _applications[1] with { IsArchived = true });
+
+        var cut = Render<JobApplicationList>();
+
+        Assert.Equal([false, true], cut.FindAll("tbody a.application-title").Select(link => link.ClassList.Contains("t-muted")));
+        Assert.Equal([false, true], cut.FindAll("tbody tr").Select(row => row.QuerySelector(".tag-archived") is not null));
+        Assert.Equal([false, true], cut.FindAll(".list-card").Select(card => card.QuerySelector(".tag-archived") is not null));
+    }
+
+    [Fact]
+    public void Render_WithEveryApplicationArchived_KeepsTheFiltersAndOffersToShowThem()
+    {
+        GivenList(new JobApplicationListDto([], 0, new Dictionary<ApplicationStatus, int>(), HasArchived: true));
+
+        var cut = Render<JobApplicationList>();
+
+        Assert.NotNull(cut.Find("form.application-filters"));
+        Assert.NotNull(cut.Find($".empty a[href='{JobApplicationRoutes.Filtered(new JobApplicationFilter(IncludeArchived: true))}']"));
+        Assert.NotNull(cut.Find($".empty a[href='{JobApplicationRoutes.New}']"));
     }
 
     [Fact]

@@ -1,16 +1,20 @@
 @* An application in a list inside a card, such as on the offer page or in the Applications tab of the company page:
-   its status, then when and where it was sent, linking to its page. *@
+   its status, then when and where it was sent, linking to its page, dimmed when archived. *@
 <a class="application-item" href="@JobApplicationRoutes.Details(Application.ShortId, Application.Slug)">
     <div class="application-item-text stack">
         @if (ShowTitle)
         {
-            <span class="application-item-title t-body-strong">@Application.Title</span>
+            <span class="application-item-title t-body-strong @(Application.IsArchived ? "t-muted" : null)">@Application.Title</span>
         }
         <div class="cluster">
             <StatusBadge Status="Application.Status" />
             @if (Application.Kind == ApplicationKind.Spontaneous)
             {
                 <SpontaneousTag />
+            }
+            @if (Application.IsArchived)
+            {
+                <ArchivedTag />
             }
             <span class="application-item-meta t-small t-secondary">
                 @if (Application.SentOn is { } sentOn)

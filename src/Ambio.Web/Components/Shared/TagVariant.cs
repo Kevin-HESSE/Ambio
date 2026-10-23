@@ -8,4 +8,7 @@ public enum TagVariant
 
     /// <summary>Spontaneous applications only, as there is no offer behind them (<c>tag/accent</c>).</summary>
     Accent,
+
+    /// <summary>Archived rows and items only (<c>tag/archived</c>), see <see cref="ArchivedTag"/>.</summary>
+    Archived,
 }

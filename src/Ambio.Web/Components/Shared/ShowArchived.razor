@@ -1,0 +1,21 @@
+@* The "Show archived" checkbox of a list's filters (ADR 0012): checked, it is sent as ?archived=true, and the list
+   adds the archived rows, dimmed. *@
+<label class="show-archived" for="@Id">
+    <input id="@Id" type="checkbox" class="form-check-input" name="@Query" value="true" checked="@Checked" />
+    Show archived
+</label>
+
+@code {
+    /// <summary>Query string key of the checkbox.</summary>
+    public const string Query = "archived";
+
+    [Parameter, EditorRequired]
+    public string Id { get; set; } = "";
+
+    [Parameter]
+    public bool Checked { get; set; }
+
+    /// <summary>Whether the query string value checks the box: <c>true</c>, ignoring case. Any other value is
+    /// ignored.</summary>
+    public static bool IsChecked(string? value) => bool.TryParse(value, out var isChecked) && isChecked;
+}

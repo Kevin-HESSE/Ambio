@@ -1,8 +1,15 @@
-@* An offer in a list inside a card, such as the Offers tab of the company page, linking to its page. *@
+@* An offer in a list inside a card, such as the Offers tab of the company page, linking to its page, dimmed when
+   archived. *@
 <a class="offer-item" href="@OfferRoutes.Details(Offer.ShortId, Offer.Slug)">
     <div class="offer-item-text stack">
-        <span class="offer-title t-body-strong text-truncate">@Offer.Title</span>
-        <div class="offer-tags cluster"><OfferTags ContractType="Offer.ContractType" RemotePolicy="Offer.RemotePolicy" /></div>
+        <span class="offer-title t-body-strong text-truncate @(Offer.IsArchived ? "t-muted" : null)">@Offer.Title</span>
+        <div class="offer-tags cluster">
+            <OfferTags ContractType="Offer.ContractType" RemotePolicy="Offer.RemotePolicy" />
+            @if (Offer.IsArchived)
+            {
+                <ArchivedTag />
+            }
+        </div>
     </div>
     <i class="bi bi-chevron-right t-muted" aria-hidden="true"></i>
 </a>

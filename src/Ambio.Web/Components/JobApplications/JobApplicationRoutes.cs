@@ -45,6 +45,7 @@ public static class JobApplicationRoutes
             [StatusQuery] = filter.Status is { } status ? QueryValue.Of(status) : null,
             [CompanyQuery] = filter.CompanySlug,
             [KindQuery] = filter.Kind is { } kind ? QueryValue.Of(kind) : null,
+            [ShowArchived.Query] = filter.IncludeArchived ? "true" : null,
             [ShownQuery] = shown?.ToString(CultureInfo.InvariantCulture),
         }.Where(pair => pair.Value is not null));
 

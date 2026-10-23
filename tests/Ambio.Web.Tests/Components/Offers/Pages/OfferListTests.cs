@@ -3,9 +3,11 @@ using Ambio.Application.Offers.Dtos;
 using Ambio.Web.Components.Offers;
 using Ambio.Web.Components.Offers.Pages;
 using Ambio.Web.Components.Offers.Shared;
+using Ambio.Web.Components.Shared;
 using Ambio.Web.Tests.Fixtures;
 
 using Bunit;
+using Bunit.TestDoubles;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -46,6 +48,45 @@ public class OfferListTests : BunitContext
 
         Assert.NotNull(cut.Find($".empty a[href='{OfferRoutes.New}']"));
         Assert.Empty(cut.FindAll("table"));
+        Assert.Empty(cut.FindAll("form"));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Render_WithOrWithoutArchivedInTheQueryString_ListsAndChecksAccordingly(bool includeArchived)
+    {
+        GivenOffers(_offers);
+        NavigateTo(includeArchived ? OfferRoutes.ListWithArchived : OfferRoutes.List);
+
+        var cut = Render<OfferList>();
+
+        _jobOfferService.Received().ListAsync(includeArchived, Arg.Any<CancellationToken>());
+        Assert.Equal(includeArchived, cut.Find($"form.archived-filter input[name='{ShowArchived.Query}']").HasAttribute("checked"));
+    }
+
+    [Fact]
+    public void Render_WithArchivedOffer_DimsItsRowAndCardAndTagsThem()
+    {
+        GivenOffers(_offers[0], _offers[1] with { IsArchived = true });
+
+        var cut = Render<OfferList>();
+
+        Assert.Equal([false, true], cut.FindAll("tbody a.list-title").Select(link => link.ClassList.Contains("t-muted")));
+        Assert.Equal([false, true], cut.FindAll("tbody tr").Select(row => row.QuerySelector(".tag-archived") is not null));
+        Assert.Equal([false, true], cut.FindAll(".list-card").Select(card => card.QuerySelector(".tag-archived") is not null));
+    }
+
+    [Fact]
+    public void Render_WithEveryOfferArchived_KeepsTheFilterAndOffersToShowThem()
+    {
+        _jobOfferService.ListAsync(Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(new JobOfferListDto([], HasArchived: true));
+
+        var cut = Render<OfferList>();
+
+        Assert.NotNull(cut.Find("form.archived-filter"));
+        Assert.NotNull(cut.Find($".empty a[href='{OfferRoutes.ListWithArchived}']"));
+        Assert.NotNull(cut.Find($".empty a[href='{OfferRoutes.New}']"));
     }
 
     [Fact]
@@ -56,7 +97,7 @@ public class OfferListTests : BunitContext
         var cut = Render<OfferList>();
 
         var rows = cut.FindAll("tbody tr").Select(row => (
-            row.QuerySelector(".offer-title")!.TextContent,
+            row.QuerySelector(".list-title")!.TextContent,
             row.QuerySelector(".offer-company")!.TextContent,
             row.QuerySelector(".num")!.TextContent,
             row.QuerySelector(".offer-date")!.TextContent));
@@ -124,9 +165,11 @@ public class OfferListTests : BunitContext
         var cut = Render<OfferList>();
 
         var expected = _offers.Select(offer => OfferRoutes.Details(offer.ShortId, offer.Slug));
-        Assert.Equal(expected, cut.FindAll("tbody tr a.offer-title").Select(link => link.GetAttribute("href")));
+        Assert.Equal(expected, cut.FindAll("tbody tr a.list-title").Select(link => link.GetAttribute("href")));
         Assert.Equal(expected, cut.FindAll("a.list-card").Select(link => link.GetAttribute("href")));
     }
+
+    private void NavigateTo(string url) => Services.GetRequiredService<BunitNavigationManager>().NavigateTo(url);
 
     private void GivenOffers(params JobOfferSummaryDto[] offers) =>
         _jobOfferService.ListAsync(Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(new JobOfferListDto(offers, HasArchived: false));

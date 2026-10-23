@@ -21,6 +21,17 @@ public class ListCardTests : BunitContext
 
         Assert.Equal(Href, cut.Find(".list-card").GetAttribute("href"));
         Assert.Equal(Title, cut.Find(".list-card-title").TextContent);
+        Assert.DoesNotContain("t-muted", cut.Find(".list-card-title").ClassList);
+    }
+
+    [Fact]
+    public void Render_Archived_DimsTheTitle()
+    {
+        var cut = Render<ListCard>(parameters => parameters
+            .Add(p => p.Title, Title)
+            .Add(p => p.Archived, true));
+
+        Assert.Contains("t-muted", cut.Find(".list-card-title").ClassList);
     }
 
     [Fact]

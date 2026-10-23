@@ -40,9 +40,9 @@
             syncThemeSelectors();
         }
 
-        // A filter applies as soon as its select changes. requestSubmit fires the submit event, which enhanced
-        // navigation intercepts; submit() would reload the whole page.
-        if (event.target.matches("form[data-auto-submit] select")) {
+        // A filter applies as soon as its select or its checkbox changes. requestSubmit fires the submit event, which
+        // enhanced navigation intercepts; submit() would reload the whole page.
+        if (event.target.matches("form[data-auto-submit] :is(select, input[type=checkbox])")) {
             event.target.form.requestSubmit();
         }
     });

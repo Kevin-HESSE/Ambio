@@ -1,14 +1,3 @@
-.offer-title {
-    display: block;
-    color: var(--ambio-text-primary);
-    text-decoration: none;
-}
-
-.offer-title:hover {
-    color: var(--ambio-accent-text);
-    text-decoration: underline;
-}
-
 .offer-date {
     white-space: nowrap;
 }

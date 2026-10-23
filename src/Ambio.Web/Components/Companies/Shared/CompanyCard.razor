@@ -1,6 +1,12 @@
-@* A company in the mobile list (< 992 px), linking to its page. *@
-<ListCard Title="@Company.Name" Href="@CompanyRoutes.Details(Company.Slug)" Subtitle="@Details">
-    <Tags><Tag Icon="building">@Company.Kind.ToLabel()</Tag></Tags>
+@* A company in the mobile list (< 992 px), linking to its page, dimmed when archived. *@
+<ListCard Title="@Company.Name" Href="@CompanyRoutes.Details(Company.Slug)" Subtitle="@Details" Archived="Company.IsArchived">
+    <Tags>
+        <Tag Icon="building">@Company.Kind.ToLabel()</Tag>
+        @if (Company.IsArchived)
+        {
+            <ArchivedTag />
+        }
+    </Tags>
 </ListCard>
 
 @code {
