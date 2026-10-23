@@ -17,7 +17,8 @@ public static class JobOfferMappingExtensions
             ContractType: o.ContractType,
             RemotePolicy: o.RemotePolicy,
             PostingCount: o.Postings.Count,
-            RegisterAt: o.CreatedAt));
+            RegisterAt: o.CreatedAt,
+            IsArchived: o.ArchivedAt != null));
 
     /// <summary>Projection translated to SQL by EF Core, with the company and the postings, from the first seen.</summary>
     public static IQueryable<JobOfferDetailsDto> ToDetailsDto(this IQueryable<JobOffer> offers) =>
@@ -33,6 +34,7 @@ public static class JobOfferMappingExtensions
             Salary: o.Salary,
             Description: o.Description,
             RegisterAt: o.CreatedAt,
+            ArchivedAt: o.ArchivedAt,
             Postings: o.Postings
                 .OrderBy(p => p.CreatedAt)
                 .Select(p => new JobOfferPostingDto(

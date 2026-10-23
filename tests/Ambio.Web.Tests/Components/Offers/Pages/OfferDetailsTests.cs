@@ -38,7 +38,7 @@ public class OfferDetailsTests : BunitContext
     {
         Services.AddSingleton(_jobOfferService);
         Services.AddSingleton(_jobApplicationService);
-        _jobApplicationService.ListByOfferAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns([]);
+        _jobApplicationService.ListByOfferAsync(Arg.Any<Guid>(), Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns([]);
         // The page is static; its postings card is interactive once the circuit is up.
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
         _jobOfferDetailsFactory = JobOfferDetailsFactory.GetGenerator();
@@ -177,7 +177,7 @@ public class OfferDetailsTests : BunitContext
         var sent = factory.Generate() with { SentOn = SentOn };
         var draft = factory.Generate(JobApplicationSummaryFactory.IsDraftRuleSet);
         GivenOffer(offer);
-        _jobApplicationService.ListByOfferAsync(offer.Id, Arg.Any<CancellationToken>()).Returns([sent, draft]);
+        _jobApplicationService.ListByOfferAsync(offer.Id, Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns([sent, draft]);
 
         var cut = RenderDetails(Key(offer));
 

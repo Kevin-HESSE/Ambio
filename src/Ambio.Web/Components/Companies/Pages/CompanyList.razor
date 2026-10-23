@@ -36,5 +36,5 @@ else if (_companies is not null)
 @code {
     private IReadOnlyList<CompanySummaryDto>? _companies;
 
-    protected override async Task OnInitializedAsync() => _companies = await CompanyService.ListAsync();
+    protected override async Task OnInitializedAsync() => _companies = (await CompanyService.ListAsync()).Companies;
 }

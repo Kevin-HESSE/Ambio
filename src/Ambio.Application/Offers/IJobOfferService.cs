@@ -5,11 +5,13 @@ namespace Ambio.Application.Offers;
 
 public interface IJobOfferService
 {
-    /// <summary>Active offers (not archived), newest first.</summary>
-    public Task<IReadOnlyList<JobOfferSummaryDto>> ListAsync(CancellationToken cancellationToken = default);
+    /// <summary>Active offers (not archived), and the archived ones too with <paramref name="includeArchived"/>, newest
+    /// first.</summary>
+    public Task<JobOfferListDto> ListAsync(bool includeArchived = false, CancellationToken cancellationToken = default);
 
-    /// <summary>Active offers of the company, newest first.</summary>
-    public Task<IReadOnlyList<JobOfferSummaryDto>> ListByCompanyAsync(Guid companyId, CancellationToken cancellationToken = default);
+    /// <summary>Active offers of the company, and the archived ones too with <paramref name="includeArchived"/>, newest
+    /// first.</summary>
+    public Task<IReadOnlyList<JobOfferSummaryDto>> ListByCompanyAsync(Guid companyId, bool includeArchived = false, CancellationToken cancellationToken = default);
 
     /// <summary>Active offers of the company with this name, ignoring case, archived or not, whose title is similar
     /// (<see cref="Ambio.Domain.Offers.JobOfferTitles.AreSimilar"/>), newest first: an offer about to be created may
@@ -40,4 +42,14 @@ public interface IJobOfferService
     /// <see cref="JobOfferErrors.PostingNotFound"/>, or <see cref="JobOfferErrors.LastPosting"/> when it is the
     /// offer's only posting.</summary>
     public Task<ServiceResult> RemovePostingAsync(Guid offerId, Guid postingId, CancellationToken cancellationToken = default);
+
+    /// <summary>Archives the offer with its active applications, on the same day, or fails with
+    /// <see cref="JobOfferErrors.NotFound"/>. An application already archived keeps its day, and an archived offer is
+    /// left as it is.</summary>
+    public Task<ServiceResult> ArchiveAsync(Guid id, CancellationToken cancellationToken = default);
+
+    /// <summary>Restores the offer with the applications archived with it, on the same day, and its company when
+    /// archived, but not the company's other offers and applications. Fails with <see cref="JobOfferErrors.NotFound"/>.
+    /// An active offer is left as it is.</summary>
+    public Task<ServiceResult> RestoreAsync(Guid id, CancellationToken cancellationToken = default);
 }

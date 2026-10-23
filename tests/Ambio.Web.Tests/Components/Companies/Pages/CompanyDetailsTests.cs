@@ -39,8 +39,8 @@ public class CompanyDetailsTests : BunitContext
         Services.AddSingleton(_companyService);
         Services.AddSingleton(_jobOfferService);
         Services.AddSingleton(_jobApplicationService);
-        _jobOfferService.ListByCompanyAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns([]);
-        _jobApplicationService.ListByCompanyAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns([]);
+        _jobOfferService.ListByCompanyAsync(Arg.Any<Guid>(), Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns([]);
+        _jobApplicationService.ListByCompanyAsync(Arg.Any<Guid>(), Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns([]);
         _companyDetailsFactory = CompanyDetailsFactory.GetGenerator();
         _jobOfferSummaryFactory = JobOfferSummaryFactory.GetGenerator();
     }
@@ -266,10 +266,10 @@ public class CompanyDetailsTests : BunitContext
         _companyService.GetAsync(company.Slug, Arg.Any<CancellationToken>()).Returns(company);
 
     private void GivenOffers(CompanyDetailsDto company, params IReadOnlyList<JobOfferSummaryDto> offers) =>
-        _jobOfferService.ListByCompanyAsync(company.Id, Arg.Any<CancellationToken>()).Returns(offers);
+        _jobOfferService.ListByCompanyAsync(company.Id, Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(offers);
 
     private void GivenApplications(CompanyDetailsDto company, params IReadOnlyList<JobApplicationSummaryDto> applications) =>
-        _jobApplicationService.ListByCompanyAsync(company.Id, Arg.Any<CancellationToken>()).Returns(applications);
+        _jobApplicationService.ListByCompanyAsync(company.Id, Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(applications);
 
     private void NavigateToTab(CompanyDetailsDto company, string tab) =>
         Services.GetRequiredService<BunitNavigationManager>().NavigateTo(CompanyRoutes.Details(company.Slug, tab));

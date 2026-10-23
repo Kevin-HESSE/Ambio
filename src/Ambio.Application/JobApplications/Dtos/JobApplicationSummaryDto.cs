@@ -14,7 +14,8 @@ public record JobApplicationSummaryDto(
     ApplicationStatus Status,
     Channel Channel,
     string? AppliedVia,
-    DateOnly? SentOn)
+    DateOnly? SentOn,
+    bool IsArchived)
 {
     /// <summary>The readable part of its URL, after the <see cref="ShortId"/>.</summary>
     public string Slug => JobApplicationSlug.From(Title, CompanyName);

@@ -125,7 +125,7 @@
     {
         Input ??= new();
         Posting ??= new();
-        _companyNames = (await CompanyService.ListAsync()).Select(company => company.Name).ToList();
+        _companyNames = (await CompanyService.ListAsync()).Companies.Select(company => company.Name).ToList();
     }
 
     private async Task CreateOfferAsync()

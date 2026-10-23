@@ -4,7 +4,8 @@ namespace Ambio.Application.JobApplications.Dtos;
 
 /// <summary>An application shown on its page, of either kind: <see cref="OfferApplicationDetailsDto"/> or
 /// <see cref="SpontaneousApplicationDetailsDto"/>. Its title is the offer's, or the target position of a spontaneous
-/// application; <paramref name="SentOn"/> is null while it is a draft, and <paramref name="CreatedAt"/> is UTC.
+/// application; <paramref name="SentOn"/> is null while it is a draft, <paramref name="CreatedAt"/> is UTC, and
+/// <paramref name="ArchivedAt"/> (UTC) is null while it is active.
 /// <paramref name="StatusHistory"/> lists its status changes, newest first.</summary>
 public abstract record JobApplicationDetailsDto(
     Guid Id,
@@ -18,8 +19,11 @@ public abstract record JobApplicationDetailsDto(
     DateOnly? SentOn,
     string? Notes,
     DateTime CreatedAt,
+    DateTime? ArchivedAt,
     IReadOnlyList<StatusChangeDto> StatusHistory)
 {
+    public bool IsArchived => ArchivedAt is not null;
+
     /// <summary>The readable part of its URL, after the <see cref="ShortId"/>.</summary>
     public string Slug => JobApplicationSlug.From(Title, CompanyName);
 

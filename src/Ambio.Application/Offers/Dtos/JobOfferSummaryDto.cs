@@ -12,7 +12,8 @@ public record JobOfferSummaryDto(
     ContractType ContractType,
     RemotePolicy RemotePolicy,
     int PostingCount,
-    DateTime RegisterAt)
+    DateTime RegisterAt,
+    bool IsArchived)
 {
     /// <summary>The readable part of its URL, after the <see cref="ShortId"/>.</summary>
     public string Slug => JobOfferSlug.From(Title, CompanyName);

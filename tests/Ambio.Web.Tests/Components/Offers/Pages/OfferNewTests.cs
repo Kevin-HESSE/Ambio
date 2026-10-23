@@ -39,7 +39,7 @@ public class OfferNewTests : BunitContext
         Services.AddSingleton(_companyService);
         var companySummaryFactory = CompanySummaryFactory.GetGenerator();
         _companies = companySummaryFactory.Generate(2);
-        _companyService.ListAsync(Arg.Any<CancellationToken>()).Returns(_companies);
+        _companyService.ListAsync(Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(new CompanyListDto(_companies, HasArchived: false));
         _jobOfferService.FindSimilarAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns([]);
         _similarOffers = JobOfferSummaryFactory.GetGenerator().Generate(2);
     }

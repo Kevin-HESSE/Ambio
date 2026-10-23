@@ -129,5 +129,5 @@ public class OfferListTests : BunitContext
     }
 
     private void GivenOffers(params JobOfferSummaryDto[] offers) =>
-        _jobOfferService.ListAsync(Arg.Any<CancellationToken>()).Returns(offers);
+        _jobOfferService.ListAsync(Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(new JobOfferListDto(offers, HasArchived: false));
 }

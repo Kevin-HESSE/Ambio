@@ -38,7 +38,7 @@ public class JobApplicationListTests : BunitContext
             factory.Generate(JobApplicationSummaryFactory.IsDraftRuleSet),
             factory.Generate() with { SentOn = SentOn },
         ];
-        _jobApplicationService.ListCompaniesAsync(Arg.Any<CancellationToken>()).Returns(_companies);
+        _jobApplicationService.ListCompaniesAsync(Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(_companies);
     }
 
     [Fact]
@@ -233,7 +233,7 @@ public class JobApplicationListTests : BunitContext
     public void Render_WithMoreApplicationsThanShown_LinksLoadMoreToTheNextPageOfTheSameFilter()
     {
         var filter = new JobApplicationFilter(Status: ApplicationStatus.Applied);
-        GivenList(new JobApplicationListDto(_applications, Total: 30, CountsByStatus: new Dictionary<ApplicationStatus, int>()));
+        GivenList(new JobApplicationListDto(_applications, Total: 30, CountsByStatus: new Dictionary<ApplicationStatus, int>(), HasArchived: false));
         NavigateTo(JobApplicationRoutes.Filtered(filter));
 
         var cut = Render<JobApplicationList>();
@@ -263,7 +263,7 @@ public class JobApplicationListTests : BunitContext
     public void Render_WithCounts_ShowsAStatusChipForAllAndForEachStatusWithItsCount()
     {
         var counts = Enum.GetValues<ApplicationStatus>().ToDictionary(status => status, status => (int)status + 1);
-        GivenList(new JobApplicationListDto(_applications, _applications.Length, counts));
+        GivenList(new JobApplicationListDto(_applications, _applications.Length, counts, HasArchived: false));
 
         var cut = Render<JobApplicationList>();
 
@@ -336,7 +336,7 @@ public class JobApplicationListTests : BunitContext
     }
 
     private void GivenApplications(params JobApplicationSummaryDto[] applications) =>
-        GivenList(new JobApplicationListDto(applications, applications.Length, new Dictionary<ApplicationStatus, int>()));
+        GivenList(new JobApplicationListDto(applications, applications.Length, new Dictionary<ApplicationStatus, int>(), HasArchived: false));
 
     private void GivenList(JobApplicationListDto list) =>
         _jobApplicationService.ListAsync(Arg.Any<JobApplicationFilter>(), Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns(list);

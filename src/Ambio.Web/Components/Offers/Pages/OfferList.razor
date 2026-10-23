@@ -36,5 +36,5 @@ else if (_offers is not null)
 @code {
     private IReadOnlyList<JobOfferSummaryDto>? _offers;
 
-    protected override async Task OnInitializedAsync() => _offers = await JobOfferService.ListAsync();
+    protected override async Task OnInitializedAsync() => _offers = (await JobOfferService.ListAsync()).Offers;
 }

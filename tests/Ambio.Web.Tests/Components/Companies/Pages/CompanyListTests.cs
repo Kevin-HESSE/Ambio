@@ -93,5 +93,5 @@ public class CompanyListTests : BunitContext
     }
 
     private void GivenCompanies(params IReadOnlyList<CompanySummaryDto> companies) =>
-        _companyService.ListAsync(Arg.Any<CancellationToken>()).Returns(companies);
+        _companyService.ListAsync(Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(new CompanyListDto(companies, HasArchived: false));
 }

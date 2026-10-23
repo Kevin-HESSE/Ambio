@@ -1,6 +1,7 @@
 using Ambio.Application.Common;
 using Ambio.Application.Companies;
 using Ambio.Application.Companies.Dtos;
+using Ambio.Infrastructure.JobApplications;
 using Ambio.Infrastructure.Persistence;
 
 using Microsoft.EntityFrameworkCore;
@@ -10,22 +11,28 @@ namespace Ambio.Infrastructure.Companies;
 internal class CompanyService : ICompanyService
 {
     private readonly IDbContextFactory<ApplicationDbContext> _dbFactory;
+    private readonly TimeProvider _timeProvider;
 
-    public CompanyService(IDbContextFactory<ApplicationDbContext> dbFactory)
+    public CompanyService(IDbContextFactory<ApplicationDbContext> dbFactory, TimeProvider timeProvider)
     {
         _dbFactory = dbFactory;
+        _timeProvider = timeProvider;
     }
 
-    public async Task<IReadOnlyList<CompanySummaryDto>> ListAsync(CancellationToken cancellationToken = default)
+    public async Task<CompanyListDto> ListAsync(bool includeArchived = false, CancellationToken cancellationToken = default)
     {
         await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
 
-        return await db.Companies
+        var companies = await db.Companies
             .AsNoTracking()
-            .Where(c => c.ArchivedAt == null)
+            .Where(c => includeArchived || c.ArchivedAt == null)
             .OrderBy(c => c.Name)
             .ToSummaryDto()
             .ToListAsync(cancellationToken);
+
+        return new CompanyListDto(
+            Companies: companies,
+            HasArchived: await db.Companies.AnyAsync(c => c.ArchivedAt != null, cancellationToken));
     }
 
     public async Task<IReadOnlyList<CompanySummaryDto>> SearchAsync(string text, CancellationToken cancellationToken = default)
@@ -36,9 +43,9 @@ internal class CompanyService : ICompanyService
         }
 
         // SQLite compares neither ignoring accents nor word by word: the few companies are matched once loaded.
-        var companies = await ListAsync(cancellationToken);
+        var list = await ListAsync(includeArchived: false, cancellationToken);
 
-        return companies.Where(c => TextSearch.Matches(c.Name, text)).ToList();
+        return list.Companies.Where(c => TextSearch.Matches(c.Name, text)).ToList();
     }
 
     public async Task<CompanyDetailsDto?> GetAsync(string slug, CancellationToken cancellationToken = default)
@@ -99,4 +106,69 @@ internal class CompanyService : ICompanyService
 
         return ServiceResult<string>.Success(company.Slug);
     }
+
+    public async Task<ServiceResult> ArchiveAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
+
+        var company = await db.Companies.SingleOrDefaultAsync(c => c.Id == id, cancellationToken);
+        if (company is null)
+        {
+            return ServiceResult.Failure(CompanyErrors.NotFound);
+        }
+
+        if (company.IsArchived)
+        {
+            return ServiceResult.Success();
+        }
+
+        // The active offers and applications go with it, on the same day, so a restore brings them back together.
+        var now = Now;
+        company.Archive(now);
+        foreach (var offer in await db.JobOffers.Where(o => o.CompanyId == id && o.ArchivedAt == null).ToListAsync(cancellationToken))
+        {
+            offer.Archive(now);
+        }
+        foreach (var application in await db.JobApplications.Where(JobApplicationQueries.OfCompany(id)).Where(a => a.ArchivedAt == null).ToListAsync(cancellationToken))
+        {
+            application.Archive(now);
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        return ServiceResult.Success();
+    }
+
+    public async Task<ServiceResult> RestoreAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
+
+        var company = await db.Companies.SingleOrDefaultAsync(c => c.Id == id, cancellationToken);
+        if (company is null)
+        {
+            return ServiceResult.Failure(CompanyErrors.NotFound);
+        }
+
+        if (company.ArchivedAt is not { } archivedAt)
+        {
+            return ServiceResult.Success();
+        }
+
+        // Only what was archived with it, on the same day: an offer or an application archived before stays archived.
+        company.Restore();
+        foreach (var offer in await db.JobOffers.Where(o => o.CompanyId == id && o.ArchivedAt == archivedAt).ToListAsync(cancellationToken))
+        {
+            offer.Restore();
+        }
+        foreach (var application in await db.JobApplications.Where(JobApplicationQueries.OfCompany(id)).Where(a => a.ArchivedAt == archivedAt).ToListAsync(cancellationToken))
+        {
+            application.Restore();
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        return ServiceResult.Success();
+    }
+
+    private DateTime Now => _timeProvider.GetUtcNow().UtcDateTime;
 }

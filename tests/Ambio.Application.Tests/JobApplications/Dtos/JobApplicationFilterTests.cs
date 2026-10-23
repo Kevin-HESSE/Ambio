@@ -26,5 +26,6 @@ public class JobApplicationFilterTests
         new JobApplicationFilter(CompanySlug: "brightwave"),
         new JobApplicationFilter(Kind: ApplicationKind.Offer),
         new JobApplicationFilter(Search: "backend"),
+        new JobApplicationFilter(IncludeArchived: true),
     };
 }

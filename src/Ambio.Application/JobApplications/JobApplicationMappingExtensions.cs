@@ -28,7 +28,8 @@ public static class JobApplicationMappingExtensions
             AppliedVia: a is OfferApplication && ((OfferApplication)a).AppliedViaPosting != null
                 ? ((OfferApplication)a).AppliedViaPosting!.Site
                 : null,
-            SentOn: a.AppliedOn));
+            SentOn: a.AppliedOn,
+            IsArchived: a.ArchivedAt != null));
 
     /// <summary>Projection translated to SQL by EF Core, with the offer, its company and the posting used.</summary>
     public static IQueryable<OfferApplicationDetailsDto> ToDetailsDto(this IQueryable<OfferApplication> applications) =>
@@ -44,6 +45,7 @@ public static class JobApplicationMappingExtensions
             SentOn: a.AppliedOn,
             Notes: a.Notes,
             CreatedAt: a.CreatedAt,
+            ArchivedAt: a.ArchivedAt,
             StatusHistory: a.StatusChanges
                 .OrderByDescending(c => c.ChangedAt)
                 .Select(c => new StatusChangeDto(
@@ -76,6 +78,7 @@ public static class JobApplicationMappingExtensions
             SentOn: a.AppliedOn,
             Notes: a.Notes,
             CreatedAt: a.CreatedAt,
+            ArchivedAt: a.ArchivedAt,
             StatusHistory: a.StatusChanges
                 .OrderByDescending(c => c.ChangedAt)
                 .Select(c => new StatusChangeDto(

@@ -31,7 +31,7 @@ internal class JobApplicationService : IJobApplicationService
     {
         await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
 
-        var query = db.JobApplications.AsNoTracking().Where(a => a.ArchivedAt == null);
+        var query = db.JobApplications.AsNoTracking().Where(a => filter.IncludeArchived || a.ArchivedAt == null);
         if (filter.Kind is { } kind)
         {
             query = kind == ApplicationKind.Spontaneous
@@ -66,33 +66,30 @@ internal class JobApplicationService : IJobApplicationService
         return new JobApplicationListDto(
             Applications: matching.Take(count).ToList(),
             Total: matching.Count,
-            CountsByStatus: Enum.GetValues<ApplicationStatus>().ToDictionary(s => s, s => counts.GetValueOrDefault(s)));
+            CountsByStatus: Enum.GetValues<ApplicationStatus>().ToDictionary(s => s, s => counts.GetValueOrDefault(s)),
+            HasArchived: await db.JobApplications.AnyAsync(a => a.ArchivedAt != null, cancellationToken));
     }
 
-    public async Task<IReadOnlyList<CompanySummaryDto>> ListCompaniesAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<CompanySummaryDto>> ListCompaniesAsync(bool includeArchived = false, CancellationToken cancellationToken = default)
     {
         await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
 
-        var active = db.JobApplications.Where(a => a.ArchivedAt == null);
+        var listed = db.JobApplications.Where(a => includeArchived || a.ArchivedAt == null);
 
         return await db.Companies
             .AsNoTracking()
-            .Where(c => active.OfType<SpontaneousApplication>().Any(a => a.CompanyId == c.Id)
-                || active.OfType<OfferApplication>().Any(a => a.JobOffer.CompanyId == c.Id))
+            .Where(c => listed.OfType<SpontaneousApplication>().Any(a => a.CompanyId == c.Id)
+                || listed.OfType<OfferApplication>().Any(a => a.JobOffer.CompanyId == c.Id))
             .OrderBy(c => c.Name)
             .ToSummaryDto()
             .ToListAsync(cancellationToken);
     }
 
-    public Task<IReadOnlyList<JobApplicationSummaryDto>> ListByOfferAsync(Guid offerId, CancellationToken cancellationToken = default) =>
-        ListWhereAsync(a => a is OfferApplication && ((OfferApplication)a).JobOfferId == offerId, cancellationToken);
+    public Task<IReadOnlyList<JobApplicationSummaryDto>> ListByOfferAsync(Guid offerId, bool includeArchived = false, CancellationToken cancellationToken = default) =>
+        ListWhereAsync(a => a is OfferApplication && ((OfferApplication)a).JobOfferId == offerId, includeArchived, cancellationToken);
 
-    public Task<IReadOnlyList<JobApplicationSummaryDto>> ListByCompanyAsync(Guid companyId, CancellationToken cancellationToken = default) =>
-        ListWhereAsync(
-            a => a is OfferApplication
-                ? ((OfferApplication)a).JobOffer.CompanyId == companyId
-                : ((SpontaneousApplication)a).CompanyId == companyId,
-            cancellationToken);
+    public Task<IReadOnlyList<JobApplicationSummaryDto>> ListByCompanyAsync(Guid companyId, bool includeArchived = false, CancellationToken cancellationToken = default) =>
+        ListWhereAsync(JobApplicationQueries.OfCompany(companyId), includeArchived, cancellationToken);
 
     public async Task<JobApplicationDetailsDto?> GetAsync(string shortId, CancellationToken cancellationToken = default)
     {
@@ -222,6 +219,11 @@ internal class JobApplicationService : IJobApplicationService
             return ServiceResult.Failure(JobApplicationErrors.NotFound);
         }
 
+        if (application.IsArchived)
+        {
+            return ServiceResult.Failure(JobApplicationErrors.Archived);
+        }
+
         if (input.To is not { } to || !application.CanChangeStatusTo(to))
         {
             return ServiceResult.Failure(JobApplicationErrors.StatusNotAllowed);
@@ -233,17 +235,71 @@ internal class JobApplicationService : IJobApplicationService
         return ServiceResult.Success();
     }
 
+    public async Task<ServiceResult> ArchiveAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
+
+        var application = await db.JobApplications.SingleOrDefaultAsync(a => a.Id == id, cancellationToken);
+        if (application is null)
+        {
+            return ServiceResult.Failure(JobApplicationErrors.NotFound);
+        }
+
+        application.Archive(Now);
+        await db.SaveChangesAsync(cancellationToken);
+
+        return ServiceResult.Success();
+    }
+
+    public async Task<ServiceResult> RestoreAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
+
+        // One query per kind, as GetAsync: each loads the parents to restore.
+        var offerApplication = await db.JobApplications
+            .OfType<OfferApplication>()
+            .Include(a => a.JobOffer.Company)
+            .SingleOrDefaultAsync(a => a.Id == id, cancellationToken);
+        var spontaneousApplication = offerApplication is null
+            ? await db.JobApplications
+                .OfType<SpontaneousApplication>()
+                .Include(a => a.Company)
+                .SingleOrDefaultAsync(a => a.Id == id, cancellationToken)
+            : null;
+
+        JobApplication? application = (JobApplication?)offerApplication ?? spontaneousApplication;
+        if (application is null)
+        {
+            return ServiceResult.Failure(JobApplicationErrors.NotFound);
+        }
+
+        if (!application.IsArchived)
+        {
+            return ServiceResult.Success();
+        }
+
+        // Its parents come back alone: their other offers and applications stay archived.
+        application.Restore();
+        offerApplication?.JobOffer.Restore();
+        offerApplication?.JobOffer.Company.Restore();
+        spontaneousApplication?.Company.Restore();
+        await db.SaveChangesAsync(cancellationToken);
+
+        return ServiceResult.Success();
+    }
+
     private DateTime Now => _timeProvider.GetUtcNow().UtcDateTime;
 
-    /// <summary>The active applications of every kind that match <paramref name="predicate"/>, newest first.</summary>
+    /// <summary>The active applications of every kind that match <paramref name="predicate"/>, and the archived ones
+    /// too with <paramref name="includeArchived"/>, newest first.</summary>
     private async Task<IReadOnlyList<JobApplicationSummaryDto>> ListWhereAsync(
-        Expression<Func<JobApplication, bool>> predicate, CancellationToken cancellationToken)
+        Expression<Func<JobApplication, bool>> predicate, bool includeArchived, CancellationToken cancellationToken)
     {
         await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
 
         return await NewestFirst(db.JobApplications
                 .AsNoTracking()
-                .Where(a => a.ArchivedAt == null)
+                .Where(a => includeArchived || a.ArchivedAt == null)
                 .Where(predicate))
             .ToSummaryDto()
             .ToListAsync(cancellationToken);

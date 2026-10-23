@@ -5,8 +5,9 @@ namespace Ambio.Application.Companies;
 
 public interface ICompanyService
 {
-    /// <summary>Active companies (not archived), sorted by name.</summary>
-    public Task<IReadOnlyList<CompanySummaryDto>> ListAsync(CancellationToken cancellationToken = default);
+    /// <summary>Active companies (not archived), and the archived ones too with <paramref name="includeArchived"/>, sorted
+    /// by name.</summary>
+    public Task<CompanyListDto> ListAsync(bool includeArchived = false, CancellationToken cancellationToken = default);
 
     /// <summary>Active companies whose name contains every word of <paramref name="text"/>, ignoring case and accents,
     /// sorted by name; none for a blank text.</summary>
@@ -23,4 +24,14 @@ public interface ICompanyService
     /// with <see cref="CompanyErrors.NotFound"/>, or with <see cref="CompanyErrors.AlreadyExists"/> when another
     /// company, archived or not, has the same name ignoring case.</summary>
     public Task<ServiceResult<string>> UpdateAsync(Guid id, CompanyInput input, CancellationToken cancellationToken = default);
+
+    /// <summary>Archives the company with its active offers and applications, to its offers or spontaneous, all on the
+    /// same day, or fails with <see cref="CompanyErrors.NotFound"/>. A row already archived keeps its day, and an
+    /// archived company is left as it is.</summary>
+    public Task<ServiceResult> ArchiveAsync(Guid id, CancellationToken cancellationToken = default);
+
+    /// <summary>Restores the company with the offers and applications archived with it, on the same day, or fails with
+    /// <see cref="CompanyErrors.NotFound"/>. Those archived before stay archived, and an active company is left as it
+    /// is.</summary>
+    public Task<ServiceResult> RestoreAsync(Guid id, CancellationToken cancellationToken = default);
 }

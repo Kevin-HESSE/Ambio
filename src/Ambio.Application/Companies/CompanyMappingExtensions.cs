@@ -8,12 +8,29 @@ public static class CompanyMappingExtensions
 {
     /// <summary>Projection translated to SQL by EF Core: only the listed columns are read.</summary>
     public static IQueryable<CompanySummaryDto> ToSummaryDto(this IQueryable<Company> companies) =>
-        companies.Select(c => new CompanySummaryDto(c.Id, c.Slug, c.Name, c.Kind, c.Industry, c.Location));
+        companies.Select(c => new CompanySummaryDto(
+            Id: c.Id,
+            Slug: c.Slug,
+            Name: c.Name,
+            Kind: c.Kind,
+            Industry: c.Industry,
+            Location: c.Location,
+            IsArchived: c.ArchivedAt != null));
 
     /// <summary>Projection translated to SQL by EF Core.</summary>
     public static IQueryable<CompanyDetailsDto> ToDetailsDto(this IQueryable<Company> companies) =>
         companies.Select(c => new CompanyDetailsDto(
-            c.Id, c.Slug, c.Name, c.Kind, c.Industry, c.Size, c.Location, c.Website, c.LinkedInUrl, c.Description));
+            Id: c.Id,
+            Slug: c.Slug,
+            Name: c.Name,
+            Kind: c.Kind,
+            Industry: c.Industry,
+            Size: c.Size,
+            Location: c.Location,
+            Website: c.Website,
+            LinkedInUrl: c.LinkedInUrl,
+            Description: c.Description,
+            ArchivedAt: c.ArchivedAt));
 
     /// <summary>A new company with the fields of the form, see <see cref="ApplyTo"/>, and its slug.</summary>
     public static Company ToEntity(this CompanyInput input, string slug)
