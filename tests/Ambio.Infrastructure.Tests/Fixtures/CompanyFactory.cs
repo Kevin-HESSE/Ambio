@@ -27,7 +27,7 @@ public static class CompanyFactory
             .RuleFor(c => c.Description, faker => faker.Company.CatchPhrase())
             .FinishWith((_, c) => c.Slug = Slug.From(c.Name, SlugFallback))
             .RuleSet(IsArchived, set =>
-                set.RuleFor(c => c.ArchivedAt, faker => faker.Date.Past())
+                set.FinishWith((faker, c) => c.Archive(faker.Date.Past()))
             );
 
     /// <summary>Companies named <paramref name="name"/>, for the tests that rely on its name or its slug. The rule

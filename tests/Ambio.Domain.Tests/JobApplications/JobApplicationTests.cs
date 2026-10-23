@@ -8,6 +8,7 @@ public class JobApplicationTests
     private const string Comment = "Sent through the careers page";
 
     private static readonly DateTime ChangedAt = new(2026, 9, 3, 10, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTime ArchivedAt = new(2026, 9, 27, 10, 0, 0, DateTimeKind.Utc);
     private static readonly DateOnly SentOn = new(2026, 9, 3);
 
     [Fact]
@@ -101,6 +102,72 @@ public class JobApplicationTests
 
         Assert.Throws<InvalidOperationException>(() => application.ChangeAppliedOn(SentOn));
         Assert.Null(application.AppliedOn);
+    }
+
+    [Fact]
+    public void Archive_Active_RecordsTheDay()
+    {
+        var application = NewApplication();
+
+        application.Archive(ArchivedAt);
+
+        Assert.Equal(ArchivedAt, application.ArchivedAt);
+        Assert.True(application.IsArchived);
+    }
+
+    [Fact]
+    public void Archive_AlreadyArchived_KeepsTheFirstDay()
+    {
+        var application = NewApplication();
+        application.Archive(ArchivedAt);
+
+        application.Archive(ArchivedAt.AddDays(1));
+
+        Assert.Equal(ArchivedAt, application.ArchivedAt);
+    }
+
+    [Fact]
+    public void Restore_Archived_ClearsTheDay()
+    {
+        var application = NewApplication();
+        application.Archive(ArchivedAt);
+
+        application.Restore();
+
+        Assert.Null(application.ArchivedAt);
+        Assert.False(application.IsArchived);
+    }
+
+    [Fact]
+    public void CanChangeStatusTo_Archived_ReturnsFalse()
+    {
+        var application = SentApplication();
+        application.Archive(ArchivedAt);
+
+        Assert.False(application.CanChangeStatusTo(ApplicationStatus.Interview));
+    }
+
+    [Fact]
+    public void ChangeStatus_Archived_ThrowsAndKeepsTheStatusAndTheHistory()
+    {
+        var application = SentApplication();
+        application.Archive(ArchivedAt);
+
+        Assert.Throws<InvalidOperationException>(() => application.ChangeStatus(ApplicationStatus.Interview, ChangedAt.AddDays(1)));
+        Assert.Equal(ApplicationStatus.Applied, application.Status);
+        Assert.Single(application.StatusChanges);
+    }
+
+    [Fact]
+    public void ChangeStatus_Restored_MovesToTheStatus()
+    {
+        var application = SentApplication();
+        application.Archive(ArchivedAt);
+        application.Restore();
+
+        application.ChangeStatus(ApplicationStatus.Interview, ChangedAt.AddDays(1));
+
+        Assert.Equal(ApplicationStatus.Interview, application.Status);
     }
 
     private static OfferApplication NewApplication() => new()

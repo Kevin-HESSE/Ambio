@@ -34,6 +34,6 @@ public static class SpontaneousApplicationFactory
                 })
             )
             .RuleSet(IsArchived, set =>
-                set.RuleFor(a => a.ArchivedAt, faker => faker.Date.Past())
+                set.FinishWith((faker, a) => a.Archive(faker.Date.Past()))
             );
 }

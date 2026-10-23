@@ -10,6 +10,8 @@ public class JobOfferTests
     private const string Url = "https://www.linkedin.com/jobs/view/4102938475";
     private const string OtherUrl = "https://www.welcometothejungle.com/fr/companies/kelvio/jobs/backend";
 
+    private static readonly DateTime ArchivedAt = new(2026, 9, 27, 10, 0, 0, DateTimeKind.Utc);
+
     [Fact]
     public void New_GeneratesVersion7Id()
     {
@@ -165,6 +167,40 @@ public class JobOfferTests
 
         Assert.Throws<InvalidOperationException>(() => offer.RemovePosting(Guid.CreateVersion7()));
         Assert.Equal(2, offer.Postings.Count);
+    }
+
+    [Fact]
+    public void Archive_Active_RecordsTheDay()
+    {
+        var offer = NewOffer();
+
+        offer.Archive(ArchivedAt);
+
+        Assert.Equal(ArchivedAt, offer.ArchivedAt);
+        Assert.True(offer.IsArchived);
+    }
+
+    [Fact]
+    public void Archive_AlreadyArchived_KeepsTheFirstDay()
+    {
+        var offer = NewOffer();
+        offer.Archive(ArchivedAt);
+
+        offer.Archive(ArchivedAt.AddDays(1));
+
+        Assert.Equal(ArchivedAt, offer.ArchivedAt);
+    }
+
+    [Fact]
+    public void Restore_Archived_ClearsTheDay()
+    {
+        var offer = NewOffer();
+        offer.Archive(ArchivedAt);
+
+        offer.Restore();
+
+        Assert.Null(offer.ArchivedAt);
+        Assert.False(offer.IsArchived);
     }
 
     private static JobOffer NewOffer(string title = Title, string shortId = ShortId) => new()

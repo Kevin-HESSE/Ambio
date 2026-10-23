@@ -7,6 +7,8 @@ public class CompanyTests
     private const string CompanyName = "Acme";
     private const string CompanySlug = "acme";
 
+    private static readonly DateTime ArchivedAt = new(2026, 9, 27, 10, 0, 0, DateTimeKind.Utc);
+
     [Fact]
     public void New_GeneratesVersion7Id()
     {
@@ -48,6 +50,40 @@ public class CompanyTests
 
         Assert.Throws<ArgumentException>(() => company.Name = name);
         Assert.Equal(CompanyName, company.Name);
+    }
+
+    [Fact]
+    public void Archive_Active_RecordsTheDay()
+    {
+        var company = NewCompany();
+
+        company.Archive(ArchivedAt);
+
+        Assert.Equal(ArchivedAt, company.ArchivedAt);
+        Assert.True(company.IsArchived);
+    }
+
+    [Fact]
+    public void Archive_AlreadyArchived_KeepsTheFirstDay()
+    {
+        var company = NewCompany();
+        company.Archive(ArchivedAt);
+
+        company.Archive(ArchivedAt.AddDays(1));
+
+        Assert.Equal(ArchivedAt, company.ArchivedAt);
+    }
+
+    [Fact]
+    public void Restore_Archived_ClearsTheDay()
+    {
+        var company = NewCompany();
+        company.Archive(ArchivedAt);
+
+        company.Restore();
+
+        Assert.Null(company.ArchivedAt);
+        Assert.False(company.IsArchived);
     }
 
     private static Company NewCompany(string name = CompanyName) => new()

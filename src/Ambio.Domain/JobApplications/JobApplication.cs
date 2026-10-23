@@ -37,21 +37,31 @@ public abstract class JobApplication : ITimeStampable
 
     public DateTime UpdatedAt { get; set; }
 
-    public DateTime? ArchivedAt { get; set; }
+    // Set by Archive and cleared by Restore: an archived row is hidden from the lists (ADR 0012).
+    public DateTime? ArchivedAt { get; private set; }
+
+    public bool IsArchived => ArchivedAt is not null;
 
     // Every status change, in the order made: an application is born a draft, which is never a change.
     public IReadOnlyList<StatusChange> StatusChanges => _statusChanges;
 
-    /// <summary>Whether the status workflow allows moving the application to <paramref name="to"/>.</summary>
-    public bool CanChangeStatusTo(ApplicationStatus to) => StatusWorkflow.Allows(Status, to);
+    /// <summary>Whether the application can move to <paramref name="to"/>: it isn't archived, and the status workflow
+    /// allows the change.</summary>
+    public bool CanChangeStatusTo(ApplicationStatus to) => !IsArchived && StatusWorkflow.Allows(Status, to);
 
     /// <summary>Moves the application to <paramref name="to"/> and records the change, made at
     /// <paramref name="changedAt"/> (UTC). Sending a draft (<see cref="ApplicationStatus.Applied"/>) records the day it
     /// was sent, <paramref name="appliedOn"/>, which no other change uses.</summary>
-    /// <exception cref="InvalidOperationException">The status workflow doesn't allow this change.</exception>
+    /// <exception cref="InvalidOperationException">The application is archived, or the status workflow doesn't allow
+    /// this change.</exception>
     /// <exception cref="ArgumentException">A draft is sent without <paramref name="appliedOn"/>.</exception>
     public void ChangeStatus(ApplicationStatus to, DateTime changedAt, string? comment = null, DateOnly? appliedOn = null)
     {
+        if (IsArchived)
+        {
+            throw new InvalidOperationException("An archived application can't change its status.");
+        }
+
         if (!CanChangeStatusTo(to))
         {
             throw new InvalidOperationException($"An application can't move from {Status} to {to}.");
@@ -85,4 +95,11 @@ public abstract class JobApplication : ITimeStampable
 
         AppliedOn = appliedOn;
     }
+
+    /// <summary>Hides the application from the lists from <paramref name="archivedAt"/> (UTC). An archived application keeps
+    /// the day it was first archived, so a cascade passing over it doesn't change it.</summary>
+    public void Archive(DateTime archivedAt) => ArchivedAt ??= archivedAt;
+
+    /// <summary>Shows the application in the lists again.</summary>
+    public void Restore() => ArchivedAt = null;
 }

@@ -355,7 +355,7 @@ public class JobApplicationServiceTests : IAsyncLifetime
     public async Task ListCompaniesAsync_ArchivedCompanyWithActiveApplication_KeepsIt()
     {
         var story = new SpontaneousApplicationStory().WithApplications(1);
-        story.Company.ArchivedAt = Now.UtcDateTime;
+        story.Company.Archive(Now.UtcDateTime);
         await story.SaveAsync(_services);
 
         var company = Assert.Single(await ListCompaniesAsync());
