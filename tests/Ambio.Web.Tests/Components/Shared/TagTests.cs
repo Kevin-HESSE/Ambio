@@ -28,6 +28,14 @@ public class TagTests : BunitContext
         Assert.Contains("tag-accent", cut.Find(".tag").ClassList);
     }
 
+    [Fact]
+    public void Render_Archived_AddsTheArchivedClass()
+    {
+        var cut = RenderTag(TagVariant.Archived);
+
+        Assert.Equal(["tag-archived"], cut.Find(".tag").ClassList.Where(c => c.StartsWith("tag-")));
+    }
+
     private IRenderedComponent<Tag> RenderTag(TagVariant variant) =>
         Render<Tag>(parameters => parameters
             .Add(p => p.Icon, Icon)

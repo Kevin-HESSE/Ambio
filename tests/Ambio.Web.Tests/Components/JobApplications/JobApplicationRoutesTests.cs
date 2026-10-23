@@ -17,11 +17,11 @@ public class JobApplicationRoutesTests
     [Fact]
     public void Filtered_WithEveryCriterionAndShown_WritesThemInTheQueryString()
     {
-        var filter = new JobApplicationFilter(ApplicationStatus.Interview, CompanySlug, ApplicationKind.Spontaneous, " data engineer ");
+        var filter = new JobApplicationFilter(ApplicationStatus.Interview, CompanySlug, ApplicationKind.Spontaneous, " data engineer ", IncludeArchived: true);
 
         var url = JobApplicationRoutes.Filtered(filter, shown: 50);
 
-        Assert.Equal($"applications?q=data%20engineer&status=interview&company={CompanySlug}&kind=spontaneous&shown=50", url);
+        Assert.Equal($"applications?q=data%20engineer&status=interview&company={CompanySlug}&kind=spontaneous&archived=true&shown=50", url);
     }
 
     [Fact]

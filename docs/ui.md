@@ -44,12 +44,12 @@ The screens of the MVP ([Phase 1](roadmap.md#phase-1--application-tracking-mvp))
 **Lists** (applications, offers, companies)
 - Desktop: a table in a card, with an inline filter bar (search, selects, "Show archived").
 - Mobile: cards (title, company, `StatusBadge`, tags, date), a search field and a **Filters** button that opens a bottom sheet. The applications list also has horizontally scrolling status chips.
-- Archived rows are hidden unless "Show archived" is on. When shown, they are dimmed and carry the `Archived` tag.
+- Archived rows are hidden unless "Show archived" is on (`?archived=true`). When shown, their title is dimmed (`t-muted`) and they carry the `Archived` tag after their other tags. The applications list has the box at the end of its bar and in its Filters sheet; the offers and companies lists, which have no other filter yet, show it alone above the list at every width. When every row is archived, the list keeps the box and says so, with "Show archived" and the New action.
 - Sorted by date, newest first. "Load more" rather than numbered pages.
-- The filters live in the query string, sent by static GET forms (`data-enhance`) whose result is loaded by enhanced navigation, so a filtered list can be linked to. The empty fields stay out of the URL, and a select of the desktop bar applies as soon as it changes (`wwwroot/js/shell.js`).
+- The filters live in the query string, sent by static GET forms (`data-enhance`) whose result is loaded by enhanced navigation, so a filtered list can be linked to. The empty fields stay out of the URL, and a select or a checkbox of a `data-auto-submit` form applies as soon as it changes (`wwwroot/js/shell.js`).
 
 **Detail pages**
-- A header: breadcrumb (desktop), title, company, tags, then Edit and a ⋯ menu (Archive…).
+- A header: breadcrumb (desktop), title, company, tags, then Edit and a ⋯ menu (Archive or Restore). On desktop the menu is a native `popover` anchored under its button; on mobile, a ⋯ button next to the pencil of the app bar opens it in a sheet.
 - Sections are **tabs**, and the active tab is in the URL (`?tab=letters`), so a later phase adds a tab instead of reworking the page.
 - Application: two columns on desktop, tabbed content on the left and a side panel with the status, "Change status" and the history. On mobile, the status card sits above the tabs and the history closes the Overview tab.
 - Offer and company pages follow the same grid: a side column (postings and applications, or the company profile) next to the main content.
@@ -63,11 +63,11 @@ The screens of the MVP ([Phase 1](roadmap.md#phase-1--application-tracking-mvp))
 **Overlays**: a **bottom sheet** on mobile and a centered **modal** on desktop, from the same component: status change, filters, the More menu.
 
 **Feedback**
-- Toasts at the bottom, above the tab bar on mobile, with an action when one makes sense ("Undo").
+- Toasts at the bottom, above the tab bar on mobile and centered on desktop, with an action when one makes sense ("Undo"). They fade out after 8 s, paused while hovered or focused.
 - Banners inside the page for a state that lasts (archived item, possible duplicate): neutral background, colored icon (`feedback/info`, `feedback/warning`).
 - Empty states explain what the page is for and offer the next action.
 
-**Archiving** ([ADR 0012](adr/0012-archive-instead-of-delete.md)): "Archive" in the ⋯ menu, without confirmation, followed by a toast with **Undo**. An archived item shows a banner with **Restore**, and its status can't change until it's restored.
+**Archiving** ([ADR 0012](adr/0012-archive-instead-of-delete.md), [ADR 0027](adr/0027-archiving-cascade-and-restore.md)): "Archive" in the ⋯ menu, without confirmation, followed by a toast with **Undo**. An archived item shows a banner with the day it was archived and **Restore**, the `Archived` tag in its header, and Restore in its ⋯ menu. An archived application's status can't change until it's restored: its status card offers "Restore to change status". Archiving a company or an offer archives what depends on it; an archived company or offer lists its archived offers and applications too, dimmed. Archive, Restore and Undo are static forms, without circuit.
 
 **Status change**: only the transitions the workflow allows are offered ([data-model.md](data-model.md#application-hierarchy)), as radio cards with their badge and what they mean ("Sent to the employer", "You dropped it"…). Moving from Draft to Applied asks for the sending date (`AppliedOn`). An optional comment is stored in the `StatusChange`. A final status (Rejected, Withdrawn) has no "Change status" button. Once saved, the sheet closes and the page is refreshed: status, sending date and history.
 
@@ -79,18 +79,18 @@ The screens of the MVP ([Phase 1](roadmap.md#phase-1--application-tracking-mvp))
 |---|---|---|---|---|
 | 1 | Log in | `/Account/Login` | Logo, email, password, "Remember me". Registration link only while no account exists ([ADR 0002](adr/0002-single-user-application.md)). | — |
 | 2 | Dashboard | `/` | Pipeline bar and a counter per status (each opens the filtered list), **Follow up**, recent activity. | Upcoming interviews (2b) |
-| 3 | Applications — list | `/applications`, filtered with `?q=…&status=…&company={slug}&kind=offer\|spontaneous` | Search on the title and the company (every word, ignoring case and accents), status, company and kind; table or cards, 25 at first and 25 more with each "Load more" (`?shown=50`). Desktop: inline bar and "Clear filters". Mobile: search, a Filters sheet (company, kind, with their count on its button) and status chips counting what each would show with the other criteria. A filter without result keeps the filters and offers to clear them. The dashboard counters link to `?status=…` (`JobApplicationRoutes.Filtered`). | — |
+| 3 | Applications — list | `/applications`, filtered with `?q=…&status=…&company={slug}&kind=offer\|spontaneous&archived=true` | Search on the title and the company (every word, ignoring case and accents), status, company, kind and "Show archived"; table or cards, 25 at first and 25 more with each "Load more" (`?shown=50`). Desktop: inline bar and "Clear filters". Mobile: search, a Filters sheet (company, kind, "Show archived", with their count on its button) and status chips counting what each would show with the other criteria. A filter without result keeps the filters and offers to clear them. The dashboard counters link to `?status=…` (`JobApplicationRoutes.Filtered`). | — |
 | 4 | Applications — empty | `/applications` | Empty state with "New application" and "Add an offer". | — |
 | 5 | Application — Overview | `/applications/{ShortId}-{slug}`, edit at `/applications/{ShortId}-{slug}/edit` | Company and location (the offer's, or the company's for a spontaneous application) under the title; the offer's contract, remote policy and salary as tags, or the Spontaneous tag. Offer, posting, channel, sending date, short id, creation date, notes; status panel (status, "since" the last change or the creation, "Change status") and history (changes newest first, with their comment, closed by the creation as Draft). Any other slug, or none, redirects to the current URL. Opened from the applications list, the offer page and the Applications tab of the company page. Edit (header, app bar, Notes card) changes the posting used (offer) or the target position (spontaneous, which changes the slug), the channel, the sending date once sent, and the notes; neither the offer, the company nor the status. | Interactions and Contacts tabs (2b) |
 | 6 | Application — Cover letters | `…?tab=letters` | Letter list, plain-text editor, Copy and Save. | — |
 | 7 | Application — CV | `…?tab=cv` | PDF upload (drop zone or file picker), sent CVs with preview and download. | Generate a CV (3) |
-| 8 | Application — archived | same | Restore banner, Undo toast. | — |
+| 8 | Application — archived | same | Right after "Archive": the toast with Undo. Banner with the day and Restore, `Archived` tag, Restore in the ⋯ menu, "Restore to change status" in the status card. | — |
 | 9 | New application | `/applications/new`, `?offer={ShortId}` to start with an offer, `?company={slug}` to start spontaneous with a company (the link of the company page) | "From an offer / Spontaneous" toggle; the Application section keeps its values when the kind changes. Offer search with a "Create a new offer" link, or company and target position. "Already sent" + date, otherwise Draft. The form is an interactive island: the offer is searched by title or company, and the company by name, as the user types (once typing stops for 300 ms, ignoring case and accents). The offer's postings fill "Applied via" once it is chosen; the company search ends with "Create the company “…”", which creates it with the application, unless a result already has the typed name. "Create application" opens the new application's page. | — |
 | 10 | Change status | modal / sheet | Current status, allowed transitions as radio cards with their badges and hints, "Sent on" when sending a draft, optional comment. An interactive island in the status panel: errors stay in the sheet, and saving refreshes the static page. | — |
-| 11 | Offers — list | `/offers` | Contract, remote policy, postings and applications counts, "Apply" when there is none. "Published" is the day the offer was recorded. | Recruiter (2b) |
+| 11 | Offers — list | `/offers`, `?archived=true` with the archived ones | Contract, remote policy, postings and applications counts, "Apply" when there is none. "Published" is the day the offer was recorded. "Show archived" above the list. | Recruiter (2b) |
 | 12 | Offer — detail | `/offers/{ShortId}-{slug}`, edit at `/offers/{ShortId}-{slug}/edit`; an old slug redirects to the current one | Company, location and publication date under the title; postings (site, link, day recorded), added in a sheet and removed after a confirmation, without reloading the page (the last one stays); applications (status, sending day and site) with a "New" link to apply; plain-text copy of the ad. The edit form doesn't change the company. | — |
 | 13 | New offer | `/offers/new` | Offer (company picked from the existing ones or typed to create it), first posting (site and link, no date), ad text. **Duplicate suggestion** banner after "Create offer" when the company and a similar title match: "Add this posting to this offer" adds the site and link to an existing offer and opens it, "Create a new offer anyway" creates it. The form keeps its values. | Recruiter company (2b) |
-| 14 | Companies — list | `/companies` | Kind, industry, location, offers and applications counts. | — |
+| 14 | Companies — list | `/companies`, `?archived=true` with the archived ones | Kind, industry, location, offers and applications counts. "Show archived" above the list. | — |
 | 15 | Company — detail | `/companies/{slug}` | Profile, description, Offers and Applications tabs (`?tab=applications`), each with its count. The Applications tab lists the applications to its offers and the spontaneous ones; its empty state opens a spontaneous application to the company. | Notes and Contacts tabs (2b) |
 | 16 | More sheet | mobile only | Settings, Account, Theme, Log out. | Profile, My CVs, Export |
 | 17 | Settings | `/settings` | Follow-up delay (days), theme. | — |
@@ -109,19 +109,21 @@ What the mockups are built from, and the Blazor component each becomes. Stock Bo
 | App shell | `app`, `sidebar`, `appbar`, `tabbar`, `fab` | `MainLayout.razor`, `Sidebar.razor`, `AppBar.razor` (with `AppBarTitle`, `AppBarActions` and the back arrow `AppBarBack`), `TabBar.razor` |
 | Logo | `logo`, `logo-mark` | `Logo.razor` |
 | Page header | `page-header` | `PageHeader.razor` |
-| Detail header | `detail-head`, `breadcrumb` | `DetailHeader.razor` (title, subtitle, tags, actions) |
+| Detail header | `detail-head`, `breadcrumb` | `DetailHeader.razor` (title, subtitle, tags, actions, and the items of the ⋯ menu as `Menu`, rendered in an `ActionMenu.razor` popover on desktop and in a sheet opened by `DetailMenuButton.razor` in the app bar on mobile) |
 | Link to another site | `box-arrow-up-right` icon | `ExternalLink.razor` (new tab, short text) |
 | Floating action button | `fab` | `ButtonLink` with `btn-primary btn-fab mobile-only` and an `aria-label` (applications list, then dashboard) |
 | Search as you type | — | `Shared/SearchField.razor` (generic: waits 300 ms after the last keystroke, results as buttons, optional empty line and last line), inside an interactive component; wrapped by `Offers/Shared/OfferSearch.razor` and `Companies/Shared/CompanySearch.razor` |
 | Status badge | `status-badge status-{status}` | `JobApplications/Shared/StatusBadge.razor` |
-| Tag | `tag`, `tag-accent`, `tag-archived` | `Tag.razor` (`TagVariant.Neutral` or `Accent`); `JobApplications/Shared/SpontaneousTag.razor` for spontaneous applications |
+| Tag | `tag`, `tag-accent`, `tag-archived` | `Tag.razor` (`TagVariant.Neutral`, `Accent` or `Archived`); `JobApplications/Shared/SpontaneousTag.razor` for spontaneous applications, `ArchivedTag.razor` for archived rows and items |
+| Show archived | `check` | `ShowArchived.razor` (the checkbox, `?archived=true`), alone in `ArchivedFilter.razor` for the offers and companies lists |
+| Archiving | `banner`, `toast` | `ArchiveForms.razor` (the hidden Archive and Restore forms of a detail page, and its Undo toast), `ArchiveMenuItem.razor` (Archive or Restore in the ⋯ menu), `ArchivedBanner.razor` |
 | Filter chip | `chip` | `FilterChip.razor` (a link with an optional icon, its label and count, `aria-current` when active; a `status-*` class tints the icon) |
 | List card (mobile) / table row (desktop) | `app-card` / `table` | `ResponsiveList.razor` (cards below 992 px, table above) and `ListTable.razor` (header, rows, `num` cells), filled by each feature's card and table: `CompanyCard.razor` / `CompanyTable.razor`, `OfferCard.razor` / `OfferTable.razor`, `JobApplicationCard.razor` / `JobApplicationTable.razor`. Each card is a `ListCard.razor` (title, aside such as a date, subtitle, tags; a link with `Href`). An optional `Footer` closes both, such as `ListFooter.razor` ("Showing 25 of 61" and "Load more") |
 | Tabs | `tabs`, `tab` | `TabNav.razor` (links carrying `?tab=`) |
 | Count | `n`, `card-sub` | `CountBadge.razor` (tab counts, postings of an offer) |
 | Status panel and history | `status-panel`, `timeline` | `JobApplications/Shared/StatusPanel.razor` (badge, "since", and the action as child content), `ChangeStatusSheet.razor` (interactive island: the "Change status" button and its sheet), `StatusTimeline.razor` (the History card) |
 | Bottom sheet / modal | `overlay`, `dialog` | `Sheet.razor` (optional title with a close button; `sheet-content` and `sheet-actions` blocks; `CloseAsync()` from an interactive component) |
-| Toast | `toast` | `ToastHost.razor` + a scoped `ToastService` |
+| Toast | `toast` | `Layout/ToastHost.razor` in the layout, filled by the request-scoped `ToastService` (`Show(new Toast(message, icon, action))`); the action sends a form of the page by its id |
 | Banner | `banner` | `Banner.razor` (icon, title, text, actions; `Neutral` or `Info` icon color) |
 | Empty state | `empty` | `EmptyState.razor` |
 | Segmented control | `segmented` | `SegmentedControl.razor` (theme, read by `shell.js`; application kind, bound with `@bind-Value` and `Disabled` until the circuit) |
@@ -141,6 +143,8 @@ Layout and text patterns repeated across components are global classes. The mark
 | `--gap` | `css/layout.css` | The gap of `cluster` and `stack`, 8 px by default, set with a spacing token (`--gap: var(--ambio-space-16)`). Declared with `@property` and `inherits: false`, so a nested stack keeps its own gap |
 | `mobile-only` / `desktop-only` | `css/layout.css` | Hidden from 992 px / below 992 px |
 | `list-divided` | `css/lists.css` | A list without bullets or padding, with a border between items |
+| `list-title` | `css/lists.css` | The title of a list table row, linking to its page: primary text, accent and underlined on hover, dimmed with `t-muted` when archived |
+| `menu-list`, `menu-item`, `menu-item-danger` | `css/menus.css` | A list of actions, links or buttons, in the More sheet and the ⋯ menu |
 | `detail-layout`, `detail-aside`, `detail-main` | `css/layout.css` | The grid of a detail page: header, side column, then content below 992 px; content and a 320 px side column above |
 | `status-draft`, `status-applied`… | `css/statuses.css` | The colors of a status (`--status-bg`, `--status-fg`, `--status-border`, `--status-solid`), read by `StatusBadge`, the status `FilterChip`s and the dots of the history |
 | `prose` | `css/typography.css` | Plain text typed or pasted by the user (description, ad copy): line breaks kept, long words wrapped |

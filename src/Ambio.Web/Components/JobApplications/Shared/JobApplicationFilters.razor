@@ -1,7 +1,8 @@
 @* The filters of the applications list (docs/ui.md#patterns), sent in the query string by static GET forms whose
    result is loaded by enhanced navigation. The empty fields stay out of the URL (data-filter-form, wwwroot/js/shell.js).
-   On desktop, an inline bar: the search applies on Enter and each select as soon as it changes (data-auto-submit).
-   On mobile, the search, a Filters sheet for the company and the kind, and status chips that link to their list. *@
+   On desktop, an inline bar: the search applies on Enter, each select and "Show archived" as soon as they change
+   (data-auto-submit). On mobile, the search, a Filters sheet for the company, the kind and "Show archived", and status
+   chips that link to their list. *@
 <form method="get" action="@JobApplicationRoutes.List" class="application-filters cluster desktop-only" role="search"
       aria-label="Filter the applications" data-enhance data-filter-form data-auto-submit>
     @SearchInput("Search by title or company")
@@ -14,6 +15,7 @@
     </select>
     <select name="@JobApplicationRoutes.CompanyQuery" class="form-select w-auto" aria-label="Company">@CompanyOptions</select>
     <select name="@JobApplicationRoutes.KindQuery" class="form-select w-auto" aria-label="Kind">@KindOptions</select>
+    <ShowArchived Id="filter-archived" Checked="Filter.IncludeArchived" />
     @if (!Filter.IsEmpty)
     {
         <ButtonLink Href="@JobApplicationRoutes.List" Variant="ButtonVariant.Secondary">Clear filters</ButtonLink>
@@ -43,9 +45,10 @@
                 <label class="form-label t-small" for="filter-kind">Kind</label>
                 <select id="filter-kind" name="@JobApplicationRoutes.KindQuery" class="form-select">@KindOptions</select>
             </div>
+            <ShowArchived Id="filter-archived-mobile" Checked="Filter.IncludeArchived" />
         </div>
         <div class="sheet-actions">
-            <ButtonLink Href="@JobApplicationRoutes.Filtered(Filter with { CompanySlug = null, Kind = null })"
+            <ButtonLink Href="@JobApplicationRoutes.Filtered(Filter with { CompanySlug = null, Kind = null, IncludeArchived = false })"
                         Variant="ButtonVariant.Secondary">Reset</ButtonLink>
             <button type="submit" class="btn btn-primary">Show results</button>
         </div>
@@ -80,7 +83,7 @@
     public IReadOnlyDictionary<ApplicationStatus, int> CountsByStatus { get; set; } = null!;
 
     /// <summary>The criteria set in the sheet, counted on its button.</summary>
-    private int SheetFilterCount => (Filter.CompanySlug is null ? 0 : 1) + (Filter.Kind is null ? 0 : 1);
+    private int SheetFilterCount => (Filter.CompanySlug is null ? 0 : 1) + (Filter.Kind is null ? 0 : 1) + (Filter.IncludeArchived ? 1 : 0);
 
     private RenderFragment SearchInput(string placeholder) =>
         @<div class="filter-search">

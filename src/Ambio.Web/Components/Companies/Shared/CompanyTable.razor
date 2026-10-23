@@ -1,4 +1,4 @@
-@* The companies list on desktop (≥ 992 px). *@
+@* The companies list on desktop (≥ 992 px), whose archived rows are dimmed. *@
 <ListTable>
     <Columns>
         <th scope="col">Company</th>
@@ -10,13 +10,21 @@
         {
             <tr>
                 <th scope="row">
-                    <a class="company-name t-body-strong" href="@CompanyRoutes.Details(company.Slug)">@company.Name</a>
+                    <a class="list-title t-body-strong @(company.IsArchived ? "t-muted" : null)" href="@CompanyRoutes.Details(company.Slug)">@company.Name</a>
                     @if (!string.IsNullOrWhiteSpace(company.Industry))
                     {
                         <div class="company-industry t-small t-secondary">@company.Industry</div>
                     }
                 </th>
-                <td><Tag Icon="building">@company.Kind.ToLabel()</Tag></td>
+                <td>
+                    <div class="cluster">
+                        <Tag Icon="building">@company.Kind.ToLabel()</Tag>
+                        @if (company.IsArchived)
+                        {
+                            <ArchivedTag />
+                        }
+                    </div>
+                </td>
                 <td>@company.Location</td>
             </tr>
         }

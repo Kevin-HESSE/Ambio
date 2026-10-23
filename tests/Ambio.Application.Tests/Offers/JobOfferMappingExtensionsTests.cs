@@ -105,6 +105,7 @@ public class JobOfferMappingExtensionsTests
             Salary: Salary,
             Description: Description,
             RegisterAt: DateTime.UtcNow,
+            ArchivedAt: null,
             Postings: []);
 
         Assert.Equal(

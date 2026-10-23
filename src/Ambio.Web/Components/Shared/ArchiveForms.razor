@@ -1,0 +1,27 @@
+@* The hidden forms that archive and restore the item of a detail page (ADR 0012). Static and enhanced: they are sent
+   without a circuit by buttons anywhere on the page through their form attribute (the ⋯ menu, the archived banner, the
+   Undo of the toast), and the page handles them. *@
+<form id="@ArchiveFormId" method="post" @formname="archive" @onsubmit="OnArchive" data-enhance hidden>
+    <AntiforgeryToken />
+</form>
+<form id="@RestoreFormId" method="post" @formname="restore" @onsubmit="OnRestore" data-enhance hidden>
+    <AntiforgeryToken />
+</form>
+
+@code {
+    /// <summary>Id of the form that archives the item.</summary>
+    public const string ArchiveFormId = "archive-form";
+
+    /// <summary>Id of the form that restores the item.</summary>
+    public const string RestoreFormId = "restore-form";
+
+    [Parameter, EditorRequired]
+    public EventCallback OnArchive { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback OnRestore { get; set; }
+
+    /// <summary>The toast shown once the item is archived, such as "Application archived", whose Undo restores
+    /// it.</summary>
+    public static Toast UndoToast(string message) => new(message, Icon: "archive", new ToastAction("Undo", RestoreFormId));
+}

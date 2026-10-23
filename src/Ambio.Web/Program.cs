@@ -2,6 +2,7 @@ using Ambio.Infrastructure;
 using Ambio.Infrastructure.Users;
 using Ambio.Web.Components;
 using Ambio.Web.Components.Account;
+using Ambio.Web.Components.Layout;
 
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -14,6 +15,7 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityRedirectManager>();
+builder.Services.AddScoped<ToastService>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
 builder.Services.AddAuthentication(options =>

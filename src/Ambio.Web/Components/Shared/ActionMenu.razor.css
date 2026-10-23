@@ -1,0 +1,27 @@
+.action-menu-button {
+    anchor-name: --action-menu;
+}
+
+.action-menu-popover {
+    min-width: 200px;
+    padding: var(--ambio-space-4) 0;
+    border: 1px solid var(--ambio-border-default);
+    border-radius: var(--ambio-radius-lg);
+    background: var(--ambio-bg-surface);
+    color: var(--ambio-text-primary);
+    box-shadow: var(--ambio-shadow-md);
+}
+
+.action-menu-popover .menu-list {
+    padding: 0;
+}
+
+/* Under the button, aligned on its right edge. Without anchor positioning, the popover stays centered on the screen. */
+@supports (position-anchor: --action-menu) {
+    .action-menu-popover {
+        position-anchor: --action-menu;
+        position-area: block-end span-inline-start;
+        inset: auto;
+        margin: var(--ambio-space-4) 0 0;
+    }
+}

@@ -1,0 +1,30 @@
+@implements IDisposable
+@inject ToastService Toasts
+
+@* The toast of the request (ToastService), at the bottom of the screen: above the tab bar on mobile, centered on
+   desktop (docs/ui.md#patterns). It fades out after 8 s, paused while hovered or focused. Its action sends a form of
+   the page, such as the Undo of an archive. The region is always rendered, so screen readers announce the toast. *@
+<div class="toast-host" role="status" aria-live="polite">
+    @if (Toasts.Current is { } toast)
+    {
+        <div class="toast show">
+            @if (toast.Icon is not null)
+            {
+                <i class="bi bi-@toast.Icon" aria-hidden="true"></i>
+            }
+            <span class="toast-message">@toast.Message</span>
+            @if (toast.Action is { } action)
+            {
+                <button type="submit" form="@action.FormId" class="toast-action">@action.Label</button>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    protected override void OnInitialized() => Toasts.Changed += OnChanged;
+
+    private void OnChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Toasts.Changed -= OnChanged;
+}

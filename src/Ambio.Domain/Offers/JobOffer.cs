@@ -53,7 +53,10 @@ public class JobOffer : ITimeStampable
 
     public DateTime UpdatedAt { get; set; }
 
-    public DateTime? ArchivedAt { get; set; }
+    // Set by Archive and cleared by Restore: an archived row is hidden from the lists (ADR 0012).
+    public DateTime? ArchivedAt { get; private set; }
+
+    public bool IsArchived => ArchivedAt is not null;
 
     public IReadOnlyList<JobOfferPosting> Postings => _postings;
 
@@ -94,4 +97,11 @@ public class JobOffer : ITimeStampable
 
         _postings.Remove(posting);
     }
+
+    /// <summary>Hides the offer from the lists from <paramref name="archivedAt"/> (UTC). An archived offer keeps
+    /// the day it was first archived, so a cascade passing over it doesn't change it.</summary>
+    public void Archive(DateTime archivedAt) => ArchivedAt ??= archivedAt;
+
+    /// <summary>Shows the offer in the lists again.</summary>
+    public void Restore() => ArchivedAt = null;
 }

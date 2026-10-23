@@ -1,4 +1,5 @@
 using Ambio.Application.Common;
+using Ambio.Application.Companies;
 using Ambio.Application.Companies.Dtos;
 using Ambio.Application.JobApplications;
 using Ambio.Application.JobApplications.Dtos;
@@ -65,7 +66,7 @@ public class JobApplicationServiceTests : IAsyncLifetime
         Assert.Equal(
             new JobApplicationSummaryDto(
                 application.Id, application.ShortId, ApplicationKind.Offer, offer.Title, story.Company.Name, ApplicationStatus.Applied, application.Channel,
-                offer.Postings[0].Site, application.AppliedOn),
+                offer.Postings[0].Site, application.AppliedOn, IsArchived: false),
             summary);
     }
 
@@ -112,7 +113,7 @@ public class JobApplicationServiceTests : IAsyncLifetime
         Assert.Equal(
             new JobApplicationSummaryDto(
                 application.Id, application.ShortId, ApplicationKind.Spontaneous, application.TargetPosition, story.Company.Name,
-                ApplicationStatus.Applied, application.Channel, AppliedVia: null, application.AppliedOn),
+                ApplicationStatus.Applied, application.Channel, AppliedVia: null, application.AppliedOn, IsArchived: false),
             summary);
     }
 
@@ -147,6 +148,62 @@ public class JobApplicationServiceTests : IAsyncLifetime
         var summary = Assert.Single(await ListAsync());
 
         Assert.Equal(story.Applications[0].Id, summary.Id);
+    }
+
+    [Fact]
+    public async Task ListAsync_IncludingArchived_ReturnsAndCountsTheArchivedApplicationFlagged()
+    {
+        var story = new OfferApplicationStory()
+            .WithApplications(1)
+            .WithApplications(1, OfferApplicationFactory.IsArchivedRuleSet);
+        await story.SaveAsync(_services);
+
+        var list = await ListAsync(new JobApplicationFilter(IncludeArchived: true));
+
+        Assert.Equal(
+            story.Applications.Select(a => (a.Id, a.IsArchived)).OrderBy(a => a.Id),
+            list.Applications.Select(a => (a.Id, a.IsArchived)).OrderBy(a => a.Id));
+        Assert.Equal((2, 2), (list.Total, list.CountsByStatus[ApplicationStatus.Draft]));
+    }
+
+    [Fact]
+    public async Task ListAsync_WithArchivedApplication_SaysSoWithoutListingIt()
+    {
+        await new OfferApplicationStory().WithApplications(1, OfferApplicationFactory.IsArchivedRuleSet).SaveAsync(_services);
+
+        var list = await ListAsync(new JobApplicationFilter());
+
+        Assert.Equal((0, true), (list.Total, list.HasArchived));
+    }
+
+    [Fact]
+    public async Task ListAsync_WithActiveApplicationsOnly_SaysNoneIsArchived()
+    {
+        await new OfferApplicationStory().WithApplications(1).SaveAsync(_services);
+
+        Assert.False((await ListAsync(new JobApplicationFilter(IncludeArchived: true))).HasArchived);
+    }
+
+    [Fact]
+    public async Task ListByOfferAsync_IncludingArchived_ReturnsTheArchivedApplicationToo()
+    {
+        var story = new OfferApplicationStory().WithApplications(1).WithApplications(1, OfferApplicationFactory.IsArchivedRuleSet);
+        await story.SaveAsync(_services);
+
+        var applications = await ListByOfferAsync(story.JobOffer.Id, includeArchived: true);
+
+        Assert.Equal(story.Applications.Select(a => a.Id).Order(), applications.Select(a => a.Id).Order());
+    }
+
+    [Fact]
+    public async Task ListByCompanyAsync_IncludingArchived_ReturnsTheArchivedApplicationToo()
+    {
+        var story = new SpontaneousApplicationStory().WithApplications(1).WithApplications(1, SpontaneousApplicationFactory.IsArchivedRuleSet);
+        await story.SaveAsync(_services);
+
+        var applications = await ListByCompanyAsync(story.Company.Id, includeArchived: true);
+
+        Assert.Equal(story.Applications.Select(a => a.Id).Order(), applications.Select(a => a.Id).Order());
     }
 
     [Fact]
@@ -355,10 +412,21 @@ public class JobApplicationServiceTests : IAsyncLifetime
     public async Task ListCompaniesAsync_ArchivedCompanyWithActiveApplication_KeepsIt()
     {
         var story = new SpontaneousApplicationStory().WithApplications(1);
-        story.Company.ArchivedAt = Now.UtcDateTime;
+        story.Company.Archive(Now.UtcDateTime);
         await story.SaveAsync(_services);
 
         var company = Assert.Single(await ListCompaniesAsync());
+
+        Assert.Equal(story.Company.Id, company.Id);
+    }
+
+    [Fact]
+    public async Task ListCompaniesAsync_IncludingArchived_ReturnsTheCompanyOfAnArchivedApplication()
+    {
+        var story = new SpontaneousApplicationStory().WithApplications(1, SpontaneousApplicationFactory.IsArchivedRuleSet);
+        await story.SaveAsync(_services);
+
+        var company = Assert.Single(await ListCompaniesAsync(includeArchived: true));
 
         Assert.Equal(story.Company.Id, company.Id);
     }
@@ -378,7 +446,7 @@ public class JobApplicationServiceTests : IAsyncLifetime
             new OfferApplicationDetailsDto(
                 application.Id, application.ShortId, offer.Title, story.Company.Name, story.Company.Slug, ApplicationStatus.Applied,
                 application.Channel, application.ChannelDetail, application.AppliedOn, application.Notes, Now.UtcDateTime,
-                details!.StatusHistory, offer.Id, offer.ShortId, offer.Location, offer.ContractType, offer.RemotePolicy, offer.Salary, offer.Postings[0].Id,
+                ArchivedAt: null, details!.StatusHistory, offer.Id, offer.ShortId, offer.Location, offer.ContractType, offer.RemotePolicy, offer.Salary, offer.Postings[0].Id,
                 offer.Postings[0].Site, offer.Postings[0].Url),
             details);
     }
@@ -408,7 +476,7 @@ public class JobApplicationServiceTests : IAsyncLifetime
             new SpontaneousApplicationDetailsDto(
                 application.Id, application.ShortId, application.TargetPosition, story.Company.Name, story.Company.Slug,
                 ApplicationStatus.Applied, application.Channel, application.ChannelDetail, application.AppliedOn, application.Notes,
-                Now.UtcDateTime, details!.StatusHistory, story.Company.Location),
+                Now.UtcDateTime, ArchivedAt: null, details!.StatusHistory, story.Company.Location),
             details);
     }
 
@@ -420,7 +488,7 @@ public class JobApplicationServiceTests : IAsyncLifetime
 
         var details = await GetAsync(story.Applications[0].ShortId);
 
-        Assert.Equal(story.Applications[0].Id, details?.Id);
+        Assert.Equal((story.Applications[0].Id, story.Applications[0].ArchivedAt, true), (details?.Id, details?.ArchivedAt, details?.IsArchived));
     }
 
     [Fact]
@@ -836,6 +904,114 @@ public class JobApplicationServiceTests : IAsyncLifetime
         Assert.Equal(JobApplicationErrors.NotFound, result.GetMessage);
     }
 
+    [Fact]
+    public async Task ChangeStatusAsync_ArchivedApplication_FailsWithArchived()
+    {
+        var story = new OfferApplicationStory().WithApplications(1, OfferApplicationFactory.IsArchivedRuleSet);
+        await story.SaveAsync(_services);
+
+        var result = await ChangeStatusAsync(story.Applications[0].Id, new StatusChangeInput { To = ApplicationStatus.Withdrawn });
+
+        Assert.Equal(JobApplicationErrors.Archived, result.GetMessage);
+        Assert.Equal(ApplicationStatus.Draft, (await FindSingleAsync()).Status);
+        Assert.Empty(await FindStatusChangesAsync());
+    }
+
+    [Fact]
+    public async Task ArchiveAsync_ActiveApplication_ArchivesItButNotItsOfferNorItsCompany()
+    {
+        var story = new OfferApplicationStory().WithApplications(1);
+        await story.SaveAsync(_services);
+
+        var result = await ArchiveAsync(story.Applications[0].Id);
+
+        Assert.True(result.IsSuccess);
+        var application = await FindSingleWithParentsAsync();
+        Assert.Equal(
+            [Now.UtcDateTime, null, null],
+            [application.ArchivedAt, application.JobOffer.ArchivedAt, application.JobOffer.Company.ArchivedAt]);
+    }
+
+    [Fact]
+    public async Task ArchiveAsync_ArchivedApplication_KeepsItsDay()
+    {
+        var story = new OfferApplicationStory().WithApplications(1, OfferApplicationFactory.IsArchivedRuleSet);
+        await story.SaveAsync(_services);
+
+        var result = await ArchiveAsync(story.Applications[0].Id);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(story.Applications[0].ArchivedAt, (await FindSingleAsync()).ArchivedAt);
+    }
+
+    [Fact]
+    public async Task ArchiveAsync_UnknownApplication_FailsWithNotFound()
+    {
+        var result = await ArchiveAsync(Guid.CreateVersion7());
+
+        Assert.Equal((false, JobApplicationErrors.NotFound), (result.IsSuccess, result.GetMessage));
+    }
+
+    [Fact]
+    public async Task RestoreAsync_ApplicationOfArchivedCompany_RestoresItsOfferAndCompanyAlone()
+    {
+        var story = new OfferApplicationStory().WithApplications(2);
+        var otherOffer = JobOfferFactory.GetGenerator(story.Company.Id).Generate();
+        await story.SaveAsync(_services);
+        await _services.AddAsync(otherOffer);
+        await _services.CallAsync((ICompanyService service) => service.ArchiveAsync(story.Company.Id, TestContext.Current.CancellationToken));
+
+        var result = await RestoreAsync(story.Applications[0].Id);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(
+            [null, null, null, Now.UtcDateTime, Now.UtcDateTime],
+            await _services.QueryAsync(async context => new[]
+            {
+                (await context.JobApplications.SingleAsync(a => a.Id == story.Applications[0].Id, TestContext.Current.CancellationToken)).ArchivedAt,
+                (await context.JobOffers.SingleAsync(o => o.Id == story.JobOffer.Id, TestContext.Current.CancellationToken)).ArchivedAt,
+                (await context.Companies.SingleAsync(c => c.Id == story.Company.Id, TestContext.Current.CancellationToken)).ArchivedAt,
+                (await context.JobApplications.SingleAsync(a => a.Id == story.Applications[1].Id, TestContext.Current.CancellationToken)).ArchivedAt,
+                (await context.JobOffers.SingleAsync(o => o.Id == otherOffer.Id, TestContext.Current.CancellationToken)).ArchivedAt,
+            }));
+    }
+
+    [Fact]
+    public async Task RestoreAsync_SpontaneousApplicationOfArchivedCompany_RestoresTheCompany()
+    {
+        var story = new SpontaneousApplicationStory().WithApplications(1, SpontaneousApplicationFactory.IsArchivedRuleSet);
+        story.Company.Archive(Now.UtcDateTime);
+        await story.SaveAsync(_services);
+
+        var result = await RestoreAsync(story.Applications[0].Id);
+
+        Assert.True(result.IsSuccess);
+        var application = await _services.QueryAsync(context => context.Set<SpontaneousApplication>()
+            .Include(a => a.Company)
+            .SingleAsync(TestContext.Current.CancellationToken));
+        Assert.Equal([null, null], [application.ArchivedAt, application.Company.ArchivedAt]);
+    }
+
+    [Fact]
+    public async Task RestoreAsync_ActiveApplication_LeavesItActive()
+    {
+        var story = new OfferApplicationStory().WithApplications(1);
+        await story.SaveAsync(_services);
+
+        var result = await RestoreAsync(story.Applications[0].Id);
+
+        Assert.True(result.IsSuccess);
+        Assert.Null((await FindSingleAsync()).ArchivedAt);
+    }
+
+    [Fact]
+    public async Task RestoreAsync_UnknownApplication_FailsWithNotFound()
+    {
+        var result = await RestoreAsync(Guid.CreateVersion7());
+
+        Assert.Equal((false, JobApplicationErrors.NotFound), (result.IsSuccess, result.GetMessage));
+    }
+
     [Theory]
     [MemberData(nameof(InvalidShortIdOptions))]
     public async Task ShortIdOptions_WithInvalidAlphabetOrSize_FailValidation(string alphabet, int size)
@@ -843,7 +1019,7 @@ public class JobApplicationServiceTests : IAsyncLifetime
         await using var services = await CreateServicesAsync(alphabet, size);
 
         await Assert.ThrowsAsync<OptionsValidationException>(() =>
-            services.CallAsync((IJobApplicationService service) => service.ListCompaniesAsync(TestContext.Current.CancellationToken)));
+            services.CallAsync((IJobApplicationService service) => service.ListCompaniesAsync(cancellationToken: TestContext.Current.CancellationToken)));
     }
 
     private async Task<SqliteServiceProvider> CreateServicesAsync(string? alphabet = null, int? size = null)
@@ -881,6 +1057,11 @@ public class JobApplicationServiceTests : IAsyncLifetime
     private Task<OfferApplication> FindSingleAsync() =>
         _services.QueryAsync(context => context.Set<OfferApplication>().SingleAsync(TestContext.Current.CancellationToken));
 
+    private Task<OfferApplication> FindSingleWithParentsAsync() =>
+        _services.QueryAsync(context => context.Set<OfferApplication>()
+            .Include(a => a.JobOffer.Company)
+            .SingleAsync(TestContext.Current.CancellationToken));
+
     private Task<SpontaneousApplication> FindSingleSpontaneousAsync() =>
         _services.QueryAsync(context => context.Set<SpontaneousApplication>().SingleAsync(TestContext.Current.CancellationToken));
 
@@ -890,14 +1071,14 @@ public class JobApplicationServiceTests : IAsyncLifetime
     private Task<JobApplicationListDto> ListAsync(JobApplicationFilter filter, int count = int.MaxValue) =>
         _services.CallAsync((IJobApplicationService service) => service.ListAsync(filter, count, TestContext.Current.CancellationToken));
 
-    private Task<IReadOnlyList<CompanySummaryDto>> ListCompaniesAsync() =>
-        _services.CallAsync((IJobApplicationService service) => service.ListCompaniesAsync(TestContext.Current.CancellationToken));
+    private Task<IReadOnlyList<CompanySummaryDto>> ListCompaniesAsync(bool includeArchived = false) =>
+        _services.CallAsync((IJobApplicationService service) => service.ListCompaniesAsync(includeArchived, TestContext.Current.CancellationToken));
 
-    private Task<IReadOnlyList<JobApplicationSummaryDto>> ListByOfferAsync(Guid offerId) =>
-        _services.CallAsync((IJobApplicationService service) => service.ListByOfferAsync(offerId, TestContext.Current.CancellationToken));
+    private Task<IReadOnlyList<JobApplicationSummaryDto>> ListByOfferAsync(Guid offerId, bool includeArchived = false) =>
+        _services.CallAsync((IJobApplicationService service) => service.ListByOfferAsync(offerId, includeArchived, TestContext.Current.CancellationToken));
 
-    private Task<IReadOnlyList<JobApplicationSummaryDto>> ListByCompanyAsync(Guid companyId) =>
-        _services.CallAsync((IJobApplicationService service) => service.ListByCompanyAsync(companyId, TestContext.Current.CancellationToken));
+    private Task<IReadOnlyList<JobApplicationSummaryDto>> ListByCompanyAsync(Guid companyId, bool includeArchived = false) =>
+        _services.CallAsync((IJobApplicationService service) => service.ListByCompanyAsync(companyId, includeArchived, TestContext.Current.CancellationToken));
 
     private Task<JobApplicationDetailsDto?> GetAsync(string shortId) =>
         _services.CallAsync((IJobApplicationService service) => service.GetAsync(shortId, TestContext.Current.CancellationToken));
@@ -916,6 +1097,12 @@ public class JobApplicationServiceTests : IAsyncLifetime
 
     private Task<ServiceResult> ChangeStatusAsync(Guid id, StatusChangeInput input) =>
         _services.CallAsync((IJobApplicationService service) => service.ChangeStatusAsync(id, input, TestContext.Current.CancellationToken));
+
+    private Task<ServiceResult> ArchiveAsync(Guid id) =>
+        _services.CallAsync((IJobApplicationService service) => service.ArchiveAsync(id, TestContext.Current.CancellationToken));
+
+    private Task<ServiceResult> RestoreAsync(Guid id) =>
+        _services.CallAsync((IJobApplicationService service) => service.RestoreAsync(id, TestContext.Current.CancellationToken));
 
     public static TheoryData<string, int> InvalidShortIdOptions => new()
     {

@@ -1,8 +1,12 @@
-@* An offer in the mobile list (< 992 px), linking to its page. *@
-<ListCard Title="@Offer.Title" Href="@OfferRoutes.Details(Offer.ShortId, Offer.Slug)" Subtitle="@Offer.CompanyName">
+@* An offer in the mobile list (< 992 px), linking to its page, dimmed when archived. *@
+<ListCard Title="@Offer.Title" Href="@OfferRoutes.Details(Offer.ShortId, Offer.Slug)" Subtitle="@Offer.CompanyName" Archived="Offer.IsArchived">
     <Aside><time datetime="@Offer.RegisterAt.ToString("yyyy-MM-dd")">@Offer.RegisterAt.ToShortDisplayDate()</time></Aside>
     <Tags>
         <OfferTags ContractType="Offer.ContractType" RemotePolicy="Offer.RemotePolicy" />
+        @if (Offer.IsArchived)
+        {
+            <ArchivedTag />
+        }
         <span class="offer-postings t-small t-muted">
             <CountBadge Count="Offer.PostingCount" class="offer-postings-count" />
             @OfferLabels.PostingWord(Offer.PostingCount)

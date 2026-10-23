@@ -19,7 +19,8 @@ public class CompanyMappingExtensionsTests
             "Lyon",
             "https://brightwave.io",
             "https://www.linkedin.com/company/brightwave",
-            "Payroll software for small companies.");
+            "Payroll software for small companies.",
+            ArchivedAt: null);
 
         var input = company.ToInput();
 

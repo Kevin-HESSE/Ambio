@@ -11,7 +11,7 @@
     </Actions>
 </PageHeader>
 
-@if (_list is { Total: 0 } && _filter.IsEmpty)
+@if (_list is { Total: 0, HasArchived: false } && _filter.IsEmpty)
 {
     <section class="card">
         <EmptyState Icon="inbox" Title="No applications yet">
@@ -27,7 +27,19 @@ else if (_list is not null)
 {
     <JobApplicationFilters Filter="_filter" Companies="_companies" CountsByStatus="_list.CountsByStatus" />
 
-    @if (_list.Total == 0)
+    @if (_list.Total == 0 && _filter.IsEmpty)
+    {
+        <section class="card">
+            <EmptyState Icon="archive" Title="Every application is archived">
+                <ChildContent>Archived applications are hidden from this list. Show them to find one again, or log a new application.</ChildContent>
+                <Actions>
+                    <ButtonLink Href="@JobApplicationRoutes.Filtered(_filter with { IncludeArchived = true })" Variant="ButtonVariant.Secondary">Show archived</ButtonLink>
+                    <ButtonLink Href="@JobApplicationRoutes.New" Variant="ButtonVariant.Primary" Icon="plus-lg">New application</ButtonLink>
+                </Actions>
+            </EmptyState>
+        </section>
+    }
+    else if (_list.Total == 0)
     {
         <section class="card">
             <EmptyState Icon="search" Title="No matching applications">
@@ -73,6 +85,9 @@ else if (_list is not null)
     [SupplyParameterFromQuery(Name = JobApplicationRoutes.KindQuery)]
     public string? Kind { get; set; }
 
+    [SupplyParameterFromQuery(Name = ShowArchived.Query)]
+    public string? Archived { get; set; }
+
     [SupplyParameterFromQuery(Name = JobApplicationRoutes.ShownQuery)]
     public int? Shown { get; set; }
 
@@ -87,8 +102,9 @@ else if (_list is not null)
             Status: QueryValue.Parse<ApplicationStatus>(Status),
             CompanySlug: string.IsNullOrWhiteSpace(Company) ? null : Company,
             Kind: QueryValue.Parse<ApplicationKind>(Kind),
-            Search: string.IsNullOrWhiteSpace(Search) ? null : Search.Trim());
+            Search: string.IsNullOrWhiteSpace(Search) ? null : Search.Trim(),
+            IncludeArchived: ShowArchived.IsChecked(Archived));
         _list = await JobApplicationService.ListAsync(_filter, Math.Max(PageSize, Shown ?? 0));
-        _companies = await JobApplicationService.ListCompaniesAsync();
+        _companies = await JobApplicationService.ListCompaniesAsync(_filter.IncludeArchived);
     }
 }

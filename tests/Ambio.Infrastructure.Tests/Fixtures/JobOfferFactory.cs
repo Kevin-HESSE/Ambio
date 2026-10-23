@@ -23,6 +23,6 @@ public static class JobOfferFactory
             .RuleFor(o => o.RemotePolicy, faker => faker.PickRandom<RemotePolicy>())
             .RuleFor(o => o.Salary, faker => $"{faker.Random.Int(30, 80)} k€")
             .RuleSet(IsArchived, set =>
-                set.RuleFor(o => o.ArchivedAt, faker => faker.Date.Past())
+                set.FinishWith((faker, o) => o.Archive(faker.Date.Past()))
             );
 }

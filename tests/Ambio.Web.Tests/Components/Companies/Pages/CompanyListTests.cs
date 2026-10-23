@@ -3,11 +3,13 @@ using Ambio.Application.Companies.Dtos;
 using Ambio.Web.Components.Companies;
 using Ambio.Web.Components.Companies.Pages;
 using Ambio.Web.Components.Companies.Shared;
+using Ambio.Web.Components.Shared;
 using Ambio.Web.Tests.Fixtures;
 
 using Bogus;
 
 using Bunit;
+using Bunit.TestDoubles;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -35,6 +37,47 @@ public class CompanyListTests : BunitContext
 
         Assert.NotNull(cut.Find($".empty a[href='{CompanyRoutes.New}']"));
         Assert.Empty(cut.FindAll("table"));
+        Assert.Empty(cut.FindAll("form"));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Render_WithOrWithoutArchivedInTheQueryString_ListsAndChecksAccordingly(bool includeArchived)
+    {
+        GivenCompanies(_companySummaryFactory.Generate());
+        NavigateTo(includeArchived ? CompanyRoutes.ListWithArchived : CompanyRoutes.List);
+
+        var cut = Render<CompanyList>();
+
+        _companyService.Received().ListAsync(includeArchived, Arg.Any<CancellationToken>());
+        Assert.Equal(includeArchived, cut.Find($"form.archived-filter input[name='{ShowArchived.Query}']").HasAttribute("checked"));
+    }
+
+    [Fact]
+    public void Render_WithArchivedCompany_DimsItsRowAndCardAndTagsThem()
+    {
+        var active = _companySummaryFactory.Generate();
+        var archived = _companySummaryFactory.Generate() with { IsArchived = true };
+        GivenCompanies(active, archived);
+
+        var cut = Render<CompanyList>();
+
+        Assert.Equal([false, true], cut.FindAll("tbody a.list-title").Select(link => link.ClassList.Contains("t-muted")));
+        Assert.Equal([false, true], cut.FindAll("tbody tr").Select(row => row.QuerySelector(".tag-archived") is not null));
+        Assert.Equal([false, true], cut.FindAll(".list-card").Select(card => card.QuerySelector(".tag-archived") is not null));
+    }
+
+    [Fact]
+    public void Render_WithEveryCompanyArchived_KeepsTheFilterAndOffersToShowThem()
+    {
+        _companyService.ListAsync(Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(new CompanyListDto([], HasArchived: true));
+
+        var cut = Render<CompanyList>();
+
+        Assert.NotNull(cut.Find("form.archived-filter"));
+        Assert.NotNull(cut.Find($".empty a[href='{CompanyRoutes.ListWithArchived}']"));
+        Assert.NotNull(cut.Find($".empty a[href='{CompanyRoutes.New}']"));
     }
 
     [Fact]
@@ -92,6 +135,8 @@ public class CompanyListTests : BunitContext
         Assert.NotNull(cut.Find($".page-header a[href='{CompanyRoutes.New}']"));
     }
 
+    private void NavigateTo(string url) => Services.GetRequiredService<BunitNavigationManager>().NavigateTo(url);
+
     private void GivenCompanies(params IReadOnlyList<CompanySummaryDto> companies) =>
-        _companyService.ListAsync(Arg.Any<CancellationToken>()).Returns(companies);
+        _companyService.ListAsync(Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(new CompanyListDto(companies, HasArchived: false));
 }

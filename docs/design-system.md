@@ -164,7 +164,7 @@ The **scrim** (`--ambio-scrim`) dims the page behind a sheet, a modal or the rec
 | Component | Figma | App (Phase 1) |
 |---|---|---|
 | `StatusBadge` | One variant per status (`Status=Draft…Withdrawn`), dot + label | `StatusBadge.razor`: takes an `ApplicationStatus`, renders the icon + localized label |
-| `Tag` | `Style=Neutral \| Accent \| Archived`, `Label` text property | `Tag.razor`: style + label + optional icon |
+| `Tag` | `Style=Neutral \| Accent \| Archived`, `Label` text property | `Tag.razor`: style (`TagVariant.Neutral`, `Accent` or `Archived`) + label + optional icon; `ArchivedTag.razor` for archived rows and items |
 
 The layout components (app shell, lists, tabs, sheets, toasts…) are listed in [ui.md](ui.md#components).
 

@@ -236,7 +236,7 @@ The base class carries everything they share:
 - `JobApplication.ChangeStatus(to, changedAt, comment, appliedOn)` refuses a transition the table doesn't allow (`InvalidOperationException`) and a draft sent without `appliedOn` (`ArgumentException`). It records the change, then moves the status. `appliedOn` isn't used by any other change. `CanChangeStatusTo(to)` lets the service check first.
 - Every application is born `Draft`. One created as already sent records `Draft → Applied` as its first change, at its creation, so the history explains every status but the first.
 - `ChangedAt` is when the change was recorded (`TimeProvider`, UTC), whereas `AppliedOn` is the day typed by the user.
-- An undo, and the lock on the status of an archived application ([ADR 0012](adr/0012-archive-instead-of-delete.md)), aren't built yet.
+- An archived application can't change its status ([ADR 0027](adr/0027-archiving-cascade-and-restore.md)): `CanChangeStatusTo` returns false and `ChangeStatus` throws `InvalidOperationException` until it is restored. A wrong status still can't be undone.
 
 **Effective company** of an application:
 - For an `OfferApplication`, `JobOffer.CompanyId` if it's known, otherwise `JobOffer.RecruiterCompanyId`.
@@ -269,6 +269,19 @@ A single row of preferences for the account ([ADR 0002](adr/0002-single-user-app
 ## Relationships and deletion
 
 Rows are **archived** (`ArchivedAt`) instead of deleted ([ADR 0012](adr/0012-archive-instead-of-delete.md)). A hard delete is only possible when nothing references the row.
+
+`ArchivedAt` only changes through `Archive(archivedAt)` and `Restore()`, on `Company`, `JobOffer` and `JobApplication`; `IsArchived` reads it. `Archive` keeps the day of a row already archived. The services run the cascade ([ADR 0027](adr/0027-archiving-cascade-and-restore.md)), in one save:
+
+| Action | Also changes |
+|---|---|
+| Archive a company | Its active offers and its active applications, to its offers or spontaneous, on the same day |
+| Archive an offer | Its active applications, on the same day |
+| Archive an application | Nothing |
+| Restore a company | Its offers and applications archived on its day |
+| Restore an offer | Its applications archived on its day, and its company when archived (alone) |
+| Restore an application | Its offer and its company when archived (alone) |
+
+Archiving an archived row, or restoring an active one, succeeds without changing anything; an unknown id fails with `NotFound`.
 
 | Relationship | On delete of the parent |
 |---|---|
@@ -364,7 +377,8 @@ At the data volume of a single user, both costs are negligible.
 - Offer summary and detail DTOs carry `ShortId` and the computed `Slug` (`JobOfferSlug.From(title, companyName)`) the same way. `OfferApplicationDetailsDto` also carries `JobOfferShortId` and `JobOfferSlug`, so the application page links to its offer. Creating or editing an offer returns a `JobOfferLinkDto` (`ShortId`, `Slug`): a new title gives a new slug.
 - **Details** use one DTO per subtype, `OfferApplicationDetailsDto` and `SpontaneousApplicationDetailsDto`, deriving from the abstract `JobApplicationDetailsDto`. The service reads them with one projection per subtype (`OfType<…>()`): a single projection can't build either type.
 - The details carry the `StatusHistory` (`StatusChangeDto`: `From`, `To`, `ChangedAt`, `Comment`), newest first, and the computed `NextStatuses` (`StatusWorkflow.Next(Status)`), which the change status sheet offers.
-- A status is changed with `ChangeStatusAsync(id, StatusChangeInput)`: the new status `To` (required), `SentOn` (required for `Applied`) and `Comment`. It fails with `NotFound`, or with `StatusNotAllowed` when the status can't follow the current one, such as when another tab changed it.
+- A status is changed with `ChangeStatusAsync(id, StatusChangeInput)`: the new status `To` (required), `SentOn` (required for `Applied`) and `Comment`. It fails with `NotFound`, with `Archived` when the application is archived, or with `StatusNotAllowed` when the status can't follow the current one, such as when another tab changed it.
+- **Archiving**: the summaries carry `IsArchived`, the details `ArchivedAt` (and the computed `IsArchived`), for companies, offers and applications. The lists take `includeArchived` (`JobApplicationFilter.IncludeArchived` for the applications list, which `IsEmpty` counts as a criterion); the status counts follow it. `CompanyListDto`, `JobOfferListDto` and `JobApplicationListDto` carry `HasArchived`, true when any row is archived, listed or not, so an empty list can say that everything is archived. Each service has `ArchiveAsync(id)` and `RestoreAsync(id)`, which return a `ServiceResult`. The company search and the similar offers stay limited to active rows.
 
 ## Common queries
 

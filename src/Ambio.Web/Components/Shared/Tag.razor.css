@@ -20,3 +20,9 @@
     background: var(--ambio-tag-accent-bg);
     color: var(--ambio-tag-accent-fg);
 }
+
+.tag-archived {
+    border-color: var(--ambio-tag-archived-border);
+    background: var(--ambio-tag-archived-bg);
+    color: var(--ambio-tag-archived-fg);
+}

@@ -8,6 +8,9 @@ public static class OfferRoutes
 {
     public const string List = "offers";
 
+    /// <summary>The list with the archived offers too (<see cref="ShowArchived"/>).</summary>
+    public const string ListWithArchived = $"{List}?{ShowArchived.Query}=true";
+
     public const string New = "offers/new";
 
     public static string Details(string shortId, string slug) => $"offers/{ShortIdKey.Of(shortId, slug)}";

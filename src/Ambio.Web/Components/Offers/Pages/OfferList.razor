@@ -14,7 +14,7 @@
     </Actions>
 </PageHeader>
 
-@if (_offers is { Count: 0 })
+@if (_list is { Offers.Count: 0, HasArchived: false })
 {
     <section class="card">
         <EmptyState Icon="briefcase" Title="No offers yet">
@@ -25,16 +25,38 @@
         </EmptyState>
     </section>
 }
-else if (_offers is not null)
+else if (_list is not null)
 {
-    <ResponsiveList Items="_offers">
-        <Card Context="offer"><OfferCard Offer="offer" /></Card>
-        <Table><OfferTable Offers="_offers" /></Table>
-    </ResponsiveList>
+    <ArchivedFilter Action="@OfferRoutes.List" Label="Filter the offers" Checked="IncludeArchived" />
+
+    @if (_list.Offers.Count == 0)
+    {
+        <section class="card">
+            <EmptyState Icon="archive" Title="Every offer is archived">
+                <ChildContent>Archived offers are hidden from this list. Show them to find one again, or save a new offer.</ChildContent>
+                <Actions>
+                    <ButtonLink Href="@OfferRoutes.ListWithArchived" Variant="ButtonVariant.Secondary">Show archived</ButtonLink>
+                    <ButtonLink Href="@OfferRoutes.New" Variant="ButtonVariant.Primary" Icon="plus-lg">New offer</ButtonLink>
+                </Actions>
+            </EmptyState>
+        </section>
+    }
+    else
+    {
+        <ResponsiveList Items="_list.Offers">
+            <Card Context="offer"><OfferCard Offer="offer" /></Card>
+            <Table><OfferTable Offers="_list.Offers" /></Table>
+        </ResponsiveList>
+    }
 }
 
 @code {
-    private IReadOnlyList<JobOfferSummaryDto>? _offers;
+    [SupplyParameterFromQuery(Name = ShowArchived.Query)]
+    public string? Archived { get; set; }
 
-    protected override async Task OnInitializedAsync() => _offers = await JobOfferService.ListAsync();
+    private JobOfferListDto? _list;
+
+    private bool IncludeArchived => ShowArchived.IsChecked(Archived);
+
+    protected override async Task OnInitializedAsync() => _list = await JobOfferService.ListAsync(IncludeArchived);
 }

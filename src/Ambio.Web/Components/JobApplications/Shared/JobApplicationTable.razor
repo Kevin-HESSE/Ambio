@@ -1,4 +1,5 @@
-@* The applications list on desktop (≥ 992 px), whose titles link to the application pages. *@
+@* The applications list on desktop (≥ 992 px), whose titles link to the application pages and whose archived rows
+   are dimmed. *@
 <ListTable>
     <Columns>
         <th scope="col">Position</th>
@@ -11,7 +12,7 @@
         {
             <tr>
                 <th scope="row">
-                    <a class="application-title t-body-strong" href="@JobApplicationRoutes.Details(application.ShortId, application.Slug)">@application.Title</a>
+                    <a class="application-title list-title t-body-strong @(application.IsArchived ? "t-muted" : null)" href="@JobApplicationRoutes.Details(application.ShortId, application.Slug)">@application.Title</a>
                     <div class="application-company t-small t-secondary">@application.CompanyName</div>
                 </th>
                 <td><StatusBadge Status="application.Status" /></td>
@@ -21,6 +22,10 @@
                         @if (application.Kind == ApplicationKind.Spontaneous)
                         {
                             <SpontaneousTag />
+                        }
+                        @if (application.IsArchived)
+                        {
+                            <ArchivedTag />
                         }
                     </div>
                 </td>

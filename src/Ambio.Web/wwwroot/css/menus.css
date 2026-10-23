@@ -1,0 +1,50 @@
+/* Menus (docs/ui.md#patterns): a list of actions, in a sheet such as More, or in the ⋯ menu of a detail page, a
+   popover on desktop and a sheet on mobile. An item is a link or a button. */
+.menu-list {
+    padding: var(--ambio-space-8) 0;
+    list-style: none;
+}
+
+.menu-list:last-child {
+    padding-bottom: var(--ambio-space-12);
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: var(--ambio-space-12);
+    width: 100%;
+    min-height: 48px;
+    padding: 0 var(--ambio-space-16);
+    border: 0;
+    background: none;
+    color: var(--ambio-text-primary);
+    text-align: left;
+    text-decoration: none;
+}
+
+.menu-item:hover {
+    background: var(--ambio-bg-subtle);
+}
+
+.menu-item:focus-visible {
+    outline: 2px solid var(--ambio-focus-ring);
+    outline-offset: -2px;
+}
+
+.menu-item .bi {
+    color: var(--ambio-text-secondary);
+    font-size: 20px;
+}
+
+.menu-item-danger,
+.menu-item-danger .bi {
+    color: var(--ambio-feedback-danger);
+}
+
+/* 40 px items in a popover on desktop, where the pointer is precise. */
+@media (min-width: 992px) {
+    [popover] .menu-item {
+        min-height: 40px;
+    }
+}

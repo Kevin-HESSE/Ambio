@@ -7,6 +7,12 @@
         }
     };
 
+    const hidePopovers = () => {
+        for (const popover of document.querySelectorAll("[popover]:popover-open")) {
+            popover.hidePopover();
+        }
+    };
+
     // Called by the Sheet component of an interactive page, such as after its form was saved.
     window.ambio.sheet = {
         close: (id) => document.getElementById(id)?.close(),
@@ -40,20 +46,23 @@
             syncThemeSelectors();
         }
 
-        // A filter applies as soon as its select changes. requestSubmit fires the submit event, which enhanced
-        // navigation intercepts; submit() would reload the whole page.
-        if (event.target.matches("form[data-auto-submit] select")) {
+        // A filter applies as soon as its select or its checkbox changes. requestSubmit fires the submit event, which
+        // enhanced navigation intercepts; submit() would reload the whole page.
+        if (event.target.matches("form[data-auto-submit] :is(select, input[type=checkbox])")) {
             event.target.form.requestSubmit();
         }
     });
 
-    // A static form sent from its sheet, such as the Filters sheet, closes it first. Enhanced navigation would otherwise
+    // A static form sent from its sheet closes it first: the Filters sheet that holds its form, or the sheet or popover
+    // of the ⋯ menu that holds the button sending a hidden form, such as Archive. Enhanced navigation would otherwise
     // drop the open attribute of the dialog without closing it, and leave the page inert behind it.
     document.addEventListener("submit", (event) => {
         if (event.target.matches("form[data-enhance]")) {
             for (const sheet of event.target.querySelectorAll("dialog.sheet[open]")) {
                 sheet.close();
             }
+            event.submitter?.closest("dialog.sheet[open]")?.close();
+            event.submitter?.closest("[popover]:popover-open")?.hidePopover();
         }
     });
 
@@ -71,9 +80,10 @@
     syncThemeSelectors();
     window.addEventListener("storage", syncThemeSelectors);
 
-    // Enhanced navigation patches the DOM: it leaves an open dialog open and unchecks the theme selectors.
+    // Enhanced navigation patches the DOM: it leaves an open dialog or popover open and unchecks the theme selectors.
     window.Blazor?.addEventListener("enhancedload", () => {
         closeSheets();
+        hidePopovers();
         syncThemeSelectors();
     });
 })();

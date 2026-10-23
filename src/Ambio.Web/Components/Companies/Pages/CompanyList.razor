@@ -14,7 +14,7 @@
     </Actions>
 </PageHeader>
 
-@if (_companies is { Count: 0 })
+@if (_list is { Companies.Count: 0, HasArchived: false })
 {
     <section class="card">
         <EmptyState Icon="building" Title="No companies yet">
@@ -25,16 +25,38 @@
         </EmptyState>
     </section>
 }
-else if (_companies is not null)
+else if (_list is not null)
 {
-    <ResponsiveList Items="_companies">
-        <Card Context="company"><CompanyCard Company="company" /></Card>
-        <Table><CompanyTable Companies="_companies" /></Table>
-    </ResponsiveList>
+    <ArchivedFilter Action="@CompanyRoutes.List" Label="Filter the companies" Checked="IncludeArchived" />
+
+    @if (_list.Companies.Count == 0)
+    {
+        <section class="card">
+            <EmptyState Icon="archive" Title="Every company is archived">
+                <ChildContent>Archived companies are hidden from this list. Show them to find one again, or add a new company.</ChildContent>
+                <Actions>
+                    <ButtonLink Href="@CompanyRoutes.ListWithArchived" Variant="ButtonVariant.Secondary">Show archived</ButtonLink>
+                    <ButtonLink Href="@CompanyRoutes.New" Variant="ButtonVariant.Primary" Icon="plus-lg">New company</ButtonLink>
+                </Actions>
+            </EmptyState>
+        </section>
+    }
+    else
+    {
+        <ResponsiveList Items="_list.Companies">
+            <Card Context="company"><CompanyCard Company="company" /></Card>
+            <Table><CompanyTable Companies="_list.Companies" /></Table>
+        </ResponsiveList>
+    }
 }
 
 @code {
-    private IReadOnlyList<CompanySummaryDto>? _companies;
+    [SupplyParameterFromQuery(Name = ShowArchived.Query)]
+    public string? Archived { get; set; }
 
-    protected override async Task OnInitializedAsync() => _companies = await CompanyService.ListAsync();
+    private CompanyListDto? _list;
+
+    private bool IncludeArchived => ShowArchived.IsChecked(Archived);
+
+    protected override async Task OnInitializedAsync() => _list = await CompanyService.ListAsync(IncludeArchived);
 }

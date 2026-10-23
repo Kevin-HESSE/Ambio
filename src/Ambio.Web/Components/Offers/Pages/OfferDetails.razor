@@ -3,6 +3,7 @@
 @inject IJobOfferService JobOfferService
 @inject IJobApplicationService JobApplicationService
 @inject NavigationManager NavigationManager
+@inject ToastService Toasts
 
 @if (_offer is not null)
 {
@@ -11,7 +12,14 @@
     <AppBarTitle>Offer</AppBarTitle>
     <AppBarActions>
         <ButtonLink Href="@EditHref" Icon="pencil" IconOnly aria-label="Edit offer" />
+        <DetailMenuButton />
     </AppBarActions>
+
+    <ArchiveForms OnArchive="ArchiveAsync" OnRestore="RestoreAsync" />
+    @if (_offer.ArchivedAt is { } archivedAt)
+    {
+        <ArchivedBanner Noun="offer" ArchivedAt="archivedAt">It's hidden from the lists, with the applications archived with it. Restore it to bring them back.</ArchivedBanner>
+    }
 
     <div class="offer-detail detail-layout">
         <DetailHeader Title="@_offer.Title" ParentTitle="Offers" ParentHref="@OfferRoutes.List">
@@ -29,10 +37,17 @@
                 {
                     <Tag>@_offer.Salary</Tag>
                 }
+                @if (_offer.IsArchived)
+                {
+                    <ArchivedTag />
+                }
             </Tags>
             <Actions>
                 <ButtonLink Href="@EditHref" Variant="ButtonVariant.Secondary" Icon="pencil">Edit</ButtonLink>
             </Actions>
+            <Menu>
+                <ArchiveMenuItem Archived="_offer.IsArchived" />
+            </Menu>
         </DetailHeader>
 
         <div class="offer-detail-aside detail-aside stack">
@@ -88,6 +103,39 @@
             return;
         }
 
-        _applications = await JobApplicationService.ListByOfferAsync(_offer.Id);
+        await LoadApplicationsAsync();
+    }
+
+    // An archived offer lists its archived applications too, dimmed: those archived with it.
+    private async Task LoadApplicationsAsync() =>
+        _applications = await JobApplicationService.ListByOfferAsync(_offer!.Id, includeArchived: _offer.IsArchived);
+
+    private async Task ArchiveAsync()
+    {
+        if (!(await JobOfferService.ArchiveAsync(_offer!.Id)).IsSuccess)
+        {
+            NavigationManager.NotFound();
+            return;
+        }
+
+        Toasts.Show(ArchiveForms.UndoToast("Offer archived"));
+        await ReloadAsync();
+    }
+
+    private async Task RestoreAsync()
+    {
+        if (!(await JobOfferService.RestoreAsync(_offer!.Id)).IsSuccess)
+        {
+            NavigationManager.NotFound();
+            return;
+        }
+
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        _offer = await JobOfferService.GetAsync(_offer!.ShortId);
+        await LoadApplicationsAsync();
     }
 }

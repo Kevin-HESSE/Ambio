@@ -1,0 +1,18 @@
+/* 44 px touch target below 992 px, 40 px above (docs/ui.md#layout), like the other filters. */
+.show-archived {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ambio-space-8);
+    min-height: 44px;
+    cursor: pointer;
+}
+
+.show-archived .form-check-input {
+    margin: 0;
+}
+
+@media (min-width: 992px) {
+    .show-archived {
+        min-height: 40px;
+    }
+}

@@ -1,0 +1,23 @@
+@* The item of the ⋯ menu that archives the item of the page, without confirmation, or restores it once archived
+   (ArchiveForms). *@
+<li>
+    @if (Archived)
+    {
+        <button type="submit" form="@ArchiveForms.RestoreFormId" class="menu-item">
+            <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+            Restore
+        </button>
+    }
+    else
+    {
+        <button type="submit" form="@ArchiveForms.ArchiveFormId" class="menu-item">
+            <i class="bi bi-archive" aria-hidden="true"></i>
+            Archive
+        </button>
+    }
+</li>
+
+@code {
+    [Parameter]
+    public bool Archived { get; set; }
+}
