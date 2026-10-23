@@ -27,6 +27,16 @@ public class ToastHostTests : BunitContext
     }
 
     [Fact]
+    public void Render_Always_HasTheTemplateOfTheToastsOfTheBrowserOutsideTheRegion()
+    {
+        var cut = Render<ToastHost>();
+
+        var template = (AngleSharp.Html.Dom.IHtmlTemplateElement)cut.Find($"template#{ToastHost.TemplateId}");
+        Assert.Null(template.Closest(".toast-host"));
+        Assert.NotNull(template.Content.QuerySelector(".toast.show > .bi + .toast-message"));
+    }
+
+    [Fact]
     public void Show_AfterRender_ShowsTheMessageAndAnActionSendingItsForm()
     {
         var cut = Render<ToastHost>();

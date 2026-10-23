@@ -50,6 +50,20 @@ public class CoverLetterEditorTests : BunitContext
     }
 
     [Fact]
+    public void Render_BeforeTheCircuit_LetsCopyTheTextWithItsToastMessages()
+    {
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+
+        var cut = RenderEditor(_coverLetterFactory.Generate(2));
+
+        var copy = cut.Find(".cover-letter-copy");
+        Assert.False(copy.HasAttribute("disabled"));
+        Assert.Equal(
+            (CoverLetterEditor.ContentId, CoverLetterEditor.CopiedMessage, CoverLetterEditor.CopyFailedMessage),
+            (copy.GetAttribute("data-copy"), copy.GetAttribute("data-copied"), copy.GetAttribute("data-copy-failed")));
+    }
+
+    [Fact]
     public void Render_WithLetters_ListsThemAndShowsTheFirst()
     {
         var letters = _coverLetterFactory.Generate(2);

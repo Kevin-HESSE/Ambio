@@ -5,7 +5,7 @@
 @* The Cover letters tab of the application page (docs/ui.md, screen 6): the letters of the application, in the order
    written, and the editor of the selected one or of a new one. Rendered in InteractiveServer mode by the static
    application page, which it refreshes after each save or deletion, so the count of the tab follows. Its buttons
-   wait for the circuit. *@
+   wait for the circuit, but Copy, handled by wwwroot/js/shell.js, copies the text as typed. *@
 <div class="cover-letters">
     <section class="card cover-letter-list" aria-labelledby="cover-letter-list-title">
         <div class="card-header">
@@ -61,6 +61,11 @@
                             <i class="bi bi-trash" aria-hidden="true"></i>
                         </button>
                     }
+                    <button type="button" class="btn btn-secondary cover-letter-copy" data-copy="@ContentId"
+                            data-copied="@CopiedMessage" data-copy-failed="@CopyFailedMessage">
+                        <i class="bi bi-copy" aria-hidden="true"></i>
+                        Copy
+                    </button>
                     <button type="submit" class="btn btn-primary cover-letter-save" disabled="@(!RendererInfo.IsInteractive)">Save</button>
                 </div>
             </div>
@@ -81,6 +86,12 @@
 @code {
     /// <summary>Id of the text field.</summary>
     public const string ContentId = "cover-letter-content";
+
+    /// <summary>The toast once the text is copied.</summary>
+    public const string CopiedMessage = "Letter copied";
+
+    /// <summary>The toast when the browser refuses the copy.</summary>
+    public const string CopyFailedMessage = "The letter couldn't be copied: select the text and copy it.";
 
     /// <summary>Id of the sheet that confirms the deletion of the letter shown.</summary>
     public const string DeleteSheetId = "delete-cover-letter";

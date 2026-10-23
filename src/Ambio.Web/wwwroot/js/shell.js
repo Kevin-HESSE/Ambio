@@ -13,6 +13,35 @@
         }
     };
 
+    // Shows a toast from the browser, such as after a copy, built from the template of ToastHost so it looks like the
+    // toasts of the server. It replaces the toast shown, and the next page removes it.
+    const showToast = (message, icon) => {
+        const toast = document.getElementById("toast-template")?.content.firstElementChild?.cloneNode(true);
+        const host = document.querySelector(".toast-host");
+        if (!toast || !host) {
+            return;
+        }
+
+        toast.querySelector(".bi").classList.add(`bi-${icon}`);
+        toast.querySelector(".toast-message").textContent = message;
+        host.replaceChildren(toast);
+    };
+
+    // Copies the text of a field during the click itself: Safari refuses a copy that comes later, such as after a round
+    // trip to the server. The Clipboard API needs a secure context (HTTPS or localhost); elsewhere, such as plain HTTP on
+    // a local network, the text is selected and copied with execCommand.
+    const copy = async (field) => {
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(field.value);
+            return;
+        }
+
+        field.select();
+        if (!document.execCommand("copy")) {
+            throw new Error("The browser refused the copy.");
+        }
+    };
+
     // Called by the Sheet component of an interactive page, such as after its form was saved.
     window.ambio.sheet = {
         close: (id) => document.getElementById(id)?.close(),
@@ -22,6 +51,15 @@
         const opener = event.target.closest("[data-sheet-open]");
         if (opener) {
             document.getElementById(opener.dataset.sheetOpen)?.showModal();
+            return;
+        }
+
+        // A Copy button: data-copy names the field, data-copied and data-copy-failed the messages of its toast.
+        const copier = event.target.closest("[data-copy]");
+        if (copier) {
+            copy(document.getElementById(copier.dataset.copy)).then(
+                () => showToast(copier.dataset.copied, "clipboard-check"),
+                () => showToast(copier.dataset.copyFailed, "exclamation-circle"));
             return;
         }
 
