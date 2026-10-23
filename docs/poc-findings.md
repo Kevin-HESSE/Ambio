@@ -17,6 +17,7 @@ These ADRs are worth reading again when the official version is designed. They a
 | [0006](adr/0006-persistence-ignorant-domain-and-dtos.md) | Persistence-ignorant domain, DTOs | The DTOs are a starting point for the API contracts |
 | [0011](adr/0011-company-centric-model-with-job-offers.md) | Company-centric model, application hierarchy | |
 | [0012](adr/0012-archive-instead-of-delete.md) | Archive instead of delete | |
+| [0027](adr/0027-archiving-cascade-and-restore.md) | Archiving cascade and restore | Undo is a restore |
 | [0013](adr/0013-guid-v7-primary-keys.md) | GUID v7 keys | Lets the official version import the export without remapping ids |
 | [0014](adr/0014-short-id-and-slug-urls.md) | Short id and slug URLs | |
 | [0015](adr/0015-neutral-visual-identity-with-status-colors.md) | Visual identity and status colors | |
@@ -50,6 +51,14 @@ Newest first. Each entry follows this format:
 - Not needed: what was built and turned out useless
 - Change in the official version: what to do differently
 ```
+
+### 2026-10-23 — Archiving instead of deleting (#31)
+
+- Kept: archive and restore are hidden static forms sent by enhanced navigation, which buttons anywhere on the page reach through their `form` attribute (⋯ menu, banner, Undo). No circuit is needed, so the buttons work at once. The toast comes from a request-scoped `ToastService`, filled by the page's handler and rendered by the layout in the same response.
+- Kept: the ⋯ menu is a native `popover` anchored with CSS anchor positioning on desktop, without script, and a sheet on mobile.
+- Kept: the cascade links its rows by their common `ArchivedAt` ([ADR 0027](adr/0027-archiving-cascade-and-restore.md)), so a restore brings back exactly what was archived with the row, without any extra table.
+- Not needed: nothing so far.
+- Change in the official version: an API needs archive and restore endpoints that run the cascade in a single transaction, and return what they changed so the SPA can offer Undo. A company typed by name in a form is still matched when it is archived (`CompanyLookup`), and the new offer or application goes to an archived company; the official version should decide whether that restores it. A Blazor static page loses an open `popover` on enhanced navigation, as it did the `<dialog>` (#51): `shell.js` hides it.
 
 ### 2026-10-22 — Applications list: filters and search (#51)
 
