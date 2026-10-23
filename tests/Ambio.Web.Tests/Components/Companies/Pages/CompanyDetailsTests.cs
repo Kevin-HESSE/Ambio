@@ -1,3 +1,4 @@
+using Ambio.Application.Common;
 using Ambio.Application.Companies;
 using Ambio.Application.Companies.Dtos;
 using Ambio.Application.JobApplications;
@@ -9,6 +10,7 @@ using Ambio.Web.Components.Companies.Pages;
 using Ambio.Web.Components.Companies.Shared;
 using Ambio.Web.Components.JobApplications;
 using Ambio.Web.Components.JobApplications.Shared;
+using Ambio.Web.Components.Layout;
 using Ambio.Web.Components.Offers;
 using Ambio.Web.Components.Offers.Shared;
 using Ambio.Web.Components.Shared;
@@ -28,9 +30,12 @@ namespace Ambio.Web.Tests.Components.Companies.Pages;
 
 public class CompanyDetailsTests : BunitContext
 {
+    private static readonly DateTime ArchivedAt = new(2026, 9, 27, 9, 0, 0, DateTimeKind.Utc);
+
     private readonly ICompanyService _companyService = Substitute.For<ICompanyService>();
     private readonly IJobOfferService _jobOfferService = Substitute.For<IJobOfferService>();
     private readonly IJobApplicationService _jobApplicationService = Substitute.For<IJobApplicationService>();
+    private readonly ToastService _toasts = new();
     private readonly Faker<CompanyDetailsDto> _companyDetailsFactory;
     private readonly Faker<JobOfferSummaryDto> _jobOfferSummaryFactory;
 
@@ -39,6 +44,7 @@ public class CompanyDetailsTests : BunitContext
         Services.AddSingleton(_companyService);
         Services.AddSingleton(_jobOfferService);
         Services.AddSingleton(_jobApplicationService);
+        Services.AddSingleton(_toasts);
         _jobOfferService.ListByCompanyAsync(Arg.Any<Guid>(), Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns([]);
         _jobApplicationService.ListByCompanyAsync(Arg.Any<Guid>(), Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns([]);
         _companyDetailsFactory = CompanyDetailsFactory.GetGenerator();
@@ -260,6 +266,48 @@ public class CompanyDetailsTests : BunitContext
 
         Assert.True(notFound);
         Assert.Empty(cut.FindAll("h1"));
+    }
+
+    [Fact]
+    public void Render_ArchivedCompany_ShowsTheBannerAndListsItsArchivedOffersAndApplicationsToo()
+    {
+        var company = _companyDetailsFactory.Generate() with { ArchivedAt = ArchivedAt };
+        GivenCompany(company);
+
+        var cut = RenderDetails(company.Slug);
+
+        Assert.NotNull(cut.Find(".archived-banner"));
+        Assert.NotNull(cut.Find(".detail-tags .tag-archived"));
+        _jobOfferService.Received().ListByCompanyAsync(company.Id, true, Arg.Any<CancellationToken>());
+        _jobApplicationService.Received().ListByCompanyAsync(company.Id, true, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public void SubmitArchive_ArchivesShowsTheUndoToastAndReloadsTheCompany()
+    {
+        var company = _companyDetailsFactory.Generate();
+        _companyService.GetAsync(company.Slug, Arg.Any<CancellationToken>()).Returns(company, company with { ArchivedAt = ArchivedAt });
+        _companyService.ArchiveAsync(company.Id, Arg.Any<CancellationToken>()).Returns(ServiceResult.Success());
+        var cut = RenderDetails(company.Slug);
+
+        cut.Find($"#{ArchiveForms.ArchiveFormId}").Submit();
+
+        Assert.Equal(ArchiveForms.UndoToast("Company archived"), _toasts.Current);
+        Assert.NotNull(cut.Find(".archived-banner"));
+    }
+
+    [Fact]
+    public void SubmitRestore_RestoresAndReloadsTheCompany()
+    {
+        var company = _companyDetailsFactory.Generate() with { ArchivedAt = ArchivedAt };
+        _companyService.GetAsync(company.Slug, Arg.Any<CancellationToken>()).Returns(company, company with { ArchivedAt = null });
+        _companyService.RestoreAsync(company.Id, Arg.Any<CancellationToken>()).Returns(ServiceResult.Success());
+        var cut = RenderDetails(company.Slug);
+
+        cut.Find($"#{ArchiveForms.RestoreFormId}").Submit();
+
+        _companyService.Received().RestoreAsync(company.Id, Arg.Any<CancellationToken>());
+        Assert.Empty(cut.FindAll(".archived-banner"));
     }
 
     private void GivenCompany(CompanyDetailsDto company) =>

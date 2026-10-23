@@ -1,3 +1,4 @@
+using Ambio.Application.Common;
 using Ambio.Application.JobApplications;
 using Ambio.Application.JobApplications.Dtos;
 using Ambio.Domain.JobApplications;
@@ -5,6 +6,7 @@ using Ambio.Web.Components.Companies;
 using Ambio.Web.Components.JobApplications;
 using Ambio.Web.Components.JobApplications.Pages;
 using Ambio.Web.Components.JobApplications.Shared;
+using Ambio.Web.Components.Layout;
 using Ambio.Web.Components.Offers;
 using Ambio.Web.Components.Offers.Shared;
 using Ambio.Web.Components.Shared;
@@ -33,12 +35,15 @@ public class JobApplicationDetailsTests : BunitContext
     private static readonly DateTime CreatedAt = new(2026, 9, 1, 9, 0, 0, DateTimeKind.Utc);
     private static readonly DateTime SentAt = new(2026, 9, 3, 9, 0, 0, DateTimeKind.Utc);
     private static readonly DateTime InterviewAt = new(2026, 9, 12, 9, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTime ArchivedAt = new(2026, 9, 27, 9, 0, 0, DateTimeKind.Utc);
 
     private readonly IJobApplicationService _jobApplicationService = Substitute.For<IJobApplicationService>();
+    private readonly ToastService _toasts = new();
 
     public JobApplicationDetailsTests()
     {
         Services.AddSingleton(_jobApplicationService);
+        Services.AddSingleton(_toasts);
         // The page is static; its change status sheet is interactive once the circuit is up.
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
     }
@@ -218,6 +223,81 @@ public class JobApplicationDetailsTests : BunitContext
 
         Assert.True(notFound);
         Assert.Empty(cut.FindAll("h1"));
+    }
+
+    [Fact]
+    public void Render_ActiveApplication_OffersToArchiveItFromTheMenuWithoutBanner()
+    {
+        var application = OfferApplicationDetailsFactory.GetGenerator().Generate();
+        GivenApplication(application);
+
+        var cut = RenderDetails(Key(application));
+
+        Assert.Equal(
+            [("Archive", ArchiveForms.ArchiveFormId), ("Archive", ArchiveForms.ArchiveFormId)],
+            cut.FindAll(".menu-item").Select(item => (item.TextContent.Trim(), item.GetAttribute("form"))));
+        Assert.Empty(cut.FindAll(".archived-banner, .detail-tags .tag-archived"));
+    }
+
+    [Fact]
+    public void Render_ArchivedApplication_ShowsTheBannerTheTagAndRestoreInsteadOfChangingItsStatus()
+    {
+        var application = OfferApplicationDetailsFactory.GetGenerator().Generate() with { Status = ApplicationStatus.Applied, ArchivedAt = ArchivedAt };
+        GivenApplication(application);
+
+        var cut = RenderDetails(Key(application));
+
+        Assert.Contains("Archived on 27 Sep 2026.", cut.Find(".archived-banner").TextContent);
+        Assert.NotNull(cut.Find(".detail-tags .tag-archived"));
+        Assert.All(cut.FindAll(".menu-item"), item => Assert.Equal(("Restore", ArchiveForms.RestoreFormId), (item.TextContent.Trim(), item.GetAttribute("form"))));
+        Assert.Equal(ArchiveForms.RestoreFormId, cut.Find(".status-panel .status-panel-restore").GetAttribute("form"));
+        Assert.Empty(cut.FindAll(".change-status-open"));
+    }
+
+    [Fact]
+    public void SubmitArchive_ArchivesShowsTheUndoToastAndReloadsTheApplication()
+    {
+        var application = OfferApplicationDetailsFactory.GetGenerator().Generate();
+        _jobApplicationService.GetAsync(application.ShortId, Arg.Any<CancellationToken>()).Returns(application, application with { ArchivedAt = ArchivedAt });
+        _jobApplicationService.ArchiveAsync(application.Id, Arg.Any<CancellationToken>()).Returns(ServiceResult.Success());
+        var cut = RenderDetails(Key(application));
+
+        cut.Find($"#{ArchiveForms.ArchiveFormId}").Submit();
+
+        _jobApplicationService.Received().ArchiveAsync(application.Id, Arg.Any<CancellationToken>());
+        Assert.Equal(ArchiveForms.UndoToast("Application archived"), _toasts.Current);
+        Assert.NotNull(cut.Find(".archived-banner"));
+    }
+
+    [Fact]
+    public void SubmitRestore_RestoresAndReloadsTheApplicationWithoutToast()
+    {
+        var application = OfferApplicationDetailsFactory.GetGenerator().Generate() with { ArchivedAt = ArchivedAt };
+        _jobApplicationService.GetAsync(application.ShortId, Arg.Any<CancellationToken>()).Returns(application, application with { ArchivedAt = null });
+        _jobApplicationService.RestoreAsync(application.Id, Arg.Any<CancellationToken>()).Returns(ServiceResult.Success());
+        var cut = RenderDetails(Key(application));
+
+        cut.Find($"#{ArchiveForms.RestoreFormId}").Submit();
+
+        _jobApplicationService.Received().RestoreAsync(application.Id, Arg.Any<CancellationToken>());
+        Assert.Null(_toasts.Current);
+        Assert.Empty(cut.FindAll(".archived-banner"));
+    }
+
+    [Fact]
+    public void SubmitArchive_ApplicationGone_RequestsNotFound()
+    {
+        var application = OfferApplicationDetailsFactory.GetGenerator().Generate();
+        GivenApplication(application);
+        _jobApplicationService.ArchiveAsync(application.Id, Arg.Any<CancellationToken>()).Returns(ServiceResult.Failure(JobApplicationErrors.NotFound));
+        var notFound = false;
+        Services.GetRequiredService<NavigationManager>().OnNotFound += (_, _) => notFound = true;
+        var cut = RenderDetails(Key(application));
+
+        cut.Find($"#{ArchiveForms.ArchiveFormId}").Submit();
+
+        Assert.True(notFound);
+        Assert.Null(_toasts.Current);
     }
 
     private void GivenApplication(JobApplicationDetailsDto application) =>

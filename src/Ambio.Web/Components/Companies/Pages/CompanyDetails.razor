@@ -4,6 +4,7 @@
 @inject IJobOfferService JobOfferService
 @inject IJobApplicationService JobApplicationService
 @inject NavigationManager NavigationManager
+@inject ToastService Toasts
 
 @if (_company is not null)
 {
@@ -12,16 +13,30 @@
     <AppBarTitle>Company</AppBarTitle>
     <AppBarActions>
         <ButtonLink Href="@CompanyRoutes.Edit(_company.Slug)" Icon="pencil" IconOnly aria-label="Edit company" />
+        <DetailMenuButton />
     </AppBarActions>
+
+    <ArchiveForms OnArchive="ArchiveAsync" OnRestore="RestoreAsync" />
+    @if (_company.ArchivedAt is { } archivedAt)
+    {
+        <ArchivedBanner Noun="company" ArchivedAt="archivedAt">It's hidden from the lists, with the offers and applications archived with it. Restore it to bring them back.</ArchivedBanner>
+    }
 
     <div class="company-detail detail-layout">
         <DetailHeader Title="@_company.Name" ParentTitle="Companies" ParentHref="@CompanyRoutes.List">
             <Tags>
                 <Tag Icon="building">@_company.Kind.ToLabel()</Tag>
+                @if (_company.IsArchived)
+                {
+                    <ArchivedTag />
+                }
             </Tags>
             <Actions>
                 <ButtonLink Href="@CompanyRoutes.Edit(_company.Slug)" Variant="ButtonVariant.Secondary" Icon="pencil">Edit</ButtonLink>
             </Actions>
+            <Menu>
+                <ArchiveMenuItem Archived="_company.IsArchived" />
+            </Menu>
         </DetailHeader>
 
         <div class="company-detail-aside detail-aside">
@@ -125,7 +140,42 @@
             return;
         }
 
-        _offers = await JobOfferService.ListByCompanyAsync(_company.Id);
-        _applications = await JobApplicationService.ListByCompanyAsync(_company.Id);
+        await LoadListsAsync();
+    }
+
+    // An archived company lists its archived offers and applications too, dimmed: those archived with it.
+    private async Task LoadListsAsync()
+    {
+        _offers = await JobOfferService.ListByCompanyAsync(_company!.Id, includeArchived: _company.IsArchived);
+        _applications = await JobApplicationService.ListByCompanyAsync(_company.Id, includeArchived: _company.IsArchived);
+    }
+
+    private async Task ArchiveAsync()
+    {
+        if (!(await CompanyService.ArchiveAsync(_company!.Id)).IsSuccess)
+        {
+            NavigationManager.NotFound();
+            return;
+        }
+
+        Toasts.Show(ArchiveForms.UndoToast("Company archived"));
+        await ReloadAsync();
+    }
+
+    private async Task RestoreAsync()
+    {
+        if (!(await CompanyService.RestoreAsync(_company!.Id)).IsSuccess)
+        {
+            NavigationManager.NotFound();
+            return;
+        }
+
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        _company = await CompanyService.GetAsync(_company!.Slug);
+        await LoadListsAsync();
     }
 }

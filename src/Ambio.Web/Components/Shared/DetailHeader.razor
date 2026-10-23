@@ -1,5 +1,6 @@
 @* The header of a detail page, shown at every width (docs/ui.md#patterns): breadcrumb (desktop), title, subtitle,
-   tags and actions (desktop). On mobile the actions go in the app bar (<AppBarActions>). *@
+   tags, then actions and the ⋯ menu (desktop). On mobile the actions go in the app bar (<AppBarActions>), with a
+   DetailMenuButton that opens the menu in a sheet. *@
 <div class="detail-head">
     <div class="detail-head-text stack">
         <nav class="detail-breadcrumb desktop-only t-small t-muted" aria-label="Breadcrumb">
@@ -17,9 +18,21 @@
             <div class="detail-tags cluster">@Tags</div>
         }
     </div>
-    @if (Actions is not null)
+    @if (Actions is not null || Menu is not null)
     {
-        <div class="detail-actions desktop-only">@Actions</div>
+        <div class="detail-actions desktop-only">
+            @Actions
+            @if (Menu is not null)
+            {
+                <ActionMenu Id="detail-menu-popover">@Menu</ActionMenu>
+            }
+        </div>
+    }
+    @if (Menu is not null)
+    {
+        <Sheet Id="@DetailMenuButton.SheetId" Label="More actions">
+            <ul class="menu-list">@Menu</ul>
+        </Sheet>
     }
 </div>
 
@@ -45,4 +58,9 @@
 
     [Parameter]
     public RenderFragment? Actions { get; set; }
+
+    /// <summary>The items of the ⋯ menu, as <c>&lt;li&gt;</c> holding a <c>menu-item</c>, such as
+    /// <see cref="ArchiveMenuItem"/>.</summary>
+    [Parameter]
+    public RenderFragment? Menu { get; set; }
 }

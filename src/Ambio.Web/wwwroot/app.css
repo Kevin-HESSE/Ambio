@@ -241,6 +241,16 @@ h1, h2, h3, h4, h5, h6, p, ul, ol, dl, dd, figure, blockquote {
     --bs-table-bg: var(--ambio-bg-surface);
 }
 
+/* Inverted: dark on the light theme, light on the dark one. */
+.toast {
+    --bs-toast-bg: var(--ambio-text-primary);
+    --bs-toast-color: var(--ambio-bg-surface);
+    --bs-toast-border-width: 0;
+    --bs-toast-border-radius: var(--ambio-radius-md);
+    --bs-toast-box-shadow: var(--ambio-shadow-md);
+    --bs-toast-font-size: 1rem;
+}
+
 /* ---------- App styles ---------- */
 h1:focus {
     outline: none;

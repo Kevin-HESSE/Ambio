@@ -2,6 +2,7 @@
 @attribute [Authorize]
 @inject IJobApplicationService JobApplicationService
 @inject NavigationManager NavigationManager
+@inject ToastService Toasts
 
 @if (_application is not null)
 {
@@ -10,7 +11,14 @@
     <AppBarTitle>Application</AppBarTitle>
     <AppBarActions>
         <ButtonLink Href="@EditHref" Icon="pencil" IconOnly aria-label="Edit application" />
+        <DetailMenuButton />
     </AppBarActions>
+
+    <ArchiveForms OnArchive="ArchiveAsync" OnRestore="RestoreAsync" />
+    @if (_application.ArchivedAt is { } archivedAt)
+    {
+        <ArchivedBanner Noun="application" ArchivedAt="archivedAt">It's hidden from the lists. Restore it to track it again.</ArchivedBanner>
+    }
 
     <div class="application-detail detail-layout">
         <DetailHeader Title="@_application.Title" ParentTitle="Applications" ParentHref="@JobApplicationRoutes.List">
@@ -34,15 +42,30 @@
                 {
                     <SpontaneousTag />
                 }
+                @if (_application.IsArchived)
+                {
+                    <ArchivedTag />
+                }
             </Tags>
             <Actions>
                 <ButtonLink Href="@EditHref" Variant="ButtonVariant.Secondary" Icon="pencil">Edit</ButtonLink>
             </Actions>
+            <Menu>
+                <ArchiveMenuItem Archived="_application.IsArchived" />
+            </Menu>
         </DetailHeader>
 
         <div class="application-detail-aside detail-aside stack">
             <StatusPanel Status="_application.Status" Since="StatusSince">
-                @if (_application.NextStatuses.Count > 0)
+                @* An archived application keeps its status until it is restored. *@
+                @if (_application.NextStatuses.Count > 0 && _application.IsArchived)
+                {
+                    <button type="submit" form="@ArchiveForms.RestoreFormId" class="btn btn-secondary w-100 status-panel-restore">
+                        <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+                        Restore to change status
+                    </button>
+                }
+                else if (_application.NextStatuses.Count > 0)
                 {
                     <ChangeStatusSheet @rendermode="InteractiveServer" ApplicationId="_application.Id" Status="_application.Status"
                                        NextStatuses="_application.NextStatuses" />
@@ -82,7 +105,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _application = await JobApplicationService.GetAsync(ShortIdKey.ShortIdOf(Key));
+        await LoadAsync();
 
         if (_application is null)
         {
@@ -96,5 +119,30 @@
         {
             NavigationManager.NavigateTo(JobApplicationRoutes.Details(_application.ShortId, _application.Slug), replace: true);
         }
+    }
+
+    private async Task LoadAsync() => _application = await JobApplicationService.GetAsync(ShortIdKey.ShortIdOf(Key));
+
+    private async Task ArchiveAsync()
+    {
+        if (!(await JobApplicationService.ArchiveAsync(_application!.Id)).IsSuccess)
+        {
+            NavigationManager.NotFound();
+            return;
+        }
+
+        Toasts.Show(ArchiveForms.UndoToast("Application archived"));
+        await LoadAsync();
+    }
+
+    private async Task RestoreAsync()
+    {
+        if (!(await JobApplicationService.RestoreAsync(_application!.Id)).IsSuccess)
+        {
+            NavigationManager.NotFound();
+            return;
+        }
+
+        await LoadAsync();
     }
 }

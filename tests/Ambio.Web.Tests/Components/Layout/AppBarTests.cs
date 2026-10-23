@@ -4,6 +4,7 @@ using Bunit;
 
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Ambio.Web.Tests.Components.Layout;
 
@@ -17,6 +18,8 @@ public class AppBarTests : BunitContext
     {
         AddAuthorization();
         ComponentFactories.AddStub<AntiforgeryToken>();
+        // The layout renders the toast of the request.
+        Services.AddScoped<ToastService>();
     }
 
     [Fact]

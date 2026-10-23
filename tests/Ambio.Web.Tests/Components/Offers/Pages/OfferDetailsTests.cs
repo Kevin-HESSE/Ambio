@@ -1,9 +1,11 @@
+using Ambio.Application.Common;
 using Ambio.Application.JobApplications;
 using Ambio.Application.Offers;
 using Ambio.Application.Offers.Dtos;
 using Ambio.Web.Components.Companies;
 using Ambio.Web.Components.JobApplications;
 using Ambio.Web.Components.JobApplications.Shared;
+using Ambio.Web.Components.Layout;
 using Ambio.Web.Components.Offers;
 using Ambio.Web.Components.Offers.Pages;
 using Ambio.Web.Components.Offers.Shared;
@@ -32,12 +34,14 @@ public class OfferDetailsTests : BunitContext
 
     private readonly IJobOfferService _jobOfferService = Substitute.For<IJobOfferService>();
     private readonly IJobApplicationService _jobApplicationService = Substitute.For<IJobApplicationService>();
+    private readonly ToastService _toasts = new();
     private readonly Faker<JobOfferDetailsDto> _jobOfferDetailsFactory;
 
     public OfferDetailsTests()
     {
         Services.AddSingleton(_jobOfferService);
         Services.AddSingleton(_jobApplicationService);
+        Services.AddSingleton(_toasts);
         _jobApplicationService.ListByOfferAsync(Arg.Any<Guid>(), Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns([]);
         // The page is static; its postings card is interactive once the circuit is up.
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
@@ -208,6 +212,46 @@ public class OfferDetailsTests : BunitContext
         Assert.Equal("0", cut.Find(".offer-applications-count").TextContent);
         Assert.Equal("No application yet.", cut.Find(".offer-applications-empty").TextContent);
         Assert.Equal(JobApplicationRoutes.NewForOffer(offer.ShortId), cut.Find("a.offer-applications-new").GetAttribute("href"));
+    }
+
+    [Fact]
+    public void Render_ArchivedOffer_ShowsTheBannerAndListsItsArchivedApplicationsToo()
+    {
+        var offer = _jobOfferDetailsFactory.Generate() with { ArchivedAt = Published };
+        GivenOffer(offer);
+
+        var cut = RenderDetails(Key(offer));
+
+        Assert.NotNull(cut.Find(".archived-banner"));
+        Assert.All(cut.FindAll(".menu-item"), item => Assert.Equal(ArchiveForms.RestoreFormId, item.GetAttribute("form")));
+        _jobApplicationService.Received().ListByOfferAsync(offer.Id, true, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public void Render_ActiveOffer_ListsItsActiveApplicationsOnly()
+    {
+        var offer = _jobOfferDetailsFactory.Generate();
+        GivenOffer(offer);
+
+        var cut = RenderDetails(Key(offer));
+
+        Assert.Empty(cut.FindAll(".archived-banner"));
+        _jobApplicationService.Received().ListByOfferAsync(offer.Id, false, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public void SubmitArchive_ArchivesShowsTheUndoToastAndListsTheArchivedApplications()
+    {
+        var offer = _jobOfferDetailsFactory.Generate();
+        _jobOfferService.GetAsync(offer.ShortId, Arg.Any<CancellationToken>()).Returns(offer, offer with { ArchivedAt = Published });
+        _jobOfferService.ArchiveAsync(offer.Id, Arg.Any<CancellationToken>()).Returns(ServiceResult.Success());
+        var cut = RenderDetails(Key(offer));
+
+        cut.Find($"#{ArchiveForms.ArchiveFormId}").Submit();
+
+        Assert.Equal(ArchiveForms.UndoToast("Offer archived"), _toasts.Current);
+        Assert.NotNull(cut.Find(".archived-banner"));
+        _jobApplicationService.Received().ListByOfferAsync(offer.Id, true, Arg.Any<CancellationToken>());
     }
 
     private void GivenOffer(JobOfferDetailsDto offer) =>

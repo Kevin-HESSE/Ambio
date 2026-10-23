@@ -1,0 +1,11 @@
+@* The ⋯ button of a detail page in the mobile app bar, next to its Edit button: it opens the sheet of the ⋯ menu
+   rendered by DetailHeader. *@
+<button type="button" class="btn btn-icon" data-sheet-open="@SheetId" aria-haspopup="dialog" aria-controls="@SheetId"
+        aria-label="More actions">
+    <i class="bi bi-three-dots-vertical" aria-hidden="true"></i>
+</button>
+
+@code {
+    /// <summary>Id of the sheet of the ⋯ menu.</summary>
+    public const string SheetId = "detail-menu";
+}
