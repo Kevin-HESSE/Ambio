@@ -27,4 +27,11 @@ public static class CoverLetterMappingExtensions
         letter.Title = input.Title;
         letter.Content = input.Content;
     }
+
+    /// <summary>The editor, filled with the current title and text of the letter.</summary>
+    public static CoverLetterInput ToInput(this CoverLetterDto letter) => new()
+    {
+        Title = letter.Title,
+        Content = letter.Content,
+    };
 }

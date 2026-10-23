@@ -1,0 +1,176 @@
+@using System.Globalization
+@inject ICoverLetterService CoverLetterService
+@inject NavigationManager NavigationManager
+
+@* The Cover letters tab of the application page (docs/ui.md, screen 6): the letters of the application, in the order
+   written, and the editor of the selected one or of a new one. Rendered in InteractiveServer mode by the static
+   application page, which it refreshes after each save or deletion, so the count of the tab follows. Its buttons
+   wait for the circuit. *@
+<div class="cover-letters">
+    <section class="card cover-letter-list" aria-labelledby="cover-letter-list-title">
+        <div class="card-header">
+            <h2 id="cover-letter-list-title" class="t-h3">Letters</h2>
+            <button type="button" class="btn btn-sm cover-letter-new" @onclick="StartNew" disabled="@(!RendererInfo.IsInteractive)">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                New
+            </button>
+        </div>
+        @if (Letters.Count == 0)
+        {
+            <p class="cover-letter-list-empty t-muted">No letters yet.</p>
+        }
+        else
+        {
+            <ul class="list-divided">
+                @foreach (var letter in Letters)
+                {
+                    var selected = letter.Id == _selectedId;
+                    <li>
+                        <button type="button" class="@(selected ? "cover-letter-item selected" : "cover-letter-item")"
+                                aria-current="@(selected ? "true" : null)" @onclick="() => Fill(letter)"
+                                disabled="@(!RendererInfo.IsInteractive)">
+                            <span class="cover-letter-item-title t-body-strong">@letter.Title</span>
+                            <span class="t-small t-secondary">
+                                Edited <time datetime="@letter.EditedAt.ToString("yyyy-MM-dd")">@letter.EditedAt.ToShortDisplayDate()</time>
+                            </span>
+                        </button>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+
+    <section class="card cover-letter-editor" aria-label="@(_shown is null ? "New letter" : "Letter")">
+        <EditForm EditContext="_editContext" OnValidSubmit="SaveAsync" novalidate class="card-body cover-letter-form stack">
+            <DataAnnotationsValidator />
+            <FormField Id="cover-letter-title" Label="Title" For="() => _input.Title">
+                <InputText id="cover-letter-title" @bind-Value="_input.Title" class="form-control" aria-required="true" />
+            </FormField>
+            <FormField Id="@ContentId" Label="Text" For="() => _input.Content">
+                <InputTextArea id="@ContentId" @bind-Value="_input.Content" @oninput="CountCharacters" class="form-control"
+                               aria-required="true" />
+            </FormField>
+            <div class="cover-letter-foot cluster">
+                <span class="cover-letter-status t-small t-muted num">@Status</span>
+                <div class="cluster">
+                    @if (_shown is not null)
+                    {
+                        <button type="button" class="btn btn-icon cover-letter-delete" data-sheet-open="@DeleteSheetId"
+                                aria-haspopup="dialog" aria-controls="@DeleteSheetId" aria-label="Delete this letter"
+                                disabled="@(!RendererInfo.IsInteractive)">
+                            <i class="bi bi-trash" aria-hidden="true"></i>
+                        </button>
+                    }
+                    <button type="submit" class="btn btn-primary cover-letter-save" disabled="@(!RendererInfo.IsInteractive)">Save</button>
+                </div>
+            </div>
+        </EditForm>
+    </section>
+
+    <Sheet @ref="_deleteSheet" Id="@DeleteSheetId" Title="Delete this letter?">
+        <div class="sheet-content">
+            <p class="t-secondary">@_shown?.Title</p>
+        </div>
+        <div class="sheet-actions">
+            <button type="button" class="btn btn-secondary" data-sheet-close>Cancel</button>
+            <button type="button" class="btn btn-danger cover-letter-delete-confirm" @onclick="DeleteAsync">Delete</button>
+        </div>
+    </Sheet>
+</div>
+
+@code {
+    /// <summary>Id of the text field.</summary>
+    public const string ContentId = "cover-letter-content";
+
+    /// <summary>Id of the sheet that confirms the deletion of the letter shown.</summary>
+    public const string DeleteSheetId = "delete-cover-letter";
+
+    [Parameter, EditorRequired]
+    public Guid ApplicationId { get; set; }
+
+    /// <summary>The letters as read by the static page, in the order written; it reads them again after each change.</summary>
+    [Parameter, EditorRequired]
+    public IReadOnlyList<CoverLetterDto> Letters { get; set; } = [];
+
+    private Sheet _deleteSheet = null!;
+    private bool _filled;
+    // The letter being edited, or null for a new letter.
+    private Guid? _selectedId;
+    // The saved letter the editor was filled with, or null for a new letter.
+    private CoverLetterDto? _shown;
+    private CoverLetterInput _input = new();
+    private EditContext _editContext = null!;
+    private int _length;
+
+    // "1,842 characters · Saved 2 Sep".
+    private string Status =>
+        $"{_length.ToString("N0", CultureInfo.InvariantCulture)} {(_length == 1 ? "character" : "characters")} · "
+        + (_shown is null ? "Not saved yet" : $"Saved {_shown.EditedAt.ToShortDisplayDate()}");
+
+    protected override void OnParametersSet()
+    {
+        // Opens on the first letter, or on a new one when there is none.
+        if (!_filled)
+        {
+            _filled = true;
+            Fill(Letters.FirstOrDefault());
+            return;
+        }
+
+        // The page sends the letters again after each save, and after a status change: the editor is only filled again
+        // when its letter changed or is gone, so the text being written stays.
+        if (_selectedId is { } id)
+        {
+            var letter = Letters.FirstOrDefault(l => l.Id == id);
+            if (letter != _shown)
+            {
+                Fill(letter ?? Letters.FirstOrDefault());
+            }
+        }
+    }
+
+    /// <summary>Shows the letter in the editor, or an empty editor for a new letter.</summary>
+    private void Fill(CoverLetterDto? letter)
+    {
+        _selectedId = letter?.Id;
+        _shown = letter;
+        _input = letter?.ToInput() ?? new CoverLetterInput();
+        _editContext = new EditContext(_input);
+        _length = _input.Content.Length;
+    }
+
+    private void StartNew() => Fill(null);
+
+    private void CountCharacters(ChangeEventArgs args) => _length = (args.Value as string)?.Length ?? 0;
+
+    private async Task SaveAsync()
+    {
+        if (_selectedId is { } id)
+        {
+            // A letter deleted from another tab: the refreshed list shows where things stand.
+            await CoverLetterService.UpdateAsync(id, _input);
+        }
+        else
+        {
+            var result = await CoverLetterService.CreateAsync(ApplicationId, _input);
+            if (!result.TryGetValue(out var createdId))
+            {
+                NavigationManager.NotFound();
+                return;
+            }
+
+            // Shown once the page has read the letters again.
+            _selectedId = createdId;
+        }
+
+        NavigationManager.Refresh();
+    }
+
+    private async Task DeleteAsync()
+    {
+        // Already deleted from another tab: the refreshed list shows it gone too.
+        await CoverLetterService.DeleteAsync(_selectedId!.Value);
+        await _deleteSheet.CloseAsync();
+        NavigationManager.Refresh();
+    }
+}

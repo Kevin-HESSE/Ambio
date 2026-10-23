@@ -1,8 +1,10 @@
 using Ambio.Application.Common;
+using Ambio.Application.CoverLetters;
 using Ambio.Application.JobApplications;
 using Ambio.Application.JobApplications.Dtos;
 using Ambio.Domain.JobApplications;
 using Ambio.Web.Components.Companies;
+using Ambio.Web.Components.CoverLetters.Shared;
 using Ambio.Web.Components.JobApplications;
 using Ambio.Web.Components.JobApplications.Pages;
 using Ambio.Web.Components.JobApplications.Shared;
@@ -38,11 +40,13 @@ public class JobApplicationDetailsTests : BunitContext
     private static readonly DateTime ArchivedAt = new(2026, 9, 27, 9, 0, 0, DateTimeKind.Utc);
 
     private readonly IJobApplicationService _jobApplicationService = Substitute.For<IJobApplicationService>();
+    private readonly ICoverLetterService _coverLetterService = Substitute.For<ICoverLetterService>();
     private readonly ToastService _toasts = new();
 
     public JobApplicationDetailsTests()
     {
         Services.AddSingleton(_jobApplicationService);
+        Services.AddSingleton(_coverLetterService);
         Services.AddSingleton(_toasts);
         // The page is static; its change status sheet is interactive once the circuit is up.
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
@@ -214,6 +218,55 @@ public class JobApplicationDetailsTests : BunitContext
     }
 
     [Fact]
+    public void Render_WithoutTab_ShowsTheOverviewAndCountsTheLetters()
+    {
+        var application = OfferApplicationDetailsFactory.GetGenerator().Generate();
+        GivenApplication(application);
+        _coverLetterService.ListAsync(application.Id, Arg.Any<CancellationToken>()).Returns(CoverLetterFactory.GetGenerator().Generate(2));
+
+        var cut = RenderDetails(Key(application));
+
+        Assert.Equal(
+            JobApplicationRoutes.Details(application.ShortId, application.Slug, JobApplicationRoutes.OverviewTab),
+            cut.Find("nav.tabs a.tab.active").GetAttribute("href"));
+        var letters = cut.Find($"nav.tabs a.tab[href='{JobApplicationRoutes.Details(application.ShortId, application.Slug, JobApplicationRoutes.LettersTab)}']");
+        Assert.Equal("2", letters.QuerySelector(".tab-count")!.TextContent);
+        Assert.NotNull(cut.Find(".application-overview"));
+        Assert.Empty(cut.FindComponents<CoverLetterEditor>());
+        Assert.DoesNotContain("desktop-only", cut.Find(".application-detail-history").ClassList);
+    }
+
+    [Fact]
+    public void Render_OnLettersTab_ShowsTheLettersAndKeepsTheHistoryForDesktop()
+    {
+        var application = OfferApplicationDetailsFactory.GetGenerator().Generate();
+        GivenApplication(application);
+        var letters = CoverLetterFactory.GetGenerator().Generate(2);
+        _coverLetterService.ListAsync(application.Id, Arg.Any<CancellationToken>()).Returns(letters);
+        NavigateToTab(application, JobApplicationRoutes.LettersTab);
+
+        var cut = RenderDetails(Key(application));
+
+        var editor = cut.FindComponent<CoverLetterEditor>();
+        Assert.Equal((application.Id, letters), (editor.Instance.ApplicationId, editor.Instance.Letters));
+        Assert.Empty(cut.FindAll(".application-overview"));
+        Assert.Contains("desktop-only", cut.Find(".application-detail-history").ClassList);
+    }
+
+    [Fact]
+    public void Render_WithAnotherSlugOnLettersTab_RedirectsToTheCanonicalUrlOnTheSameTab()
+    {
+        var application = OfferApplicationDetailsFactory.GetGenerator().Generate();
+        GivenApplication(application);
+        var navigation = Services.GetRequiredService<BunitNavigationManager>();
+        navigation.NavigateTo(JobApplicationRoutes.Details(application.ShortId, "old-title", JobApplicationRoutes.LettersTab));
+
+        RenderDetails($"{application.ShortId}-old-title");
+
+        Assert.EndsWith($"/{JobApplicationRoutes.Details(application.ShortId, application.Slug, JobApplicationRoutes.LettersTab)}", navigation.Uri);
+    }
+
+    [Fact]
     public void Render_WithUnknownShortId_RequestsNotFound()
     {
         var notFound = false;
@@ -302,6 +355,9 @@ public class JobApplicationDetailsTests : BunitContext
 
     private void GivenApplication(JobApplicationDetailsDto application) =>
         _jobApplicationService.GetAsync(application.ShortId, Arg.Any<CancellationToken>()).Returns(application);
+
+    private void NavigateToTab(JobApplicationDetailsDto application, string tab) =>
+        Services.GetRequiredService<BunitNavigationManager>().NavigateTo(JobApplicationRoutes.Details(application.ShortId, application.Slug, tab));
 
     private static string Key(JobApplicationDetailsDto application) => ShortIdKey.Of(application.ShortId, application.Slug);
 
