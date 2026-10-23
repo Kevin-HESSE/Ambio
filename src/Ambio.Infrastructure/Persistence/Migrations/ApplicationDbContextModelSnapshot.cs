@@ -73,6 +73,35 @@ namespace Ambio.Infrastructure.Persistence.Migrations
                     b.ToTable("Companies");
                 });
 
+            modelBuilder.Entity("Ambio.Domain.CoverLetters.CoverLetter", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("JobApplicationId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JobApplicationId");
+
+                    b.ToTable("CoverLetters", (string)null);
+                });
+
             modelBuilder.Entity("Ambio.Domain.JobApplications.JobApplication", b =>
                 {
                     b.Property<Guid>("Id")
@@ -494,6 +523,15 @@ namespace Ambio.Infrastructure.Persistence.Migrations
                         });
 
                     b.HasDiscriminator().HasValue("Spontaneous");
+                });
+
+            modelBuilder.Entity("Ambio.Domain.CoverLetters.CoverLetter", b =>
+                {
+                    b.HasOne("Ambio.Domain.JobApplications.JobApplication", null)
+                        .WithMany()
+                        .HasForeignKey("JobApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Ambio.Domain.JobApplications.StatusChange", b =>
