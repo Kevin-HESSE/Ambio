@@ -5,7 +5,7 @@
 Ambio is a proof of concept for an official version built in separate repositories: an API, a SPA, maybe a desktop app ([ADR 0024](docs/adr/0024-proof-of-concept.md)). It is in Phase 1 (see `docs/roadmap.md`): a .NET 10 Blazor Web App with ASP.NET Core Identity, split into layered projects (Domain, Application, Infrastructure, Web).
 
 Every project is organised by feature folders ([ADR 0018](docs/adr/0018-feature-folders-in-every-project.md)).
-- Features built so far: `Companies`, `JobOffers` (with their postings) and `JobApplications` (to an offer or spontaneous).
+- Features built so far: `Companies`, `JobOffers` (with their postings), `JobApplications` (to an offer or spontaneous) and `CoverLetters`.
 - Tests live in `tests/` and mirror the project under test: Domain, Application, Infrastructure, Web (bUnit) and E2E (Playwright)
 
 ## Stack

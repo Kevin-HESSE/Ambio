@@ -1,9 +1,11 @@
 using Ambio.Application.Companies;
+using Ambio.Application.CoverLetters;
 using Ambio.Application.JobApplications;
 using Ambio.Application.Offers;
 using Ambio.Application.Users;
 using Ambio.Infrastructure.Common;
 using Ambio.Infrastructure.Companies;
+using Ambio.Infrastructure.CoverLetters;
 using Ambio.Infrastructure.JobApplications;
 using Ambio.Infrastructure.Offers;
 using Ambio.Infrastructure.Persistence;
@@ -59,6 +61,7 @@ public static class InfrastructureExtensions
         services.AddScoped<ICompanyService, CompanyService>();
         services.AddScoped<IJobOfferService, JobOfferService>();
         services.AddScoped<IJobApplicationService, JobApplicationService>();
+        services.AddScoped<ICoverLetterService, CoverLetterService>();
 
         return services;
     }

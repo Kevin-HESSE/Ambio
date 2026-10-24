@@ -30,6 +30,12 @@ public static class JobApplicationRoutes
 
     public const string New = "applications/new";
 
+    /// <summary>Value of the Overview tab of the application page.</summary>
+    public const string OverviewTab = "overview";
+
+    /// <summary>Value of the Cover letters tab of the application page.</summary>
+    public const string LettersTab = "letters";
+
     /// <summary>The new application page with this offer already chosen.</summary>
     public static string NewForOffer(string offerShortId) => $"applications/new?offer={offerShortId}";
 
@@ -50,6 +56,9 @@ public static class JobApplicationRoutes
         }.Where(pair => pair.Value is not null));
 
     public static string Details(string shortId, string slug) => $"applications/{ShortIdKey.Of(shortId, slug)}";
+
+    /// <summary>The application page showing one of its tabs, such as <see cref="LettersTab"/>.</summary>
+    public static string Details(string shortId, string slug, string tab) => $"{Details(shortId, slug)}?tab={tab}";
 
     public static string Edit(string shortId, string slug) => $"applications/{ShortIdKey.Of(shortId, slug)}/edit";
 }

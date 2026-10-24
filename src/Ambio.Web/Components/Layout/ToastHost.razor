@@ -21,7 +21,19 @@
     }
 </div>
 
+@* The toast shown by the browser, such as after a copy (wwwroot/js/shell.js), which fills its icon and message and puts
+   it in the region: it keeps the markup and the look of the toasts of the server. *@
+<template id="@TemplateId">
+    <div class="toast show">
+        <i class="bi" aria-hidden="true"></i>
+        <span class="toast-message"></span>
+    </div>
+</template>
+
 @code {
+    /// <summary>Id of the template of the toasts shown by the browser.</summary>
+    public const string TemplateId = "toast-template";
+
     protected override void OnInitialized() => Toasts.Changed += OnChanged;
 
     private void OnChanged() => InvokeAsync(StateHasChanged);

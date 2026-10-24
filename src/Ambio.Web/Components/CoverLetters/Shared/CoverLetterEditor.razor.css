@@ -1,0 +1,64 @@
+/* The list above the editor below 992 px, on its left above (docs/mockups). */
+.cover-letters {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--ambio-space-16);
+}
+
+.cover-letter-list-empty {
+    padding: var(--ambio-space-12) var(--ambio-space-16);
+}
+
+.cover-letter-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ambio-space-2);
+    width: 100%;
+    padding: var(--ambio-space-12) var(--ambio-space-16);
+    border: 0;
+    background: none;
+    color: inherit;
+    text-align: start;
+}
+
+.cover-letter-item:hover:not(:disabled) {
+    background: var(--ambio-bg-subtle);
+}
+
+.cover-letter-item.selected {
+    background: var(--ambio-accent-subtle);
+}
+
+.cover-letter-item.selected .cover-letter-item-title {
+    color: var(--ambio-accent-text);
+}
+
+.cover-letter-item-title {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cover-letter-form {
+    --gap: var(--ambio-space-16);
+}
+
+.cover-letter-form ::deep #cover-letter-content {
+    min-height: 14lh;
+}
+
+.cover-letter-foot {
+    justify-content: space-between;
+}
+
+.cover-letter-delete {
+    color: var(--ambio-text-secondary);
+}
+
+@media (min-width: 992px) {
+    .cover-letters {
+        grid-template-columns: 280px minmax(0, 1fr);
+        align-items: start;
+    }
+}

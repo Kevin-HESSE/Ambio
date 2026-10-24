@@ -7,6 +7,8 @@ namespace Ambio.Web.Tests.Components.JobApplications;
 public class JobApplicationRoutesTests
 {
     private const string CompanySlug = "brightwave";
+    private const string ShortId = "482913";
+    private const string Slug = "backend-developer-brightwave";
 
     [Fact]
     public void Filtered_EmptyFilter_ReturnsTheList()
@@ -30,5 +32,13 @@ public class JobApplicationRoutesTests
         var url = JobApplicationRoutes.Filtered(new JobApplicationFilter(Status: ApplicationStatus.Applied, Search: "  "));
 
         Assert.Equal("applications?status=applied", url);
+    }
+
+    [Fact]
+    public void Details_WithTab_WritesItInTheQueryString()
+    {
+        var url = JobApplicationRoutes.Details(ShortId, Slug, JobApplicationRoutes.LettersTab);
+
+        Assert.Equal($"applications/{ShortId}-{Slug}?tab=letters", url);
     }
 }
