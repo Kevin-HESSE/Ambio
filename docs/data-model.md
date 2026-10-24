@@ -111,6 +111,7 @@ erDiagram
     }
     COVER_LETTER {
         guid Id
+        guid JobApplicationId
         string Title
         text Content "plain text"
     }
@@ -256,7 +257,10 @@ Dated events of an application: `Interview`, `PhoneCall`, `Email`, `FollowUp`, `
 
 ### CoverLetter and CvDocument
 
-- Cover letters are plain text, with 1..n per application.
+- **Cover letters** are plain text: an application has any number of them, none at first. A `CoverLetter` refers to its application by `JobApplicationId`, without a navigation on `JobApplication`, and has its own `DbSet`.
+  - `Title` and `Content` are required, trimmed at both ends; the line breaks inside the text are kept.
+  - They are listed in the order written (`CreatedAt`), so the list doesn't move when one is saved. The day it was last edited is its `UpdatedAt`.
+  - A letter is deleted for good, after a confirmation: nothing refers to it ([ADR 0012](adr/0012-archive-instead-of-delete.md)). The letters are deleted with their application, and those of an archived application can still be edited ([ADR 0027](adr/0027-archiving-cascade-and-restore.md)).
 - `CvDocument` is the metadata of a CV file (uploaded or generated). With `JobApplicationId = null`, it's a general CV. See [architecture.md](architecture.md#data-model) and [ADR 0007](adr/0007-cv-snapshots-selection-and-override.md).
 
 ### UserSettings
@@ -378,6 +382,7 @@ At the data volume of a single user, both costs are negligible.
 - **Details** use one DTO per subtype, `OfferApplicationDetailsDto` and `SpontaneousApplicationDetailsDto`, deriving from the abstract `JobApplicationDetailsDto`. The service reads them with one projection per subtype (`OfType<…>()`): a single projection can't build either type.
 - The details carry the `StatusHistory` (`StatusChangeDto`: `From`, `To`, `ChangedAt`, `Comment`), newest first, and the computed `NextStatuses` (`StatusWorkflow.Next(Status)`), which the change status sheet offers.
 - A status is changed with `ChangeStatusAsync(id, StatusChangeInput)`: the new status `To` (required), `SentOn` (required for `Applied`) and `Comment`. It fails with `NotFound`, with `Archived` when the application is archived, or with `StatusNotAllowed` when the status can't follow the current one, such as when another tab changed it.
+- **Cover letters**: `ICoverLetterService` lists the letters of an application as `CoverLetterDto` (`Id`, `Title`, `Content`, `EditedAt`), creates one from a `CoverLetterInput` (`Title`, `Content`) and returns its id, updates and deletes one. It fails with `ApplicationNotFound` or `NotFound`.
 - **Archiving**: the summaries carry `IsArchived`, the details `ArchivedAt` (and the computed `IsArchived`), for companies, offers and applications. The lists take `includeArchived` (`JobApplicationFilter.IncludeArchived` for the applications list, which `IsEmpty` counts as a criterion); the status counts follow it. `CompanyListDto`, `JobOfferListDto` and `JobApplicationListDto` carry `HasArchived`, true when any row is archived, listed or not, so an empty list can say that everything is archived. Each service has `ArchiveAsync(id)` and `RestoreAsync(id)`, which return a `ServiceResult`. The company search and the similar offers stay limited to active rows.
 
 ## Common queries

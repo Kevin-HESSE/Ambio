@@ -52,6 +52,14 @@ Newest first. Each entry follows this format:
 - Change in the official version: what to do differently
 ```
 
+### 2026-10-24 — Cover letters (#38)
+
+- Kept: the letters and their editor are one island keyed by the application. Each save or deletion refreshes the static page, so the count of the tab follows, and the island keeps the letter shown and a text being written. Without `@key`, a refresh starts a new island: the note of #30 that the island "receives its new parameters" only holds with a key, which the change status sheet didn't need.
+- Kept: a cover letter is its own aggregate, pointing to its application, rather than a collection of the application: editing one doesn't load the others.
+- Kept: Copy runs in a click handler of `shell.js`, which reads the text as typed and shows a toast from the template of `ToastHost`. Safari and iOS refuse a clipboard write that comes after a round trip to the server, as a Blazor JS interop call would.
+- Not needed: nothing so far.
+- Change in the official version: the Clipboard API needs a secure context. Served over plain HTTP on a local network (Docker), the browser falls back to `execCommand("copy")`, which is deprecated: the official version should be served over HTTPS. Switching letters or tabs drops a text not saved without warning: a SPA could keep a draft per letter or ask before leaving.
+
 ### 2026-10-23 — Archiving instead of deleting (#31)
 
 - Kept: archive and restore are hidden static forms sent by enhanced navigation, which buttons anywhere on the page reach through their `form` attribute (⋯ menu, banner, Undo). No circuit is needed, so the buttons work at once. The toast comes from a request-scoped `ToastService`, filled by the page's handler and rendered by the layout in the same response.

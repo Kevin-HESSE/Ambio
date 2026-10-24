@@ -57,7 +57,7 @@ Each item is a vertical slice: domain, persistence, service, page and tests for 
 - [x] Status change and history: `Draft → Applied → Interview → Offer / Rejected / Withdrawn`, every change recorded as a timestamped `StatusChange`, and an end-to-end journey from a company to a status change
 - [x] Applications list: filters by status, company and kind, search, sort by date
 - [x] Archiving instead of deleting ([ADR 0012](adr/0012-archive-instead-of-delete.md)) for companies, offers and applications, with an "Archived" filter, an Undo toast and a restore action
-- [ ] **Cover letters**: plain text, 1..n per application, textarea editor, copy to clipboard
+- [x] **Cover letters**: plain text, any number per application, textarea editor, copy to clipboard
 - [ ] **CV upload**: attach the PDF that was actually sent (`CvDocument` with `Source = Uploaded`), stored through `IDocumentStorage` under `/data/documents`
   - PDF only, size limit configurable
   - Download and in-browser preview
