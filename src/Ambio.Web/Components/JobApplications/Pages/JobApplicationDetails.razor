@@ -78,7 +78,9 @@
             <TabNav Label="Application sections" Tabs="Tabs" Active="@ActiveTab" />
             @if (ActiveTab == JobApplicationRoutes.LettersTab)
             {
-                <CoverLetterEditor @rendermode="InteractiveServer" ApplicationId="_application.Id" Letters="_letters" />
+                @* Its key lets a refresh of the page update the running island instead of starting a new one, which would
+                   lose the letter being written. *@
+                <CoverLetterEditor @key="_application.Id" @rendermode="InteractiveServer" ApplicationId="_application.Id" Letters="_letters" />
             }
             else
             {
