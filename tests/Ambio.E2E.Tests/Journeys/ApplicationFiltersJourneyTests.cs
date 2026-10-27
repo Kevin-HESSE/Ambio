@@ -19,7 +19,6 @@ public class ApplicationFiltersJourneyTests : IClassFixture<AmbioAppFixture>
     }
 
     private const string ApplicationsPath = "applications";
-    private const string NewApplicationPath = "applications/new";
     private const string SentCompany = "Brightwave";
     private const string SentPosition = "Développeur Backend";
     private const string DraftCompany = "Kelvio";
@@ -31,8 +30,8 @@ public class ApplicationFiltersJourneyTests : IClassFixture<AmbioAppFixture>
     public async Task User_SearchesAndFiltersTheApplicationsOnDesktopThenWithTheChipsAndTheSheetOnAPhone()
     {
         var page = await _app.NewLoggedInPageAsync(new() { ViewportSize = new() { Width = 1440, Height = 900 } });
-        await CreateSpontaneousApplicationAsync(page, SentCompany, SentPosition, SentOn);
-        await CreateSpontaneousApplicationAsync(page, DraftCompany, DraftPosition, sentOn: null);
+        await page.CreateSpontaneousApplicationAsync(SentCompany, SentPosition, SentOn);
+        await page.CreateSpontaneousApplicationAsync(DraftCompany, DraftPosition, sentOn: null);
 
         // Desktop: the search applies on Enter, and finds the title without its accents.
         await page.GotoAsync(ApplicationsPath);
@@ -77,24 +76,5 @@ public class ApplicationFiltersJourneyTests : IClassFixture<AmbioAppFixture>
         await Expect(phone).ToHaveURLAsync(new Regex($"/{ApplicationsPath}\\?company=kelvio$"));
         await Expect(cards).ToHaveCountAsync(1);
         await Expect(cards).ToContainTextAsync(DraftPosition);
-    }
-
-    // A spontaneous application to a new company, sent on sentOn or left a draft.
-    private static async Task CreateSpontaneousApplicationAsync(IPage page, string companyName, string targetPosition, string? sentOn)
-    {
-        await page.GotoAsync(NewApplicationPath);
-        // The toggle waits for the circuit; its radio is hidden behind its label, which takes the click.
-        await Expect(page.GetByRole(AriaRole.Radio, new() { Name = "Spontaneous" })).ToBeEnabledAsync();
-        await page.GetByText("Spontaneous", new() { Exact = true }).ClickAsync();
-        await page.GetByLabel("Company", new() { Exact = true }).FillAsync(companyName);
-        await page.GetByRole(AriaRole.Button, new() { Name = $"Create the company “{companyName}”" }).ClickAsync();
-        await page.GetByLabel("Target position").FillAsync(targetPosition);
-        if (sentOn is not null)
-        {
-            await page.GetByLabel("Already sent").CheckAsync();
-            await page.GetByLabel("Sent on").FillAsync(sentOn);
-        }
-        await page.GetByRole(AriaRole.Button, new() { Name = "Create application" }).ClickAsync();
-        await Expect(page.GetByRole(AriaRole.Heading, new() { Name = targetPosition, Level = 1 })).ToBeVisibleAsync();
     }
 }

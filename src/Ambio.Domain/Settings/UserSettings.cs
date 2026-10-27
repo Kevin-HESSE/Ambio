@@ -23,4 +23,8 @@ public class UserSettings
             field = value;
         }
     } = DefaultFollowUpAfterDays;
+
+    /// <summary>The last sending day of the applications that need a follow-up on <paramref name="today"/>: one still
+    /// Applied, sent on this day or before, has waited <see cref="FollowUpAfterDays"/> days or more.</summary>
+    public DateOnly LastSendingDayToFollowUp(DateOnly today) => today.AddDays(-FollowUpAfterDays);
 }

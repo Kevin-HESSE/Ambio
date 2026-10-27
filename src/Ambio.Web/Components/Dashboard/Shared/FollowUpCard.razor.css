@@ -1,0 +1,13 @@
+.follow-up-heading {
+    --gap: var(--ambio-space-2);
+}
+
+/* The amber of the Interview status (css/statuses.css): "in progress, prepare". */
+.follow-up-age {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ambio-space-4);
+    color: var(--status-fg);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}

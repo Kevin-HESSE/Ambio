@@ -116,7 +116,7 @@ Every attribute that isn't a status is a **neutral tag**. The icon distinguishes
 
 | Style | Size / line height (px) | Weight | Usage |
 |---|---|---|---|
-| `text/display` | 32 / 40 | SemiBold 600 | Dashboard title |
+| `text/display` | 32 / 40 | SemiBold 600 | Not used yet: the dashboard has the page header of every page (`text/h1`), as in the mockups |
 | `text/h1` | 28 / 36 | SemiBold 600 | Page title |
 | `text/h2` | 22 / 30 | SemiBold 600 | Section title |
 | `text/h3` | 18 / 26 | SemiBold 600 | Card title |

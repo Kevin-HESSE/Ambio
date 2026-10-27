@@ -35,6 +35,20 @@ public class UserSettingsTests
         Assert.Throws<ArgumentOutOfRangeException>(() => settings.FollowUpAfterDays = days);
     }
 
+    [Fact]
+    public void LastSendingDayToFollowUp_WithDefaultDelay_IsAWeekBefore()
+    {
+        Assert.Equal(new DateOnly(2026, 10, 20), new UserSettings().LastSendingDayToFollowUp(new DateOnly(2026, 10, 27)));
+    }
+
+    [Fact]
+    public void LastSendingDayToFollowUp_WithChosenDelay_CountsItsDaysAcrossMonths()
+    {
+        var settings = new UserSettings { FollowUpAfterDays = 14 };
+
+        Assert.Equal(new DateOnly(2026, 9, 26), settings.LastSendingDayToFollowUp(new DateOnly(2026, 10, 10)));
+    }
+
     public static TheoryData<int> OutOfBoundsDelays =>
     [
         0,

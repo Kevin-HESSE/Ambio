@@ -1,0 +1,24 @@
+.activity-item {
+    display: flex;
+    gap: var(--ambio-space-12);
+    padding: var(--ambio-space-12) var(--ambio-space-16);
+}
+
+/* A round icon in the colors of the status reached (css/statuses.css). */
+.activity-icon {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--status-border);
+    border-radius: var(--ambio-radius-full);
+    background: var(--status-bg);
+    color: var(--status-solid);
+    font-size: 13px;
+}
+
+.activity-text {
+    flex: 1;
+    min-width: 0;
+}

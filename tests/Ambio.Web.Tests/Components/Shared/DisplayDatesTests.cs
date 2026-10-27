@@ -30,4 +30,10 @@ public class DisplayDatesTests
     {
         Assert.Equal("3 Sep", Day.ToShortDisplayDate());
     }
+
+    [Fact]
+    public void ToLongDisplayDate_OfDay_WritesWeekdayDayMonthAndYear()
+    {
+        Assert.Equal("Thursday 3 September 2026", Day.ToLongDisplayDate());
+    }
 }
