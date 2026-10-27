@@ -3,6 +3,7 @@ using Ambio.Web.Components.Shared;
 using Bunit;
 
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 
 using NSubstitute;
 
@@ -85,14 +86,15 @@ public class SearchFieldTests : BunitContext
     }
 
     [Fact]
-    public void Click_OnAResult_SelectsIt()
+    public async Task Click_OnAResult_SelectsIt()
     {
         string? selected = null;
         var cut = RenderField(result => selected = result);
         cut.Find($"#{Id}").Input(Text);
         cut.WaitForElement("button.search-field-result");
 
-        cut.FindAll("button.search-field-result")[1].Click();
+        // Click() can return before the handler runs, while the renderer still ends the search; ClickAsync waits for it.
+        await cut.FindAll("button.search-field-result")[1].ClickAsync(new MouseEventArgs());
 
         Assert.Equal(Results[1], selected);
     }
