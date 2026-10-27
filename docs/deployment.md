@@ -22,7 +22,8 @@ Ambio ships as a Docker image published on Docker Hub for `linux/amd64` and `lin
 | Variable | Purpose | Default |
 |---|---|---|
 | `ConnectionStrings__DefaultConnection` | SQLite connection string | `Data Source=/data/ambio.db` |
-| `Ambio__Storage__Root` | Root folder for documents and photos | `/data` |
+| `Ambio__Storage__Root` | Root folder for documents and photos; a relative path starts from the app's folder | `/data` |
+| `Ambio__Storage__MaxUploadSizeInMegabytes` | Largest CV PDF accepted on upload, in megabytes | `5` |
 | `Ambio__Demo__Enabled` | Seed a demo account and data | `false` |
 | `Ambio__ShortId__Alphabet`, `Ambio__ShortId__Size` | Alphabet and length of the short ids in application URLs: lowercase, never `-` (see [data-model.md](data-model.md#application-hierarchy)) | `0123456789`, `6` |
 

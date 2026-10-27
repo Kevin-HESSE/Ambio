@@ -1,5 +1,6 @@
 using Ambio.Domain.Companies;
 using Ambio.Domain.CoverLetters;
+using Ambio.Domain.CvDocuments;
 using Ambio.Domain.JobApplications;
 using Ambio.Domain.Offers;
 using Ambio.Infrastructure.Users;
@@ -22,6 +23,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<JobApplication> JobApplications => Set<JobApplication>();
 
     public DbSet<CoverLetter> CoverLetters => Set<CoverLetter>();
+
+    public DbSet<CvDocument> CvDocuments => Set<CvDocument>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

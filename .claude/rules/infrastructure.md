@@ -21,6 +21,7 @@ Code is organised by feature, like Application ([ADR 0018](../../docs/adr/0018-f
 - Infrastructure implements the Application interfaces. Implementations are `internal`, live in their feature folder, and are registered in `AddApplicationServices()`; the database and Identity are registered in `AddDatabase()` (both in `InfrastructureExtensions.cs`). `AddDatabase()` reads the SQLite connection string `DefaultConnection` from the Web project's `appsettings.json`.
 - Expected failures return `ServiceResult.Failure(<Feature>Errors.X)`. Unexpected exceptions are logged with `ILogger`, then mapped to a failure.
 - `Company.Slug` is generated from the name with `Slug.From` by the creating service and recomputed on rename, with a numeric suffix while it is reserved or taken ([ADR 0021](../../docs/adr/0021-slug-urls-for-companies.md)).
+- Files go through `IDocumentStorage` (Application), implemented by `Common/FileSystemDocumentStorage` under `Ambio:Storage:Root` (`StorageOptions`, validated at startup), with paths relative to the root that always use `/` ([ADR 0005](../../docs/adr/0005-sqlite-and-filesystem-storage.md)). A service writes the file first, then the row, and removes the file when the row can't be saved.
 - `ShortId` is generated with NanoId through `Common/ShortIdGenerator` (options `Ambio:ShortId`), which draws again while the value is taken ([ADR 0014](../../docs/adr/0014-short-id-and-slug-urls.md)).
 
 ## Data access

@@ -1,10 +1,12 @@
 using Ambio.Application.Common;
 using Ambio.Application.CoverLetters;
+using Ambio.Application.CvDocuments;
 using Ambio.Application.JobApplications;
 using Ambio.Application.JobApplications.Dtos;
 using Ambio.Domain.JobApplications;
 using Ambio.Web.Components.Companies;
 using Ambio.Web.Components.CoverLetters.Shared;
+using Ambio.Web.Components.CvDocuments.Shared;
 using Ambio.Web.Components.JobApplications;
 using Ambio.Web.Components.JobApplications.Pages;
 using Ambio.Web.Components.JobApplications.Shared;
@@ -41,12 +43,14 @@ public class JobApplicationDetailsTests : BunitContext
 
     private readonly IJobApplicationService _jobApplicationService = Substitute.For<IJobApplicationService>();
     private readonly ICoverLetterService _coverLetterService = Substitute.For<ICoverLetterService>();
+    private readonly ICvDocumentService _cvDocumentService = Substitute.For<ICvDocumentService>();
     private readonly ToastService _toasts = new();
 
     public JobApplicationDetailsTests()
     {
         Services.AddSingleton(_jobApplicationService);
         Services.AddSingleton(_coverLetterService);
+        Services.AddSingleton(_cvDocumentService);
         Services.AddSingleton(_toasts);
         // The page is static; its change status sheet is interactive once the circuit is up.
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
@@ -249,6 +253,38 @@ public class JobApplicationDetailsTests : BunitContext
 
         var editor = cut.FindComponent<CoverLetterEditor>();
         Assert.Equal((application.Id, letters), (editor.Instance.ApplicationId, editor.Instance.Letters));
+        Assert.Empty(cut.FindAll(".application-overview"));
+        Assert.Contains("desktop-only", cut.Find(".application-detail-history").ClassList);
+    }
+
+    [Fact]
+    public void Render_WithoutTab_CountsTheCvs()
+    {
+        var application = OfferApplicationDetailsFactory.GetGenerator().Generate();
+        GivenApplication(application);
+        _cvDocumentService.ListAsync(application.Id, Arg.Any<CancellationToken>()).Returns(CvDocumentFactory.GetGenerator().Generate(3));
+
+        var cut = RenderDetails(Key(application));
+
+        var cvs = cut.Find($"nav.tabs a.tab[href='{JobApplicationRoutes.Details(application.ShortId, application.Slug, JobApplicationRoutes.CvTab)}']");
+        Assert.Equal("3", cvs.QuerySelector(".tab-count")!.TextContent);
+        Assert.Empty(cut.FindComponents<PdfUpload>());
+    }
+
+    [Fact]
+    public void Render_OnCvTab_ShowsTheUploadAndTheCvsAndKeepsTheHistoryForDesktop()
+    {
+        var application = OfferApplicationDetailsFactory.GetGenerator().Generate();
+        GivenApplication(application);
+        var cvs = CvDocumentFactory.GetGenerator().Generate(2);
+        _cvDocumentService.ListAsync(application.Id, Arg.Any<CancellationToken>()).Returns(cvs);
+        NavigateToTab(application, JobApplicationRoutes.CvTab);
+
+        var cut = RenderDetails(Key(application));
+
+        Assert.Equal(application.Id, cut.FindComponent<PdfUpload>().Instance.ApplicationId);
+        Assert.Equal(cvs, cut.FindComponent<CvDocumentList>().Instance.Documents);
+        Assert.Equal(cvs.Select(cv => cv.FileName), cut.FindAll(".cv-item-name").Select(name => name.TextContent));
         Assert.Empty(cut.FindAll(".application-overview"));
         Assert.Contains("desktop-only", cut.Find(".application-detail-history").ClassList);
     }

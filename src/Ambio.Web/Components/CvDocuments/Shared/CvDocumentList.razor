@@ -1,0 +1,35 @@
+@* The CVs sent with the application, newest first, in the CV tab of its page (docs/ui.md, screen 7), each with
+   Preview (a new tab) and Download. Nothing is shown while there is none: the drop zone above says what the tab is
+   for. *@
+@if (Documents.Count > 0)
+{
+    <section class="card" aria-labelledby="cv-list-title">
+        <div class="card-header">
+            <h2 id="cv-list-title" class="t-h3">Sent CVs</h2>
+        </div>
+        <ul class="list-divided">
+            @foreach (var document in Documents)
+            {
+                <li class="cv-item">
+                    <i class="bi bi-file-earmark-pdf cv-item-icon" aria-hidden="true"></i>
+                    <div class="cv-item-text">
+                        <span class="cv-item-name t-body-strong">@document.FileName</span>
+                        <span class="t-small t-secondary num">
+                            @document.Size.ToDisplaySize() · Uploaded
+                            <time datetime="@document.UploadedAt.ToString("yyyy-MM-dd")">@document.UploadedAt.ToDisplayDate()</time>
+                        </span>
+                    </div>
+                    <ButtonLink Href="@CvDocumentRoutes.Preview(document.Id)" Icon="eye" IconOnly class="btn-sm"
+                                target="_blank" rel="noopener" data-enhance-nav="false" aria-label="@($"Preview {document.FileName}")" />
+                    <ButtonLink Href="@CvDocumentRoutes.Download(document.Id)" Icon="download" IconOnly class="btn-sm"
+                                data-enhance-nav="false" aria-label="@($"Download {document.FileName}")" />
+                </li>
+            }
+        </ul>
+    </section>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public IReadOnlyList<CvDocumentDto> Documents { get; set; } = [];
+}

@@ -102,6 +102,45 @@ namespace Ambio.Infrastructure.Persistence.Migrations
                     b.ToTable("CoverLetters", (string)null);
                 });
 
+            modelBuilder.Entity("Ambio.Domain.CvDocuments.CvDocument", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("JobApplicationId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("Size")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("StoragePath")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JobApplicationId");
+
+                    b.HasIndex("StoragePath")
+                        .IsUnique();
+
+                    b.ToTable("CvDocuments", (string)null);
+                });
+
             modelBuilder.Entity("Ambio.Domain.JobApplications.JobApplication", b =>
                 {
                     b.Property<Guid>("Id")
@@ -531,6 +570,15 @@ namespace Ambio.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("JobApplicationId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Ambio.Domain.CvDocuments.CvDocument", b =>
+                {
+                    b.HasOne("Ambio.Domain.JobApplications.JobApplication", null)
+                        .WithMany()
+                        .HasForeignKey("JobApplicationId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 

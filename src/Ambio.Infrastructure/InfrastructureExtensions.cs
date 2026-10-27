@@ -1,11 +1,14 @@
+using Ambio.Application.Common;
 using Ambio.Application.Companies;
 using Ambio.Application.CoverLetters;
+using Ambio.Application.CvDocuments;
 using Ambio.Application.JobApplications;
 using Ambio.Application.Offers;
 using Ambio.Application.Users;
 using Ambio.Infrastructure.Common;
 using Ambio.Infrastructure.Companies;
 using Ambio.Infrastructure.CoverLetters;
+using Ambio.Infrastructure.CvDocuments;
 using Ambio.Infrastructure.JobApplications;
 using Ambio.Infrastructure.Offers;
 using Ambio.Infrastructure.Persistence;
@@ -57,11 +60,17 @@ public static class InfrastructureExtensions
             .Validate(options => options.IsValid(), $"{ShortIdOptions.Section}: the alphabet must be lowercase, without '-', and the size positive.")
             .ValidateOnStart();
         services.AddSingleton<ShortIdGenerator>();
+        services.AddOptions<StorageOptions>()
+            .BindConfiguration(StorageOptions.Section)
+            .Validate(options => options.IsValid(), $"{StorageOptions.Section}: the root must be set, and the upload size limit positive.")
+            .ValidateOnStart();
+        services.AddSingleton<IDocumentStorage, FileSystemDocumentStorage>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ICompanyService, CompanyService>();
         services.AddScoped<IJobOfferService, JobOfferService>();
         services.AddScoped<IJobApplicationService, JobApplicationService>();
         services.AddScoped<ICoverLetterService, CoverLetterService>();
+        services.AddScoped<ICvDocumentService, CvDocumentService>();
 
         return services;
     }

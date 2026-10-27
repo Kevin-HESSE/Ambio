@@ -52,6 +52,15 @@ Newest first. Each entry follows this format:
 - Change in the official version: what to do differently
 ```
 
+### 2026-10-27 — CV upload (#39)
+
+- Kept: the file is named after the id of its row (`documents/<yyyy>/<id>.pdf`, GUID v7), so it is written before the row is saved, and removed if the row fails. The stored path is a key that always uses `/`, so a backup of `/data` moves between systems.
+- Kept: the PDF is checked on its content (`%PDF-`), not its name or the type sent by the browser, and within the limit as it is read: the size the browser gives only saves sending a file sure to be refused.
+- Kept: preview and download are two plain GET endpoints outside Blazor, behind the login, linked with `data-enhance-nav="false"`; the preview is the browser's own viewer in a new tab, without any script.
+- Kept: the drop zone is a transparent `InputFile` laid over it: a drop reaches the input without JavaScript.
+- Not needed: nothing so far. There is no delete on purpose, as the tab is the record of what was sent: real use will tell whether a wrong upload needs one.
+- Change in the official version: `InputFile` streams the file over the SignalR circuit, and the service reads it whole in memory, within the limit, before checking it. An API would take a `multipart/form-data` upload and stream it to the storage. Android Chrome has no built-in PDF viewer, so the preview downloads the file there: a SPA could render it with PDF.js.
+
 ### 2026-10-24 — Cover letters (#38)
 
 - Kept: the letters and their editor are one island keyed by the application. Each save or deletion refreshes the static page, so the count of the tab follows, and the island keeps the letter shown and a text being written. Without `@key`, a refresh starts a new island: the note of #30 that the island "receives its new parameters" only holds with a key, which the change status sheet didn't need.
