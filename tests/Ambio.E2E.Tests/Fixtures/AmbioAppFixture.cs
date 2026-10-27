@@ -15,7 +15,7 @@ using Microsoft.Playwright;
 namespace Ambio.E2E.Tests.Fixtures;
 
 /// <summary>
-/// Starts the app on an empty, migrated SQLite file and a headless Chromium browser.
+/// Starts the app on an empty, migrated SQLite file, a temporary storage root and a headless Chromium browser.
 /// Chromium is installed on first run, so no separate install step is needed.
 /// </summary>
 public sealed class AmbioAppFixture : IAsyncLifetime
@@ -24,6 +24,7 @@ public sealed class AmbioAppFixture : IAsyncLifetime
     public const string UserPassword = "Passw0rd!";
 
     private readonly string _databasePath = Path.Combine(Path.GetTempPath(), $"ambio-e2e-{Guid.NewGuid()}.db");
+    private readonly string _storageRoot = Path.Combine(Path.GetTempPath(), $"ambio-e2e-{Guid.NewGuid()}");
     private AmbioAppFactory _factory = null!;
     private IPlaywright _playwright = null!;
     private bool _userCreated;
@@ -34,7 +35,7 @@ public sealed class AmbioAppFixture : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
-        _factory = new AmbioAppFactory($"DataSource={_databasePath}");
+        _factory = new AmbioAppFactory($"DataSource={_databasePath}", _storageRoot);
         _factory.StartServer();
 
         await using (var context = await _factory.Services
@@ -101,5 +102,9 @@ public sealed class AmbioAppFixture : IAsyncLifetime
 
         SqliteConnection.ClearAllPools();
         File.Delete(_databasePath);
+        if (Directory.Exists(_storageRoot))
+        {
+            Directory.Delete(_storageRoot, recursive: true);
+        }
     }
 }
