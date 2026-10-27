@@ -6,6 +6,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 using NSubstitute;
 
@@ -14,6 +15,7 @@ namespace Ambio.Infrastructure.Tests.Fixtures;
 /// <summary>
 /// Production service wiring (<see cref="InfrastructureExtensions"/>) over a private SQLite in-memory database.
 /// The keeper connection stays open for the fixture's lifetime, so the database survives between contexts.
+/// The documents are stored under a temporary <see cref="ContentRootPath"/>, deleted with the fixture.
 /// </summary>
 public sealed class SqliteServiceProvider : IAsyncDisposable
 {
@@ -23,6 +25,9 @@ public sealed class SqliteServiceProvider : IAsyncDisposable
     public IEmailSender<ApplicationUser> EmailSender { get; } = Substitute.For<IEmailSender<ApplicationUser>>();
 
     public TimeProvider TimeProvider { get; } = Substitute.For<TimeProvider>();
+
+    /// <summary>The content root of the app, a new temporary folder: the default storage root <c>Data</c> is under it.</summary>
+    public string ContentRootPath { get; } = Path.Combine(Path.GetTempPath(), $"ambio-tests-{Guid.NewGuid()}");
 
     private SqliteServiceProvider(string connectionString, IReadOnlyDictionary<string, string?>? settings)
     {
@@ -41,6 +46,9 @@ public sealed class SqliteServiceProvider : IAsyncDisposable
         services.AddLogging();
         services.AddDataProtection();
         services.AddSingleton(TimeProvider);
+        var environment = Substitute.For<IHostEnvironment>();
+        environment.ContentRootPath.Returns(ContentRootPath);
+        services.AddSingleton(environment);
         services.AddDatabase(configuration);
         services.AddApplicationServices();
         services.AddSingleton<IEmailSender<ApplicationUser>>(EmailSender);
@@ -98,5 +106,10 @@ public sealed class SqliteServiceProvider : IAsyncDisposable
     {
         await _provider.DisposeAsync();
         await _keeperConnection.DisposeAsync();
+
+        if (Directory.Exists(ContentRootPath))
+        {
+            Directory.Delete(ContentRootPath, recursive: true);
+        }
     }
 }
