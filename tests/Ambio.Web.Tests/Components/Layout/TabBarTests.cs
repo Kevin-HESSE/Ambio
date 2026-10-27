@@ -9,8 +9,6 @@ namespace Ambio.Web.Tests.Components.Layout;
 
 public class TabBarTests : BunitContext
 {
-    private const string AccountPath = "Account/Manage/Email";
-
     [Fact]
     public void Render_OnHome_MarksHomeActive()
     {
@@ -20,10 +18,12 @@ public class TabBarTests : BunitContext
         Assert.DoesNotContain("active", cut.Find("button.tab").ClassList);
     }
 
-    [Fact]
-    public void Render_OnAccountPage_MarksMoreActive()
+    [Theory]
+    [InlineData("Account/Manage/Email")]
+    [InlineData("settings")]
+    public void Render_OnPageOfTheMoreSheet_MarksMoreActive(string path)
     {
-        Services.GetRequiredService<BunitNavigationManager>().NavigateTo(AccountPath);
+        Services.GetRequiredService<BunitNavigationManager>().NavigateTo(path);
 
         var cut = Render<TabBar>();
 

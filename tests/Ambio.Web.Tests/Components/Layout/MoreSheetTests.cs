@@ -13,6 +13,7 @@ public class MoreSheetTests : BunitContext
     private const string AccountPath = "Account/Manage";
     private const string LogoutPath = "Account/Logout";
     private const string LoginPath = "Account/Login";
+    private const string SettingsPath = "settings";
 
     private readonly BunitAuthorizationContext _authorization;
 
@@ -31,12 +32,13 @@ public class MoreSheetTests : BunitContext
     }
 
     [Fact]
-    public void Render_WhenSignedIn_ShowsAccountAndLogOut()
+    public void Render_WhenSignedIn_ShowsSettingsAccountAndLogOut()
     {
         _authorization.SetAuthorized(UserEmail);
 
         var cut = Render<MoreSheet>();
 
+        Assert.Contains("Settings", cut.Find($"a[href='{SettingsPath}']").TextContent);
         Assert.Contains("Account", cut.Find($"a[href='{AccountPath}']").TextContent);
         Assert.Equal(LogoutPath, cut.Find("form").GetAttribute("action"));
         Assert.Contains("Log out", cut.Find("button[type='submit']").TextContent);
@@ -51,5 +53,6 @@ public class MoreSheetTests : BunitContext
         Assert.Contains("Log in", cut.Find($"a[href='{LoginPath}']").TextContent);
         Assert.Empty(cut.FindAll("form"));
         Assert.Empty(cut.FindAll($"a[href='{AccountPath}']"));
+        Assert.Empty(cut.FindAll($"a[href='{SettingsPath}']"));
     }
 }

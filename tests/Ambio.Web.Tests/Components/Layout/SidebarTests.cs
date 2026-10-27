@@ -15,6 +15,7 @@ public class SidebarTests : BunitContext
     private const string AccountPath = "Account/Manage";
     private const string LogoutPath = "Account/Logout";
     private const string LoginPath = "Account/Login";
+    private const string SettingsPath = "settings";
 
     private readonly BunitAuthorizationContext _authorization;
 
@@ -45,7 +46,19 @@ public class SidebarTests : BunitContext
         Assert.Equal(LogoutPath, cut.Find("form").GetAttribute("action"));
         Assert.Equal(CurrentPath, cut.Find("input[name='ReturnUrl']").GetAttribute("value"));
         Assert.NotNull(cut.Find("button[type='submit'][aria-label='Log out']"));
+        Assert.Contains("Settings", cut.Find($"a[href='{SettingsPath}']").TextContent);
         Assert.Empty(cut.FindAll($"a[href='{LoginPath}']"));
+    }
+
+    [Fact]
+    public void Render_OnSettings_MarksSettingsActive()
+    {
+        _authorization.SetAuthorized(UserEmail);
+        Services.GetRequiredService<BunitNavigationManager>().NavigateTo(SettingsPath);
+
+        var cut = Render<Sidebar>();
+
+        Assert.Contains("active", cut.Find($"a[href='{SettingsPath}']").ClassList);
     }
 
     [Theory]
@@ -68,5 +81,6 @@ public class SidebarTests : BunitContext
         Assert.NotNull(cut.Find($"a[href='{LoginPath}']"));
         Assert.Empty(cut.FindAll("form"));
         Assert.Empty(cut.FindAll($"a[href='{AccountPath}']"));
+        Assert.Empty(cut.FindAll($"a[href='{SettingsPath}']"));
     }
 }

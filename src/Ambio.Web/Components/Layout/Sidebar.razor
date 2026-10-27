@@ -1,3 +1,5 @@
+@using Ambio.Web.Components.Settings
+
 <nav class="sidebar" aria-label="Main navigation">
     <a class="sidebar-logo" href="">
         <Logo />
@@ -14,6 +16,15 @@
     }
 
     <div class="sidebar-foot stack">
+        <AuthorizeView>
+            <Authorized>
+                <NavLink class="nav-item" href="@UserSettingsRoutes.Edit">
+                    <i class="bi bi-gear nav-icon" aria-hidden="true"></i>
+                    <i class="bi bi-gear-fill nav-icon-active" aria-hidden="true"></i>
+                    Settings
+                </NavLink>
+            </Authorized>
+        </AuthorizeView>
         <ThemeSelector Name="theme-sidebar" IconsOnly />
         <AuthorizeView>
             <Authorized>
