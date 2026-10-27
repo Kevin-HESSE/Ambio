@@ -1,37 +1,38 @@
-﻿@using Ambio.Infrastructure.Users
+@using Ambio.Infrastructure.Users
 @using Microsoft.AspNetCore.Identity
 
 @inject SignInManager<ApplicationUser> SignInManager
+@inject NavigationManager NavigationManager
 
-<ul class="nav nav-pills flex-column">
-    <li class="nav-item">
-        <NavLink class="nav-link" href="Account/Manage" Match="NavLinkMatch.All">Profile</NavLink>
-    </li>
-    <li class="nav-item">
-        <NavLink class="nav-link" href="Account/Manage/Email">Email</NavLink>
-    </li>
-    <li class="nav-item">
-        <NavLink class="nav-link" href="Account/Manage/ChangePassword">Password</NavLink>
-    </li>
-    @if (hasExternalLogins)
-    {
-        <li class="nav-item">
-            <NavLink class="nav-link" href="Account/Manage/ExternalLogins">External logins</NavLink>
-        </li>
-    }
-    <li class="nav-item">
-        <NavLink class="nav-link" href="Account/Manage/TwoFactorAuthentication">Two-factor authentication</NavLink>
-    </li>
-    <li class="nav-item">
-        <NavLink class="nav-link" href="Account/Manage/PersonalData">Personal data</NavLink>
-    </li>
-</ul>
+@* The sections of the Account pages: scrolling tabs on mobile, a list on desktop (docs/ui.md#screens). Each section
+   is a page, so a tab's value is its route. *@
+<TabNav Label="Account sections" Sections Tabs="tabs" Active="@active" />
 
 @code {
-    private bool hasExternalLogins;
+    private IReadOnlyList<TabNavItem> tabs = [];
+    private string active = "";
 
     protected override async Task OnInitializedAsync()
     {
-        hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
+        var hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
+        var sections = new List<TabNavItem>
+        {
+            Section("Account/Manage", "Profile"),
+            Section("Account/Manage/Email", "Email"),
+            Section("Account/Manage/ChangePassword", "Password"),
+        };
+        if (hasExternalLogins)
+        {
+            sections.Add(Section("Account/Manage/ExternalLogins", "External logins"));
+        }
+        sections.Add(Section("Account/Manage/TwoFactorAuthentication", "Two-factor authentication"));
+        sections.Add(Section("Account/Manage/PersonalData", "Personal data"));
+        tabs = sections;
+
+        // A page below a section (EnableAuthenticator, SetPassword…) has no active tab.
+        var path = NavigationManager.ToBaseRelativePath(NavigationManager.Uri).Split('?', '#')[0];
+        active = tabs.FirstOrDefault(tab => string.Equals(tab.Href, path, StringComparison.OrdinalIgnoreCase))?.Value ?? "";
     }
+
+    private static TabNavItem Section(string route, string label) => new(route, label, route);
 }

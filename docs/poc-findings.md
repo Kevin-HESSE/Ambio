@@ -52,6 +52,12 @@ Newest first. Each entry follows this format:
 - Change in the official version: what to do differently
 ```
 
+### 2026-10-27 — Log in and Account pages (#53)
+
+- Kept: two layouts for the template's Identity pages. Those shown before logging in sit in a centered card under the logo, without the app shell (`AuthLayout`). The Account pages sit in the shell, with their sections as tabs on mobile and a list on desktop (`ManageLayout`). The template pages kept their content: they only lost the template's grid and got the design system through the Bootstrap mapping.
+- Not needed: the "Use another service" block and "Resend email confirmation" on Log in.
+- Change in the official version: without an email sender, "Forgot your password?", "Resend email confirmation" and the email change lead nowhere. Only registration shows its confirmation link on screen. The official version needs a real sender, or should drop these flows.
+
 ### 2026-10-27 — Home dashboard (#37)
 
 - Kept: the counters are links to the filtered applications list (`?status=…`), so the dashboard needs no filter of its own and no island: the whole page is static.

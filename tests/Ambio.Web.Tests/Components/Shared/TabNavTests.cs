@@ -22,6 +22,7 @@ public class TabNavTests : BunitContext
         var cut = RenderTabs("offers");
 
         Assert.Equal(Label, cut.Find("nav.tabs").GetAttribute("aria-label"));
+        Assert.DoesNotContain("tabs-sections", cut.Find("nav").ClassList);
         Assert.Equal([OffersHref, ApplicationsHref], cut.FindAll("a.tab").Select(tab => tab.GetAttribute("href")));
     }
 
@@ -45,9 +46,18 @@ public class TabNavTests : BunitContext
         Assert.Empty(cut.Find($"a[href='{ApplicationsHref}']").QuerySelectorAll(".tab-count"));
     }
 
-    private IRenderedComponent<TabNav> RenderTabs(string active) =>
+    [Fact]
+    public void Render_WithSections_AddsSectionsClass()
+    {
+        var cut = RenderTabs("offers", sections: true);
+
+        Assert.Contains("tabs-sections", cut.Find("nav.tabs").ClassList);
+    }
+
+    private IRenderedComponent<TabNav> RenderTabs(string active, bool sections = false) =>
         Render<TabNav>(parameters => parameters
             .Add(nav => nav.Label, Label)
             .Add(nav => nav.Tabs, Tabs)
-            .Add(nav => nav.Active, active));
+            .Add(nav => nav.Active, active)
+            .Add(nav => nav.Sections, sections));
 }

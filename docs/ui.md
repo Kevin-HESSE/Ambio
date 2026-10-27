@@ -77,7 +77,7 @@ The screens of the MVP ([Phase 1](roadmap.md#phase-1--application-tracking-mvp))
 
 | # | Screen | Route | Content | Later phases |
 |---|---|---|---|---|
-| 1 | Log in | `/Account/Login` | Logo, email, password, "Remember me". Registration link only while no account exists ([ADR 0002](adr/0002-single-user-application.md)). | — |
+| 1 | Log in | `/Account/Login` | The logo above a centered card: email, password with "Forgot your password?" on the right of its label, "Remember me", Log in. Under the card, "Ambio has a single account. Registration is closed.", or a link to create it while no account exists ([ADR 0002](adr/0002-single-user-application.md)). | — |
 | 2 | Dashboard | `/` | The day under the title and "New application" (the FAB on mobile). **Pipeline**: the count of active applications, a bar with a segment per status that has any, as wide as its count, and a counter per status, which opens the list filtered on it (`JobApplicationRoutes.Filtered`). **Follow up**, with its count and the days each application has waited. **Recent activity**: the 5 latest events of the active applications, newest first: "was created as a draft", "was sent", "moved to …", each title linking to its application; one created as already sent only shows its sending. Without any active application, an empty state with "New application" and "Add an offer". | Upcoming interviews (2b) |
 | 3 | Applications — list | `/applications`, filtered with `?q=…&status=…&company={slug}&kind=offer\|spontaneous&archived=true` | Search on the title and the company (every word, ignoring case and accents), status, company, kind and "Show archived"; table or cards, 25 at first and 25 more with each "Load more" (`?shown=50`). Desktop: inline bar and "Clear filters". Mobile: search, a Filters sheet (company, kind, "Show archived", with their count on its button) and status chips counting what each would show with the other criteria. A filter without result keeps the filters and offers to clear them. The dashboard counters link to `?status=…` (`JobApplicationRoutes.Filtered`). | — |
 | 4 | Applications — empty | `/applications` | Empty state with "New application" and "Add an offer". | — |
@@ -94,11 +94,11 @@ The screens of the MVP ([Phase 1](roadmap.md#phase-1--application-tracking-mvp))
 | 15 | Company — detail | `/companies/{slug}` | Profile, description, Offers and Applications tabs (`?tab=applications`), each with its count. The Applications tab lists the applications to its offers and the spontaneous ones; its empty state opens a spontaneous application to the company. | Notes and Contacts tabs (2b) |
 | 16 | More sheet | mobile only | Settings, Account, Theme, Log out. | Profile, My CVs, Export |
 | 17 | Settings | `/settings` | Two cards. **Follow-ups**: the follow-up delay, from 1 to 30 days (7 until first saved), and "Save settings", a static form that stays on the page with a toast; a value out of bounds shows its error under the field. **Appearance**: the theme selector, applied at once and kept by the browser, outside the form. No back arrow on mobile, as for Account. | — |
-| 18 | Account | `/Account/Manage` | Identity management: section list on desktop, scrolling tabs on mobile. | — |
+| 18 | Account | `/Account/Manage` | Identity management in the app shell, under the header "Account": the sections (Profile, Email, Password, Two-factor authentication, Personal data) as scrolling tabs on mobile and a list on the left on desktop, and the page of the section in a card. No back arrow on mobile. | — |
 
 **Follow up** lists the applications still `Applied` after the delay set in Settings (7 days by default, `UserSettings.FollowUpAfterDays`), oldest first. The delay counts from the sending day (`AppliedOn`): an application sent 7 days ago or more shows, whatever the day it was recorded. An item leaves the list when its status changes. In Phase 2b, logging a follow-up interaction also resets the delay.
 
-**Identity pages**: the template's Identity pages (password reset, 2FA, email confirmation…) render in the same shell as Account, or, for the pages shown before logging in, in the centered card of Log in. They keep their content and get the design system through the Bootstrap mapping. Passkey pages are removed in Phase 0.
+**Identity pages**: the template's Identity pages (password reset, 2FA, email confirmation…) render in the same shell as Account (`ManageLayout`, the pages of `Account/Pages/Manage`), or, for the pages shown before logging in, in the centered card of Log in (`AuthLayout`, every other page of `Account/Pages`). They keep their content, floating labels included, without the template's grid, and get the design system through the Bootstrap mapping. Passkey pages are removed in Phase 0.
 
 ## Components
 
@@ -119,7 +119,9 @@ What the mockups are built from, and the Blazor component each becomes. Stock Bo
 | Archiving | `banner`, `toast` | `ArchiveForms.razor` (the hidden Archive and Restore forms of a detail page, and its Undo toast), `ArchiveMenuItem.razor` (Archive or Restore in the ⋯ menu), `ArchivedBanner.razor` |
 | Filter chip | `chip` | `FilterChip.razor` (a link with an optional icon, its label and count, `aria-current` when active; a `status-*` class tints the icon) |
 | List card (mobile) / table row (desktop) | `app-card` / `table` | `ResponsiveList.razor` (cards below 992 px, table above) and `ListTable.razor` (header, rows, `num` cells), filled by each feature's card and table: `CompanyCard.razor` / `CompanyTable.razor`, `OfferCard.razor` / `OfferTable.razor`, `JobApplicationCard.razor` / `JobApplicationTable.razor`. Each card is a `ListCard.razor` (title, aside such as a date, subtitle, tags; a link with `Href`). An optional `Footer` closes both, such as `ListFooter.razor` ("Showing 25 of 61" and "Load more") |
-| Tabs | `tabs`, `tab` | `TabNav.razor` (links carrying `?tab=`) |
+| Tabs | `tabs`, `tab` | `TabNav.razor` (links carrying `?tab=`, or one route per section; with `Sections`, a list of sections from 992 px, as on the Account pages) |
+| Log-in card | `auth` | `Account/Shared/AuthLayout.razor` (the logo, the page in a card, and a line under it given with a `SectionContent` named `AuthLayout.FootSection`) |
+| Account | `manage` | `Account/Shared/ManageLayout.razor` (page header, sections, the page in a card) and `ManageNavMenu.razor` (the sections, a `TabNav` with `Sections`) |
 | Count | `n`, `card-sub` | `CountBadge.razor` (tab counts, postings of an offer) |
 | Status panel and history | `status-panel`, `timeline` | `JobApplications/Shared/StatusPanel.razor` (badge, "since", and the action as child content), `ChangeStatusSheet.razor` (interactive island: the "Change status" button and its sheet), `StatusTimeline.razor` (the History card) |
 | Bottom sheet / modal | `overlay`, `dialog` | `Sheet.razor` (optional title with a close button; `sheet-content` and `sheet-actions` blocks; `CloseAsync()` from an interactive component) |
@@ -144,6 +146,9 @@ Layout and text patterns repeated across components are global classes. The mark
 | `stack` | `css/layout.css` | A column |
 | `--gap` | `css/layout.css` | The gap of `cluster` and `stack`, 8 px by default, set with a spacing token (`--gap: var(--ambio-space-16)`). Declared with `@property` and `inherits: false`, so a nested stack keeps its own gap |
 | `mobile-only` / `desktop-only` | `css/layout.css` | Hidden from 992 px / below 992 px |
+| `tabs`, `tab` | `css/navigation.css` | Tabs: a row of links that scrolls, the active one underlined |
+| `tabs-sections` | `css/navigation.css` | Section tabs (`TabNav` with `Sections`): tabs below 992 px, a list of `nav-item`s above |
+| `nav-item` | `css/navigation.css` | An item of a navigation list from 992 px: the sidebar, the section tabs |
 | `list-divided` | `css/lists.css` | A list without bullets or padding, with a border between items |
 | `list-title` | `css/lists.css` | The title of a list table row, linking to its page: primary text, accent and underlined on hover, dimmed with `t-muted` when archived |
 | `menu-list`, `menu-item`, `menu-item-danger` | `css/menus.css` | A list of actions, links or buttons, in the More sheet and the ⋯ menu |

@@ -64,7 +64,7 @@ Each item is a vertical slice: domain, persistence, service, page and tests for 
   - Keeps a record of every CV sent until generation lands in Phase 3
 - [x] Settings: follow-up delay (`UserSettings`), theme
 - [x] `Home` dashboard: counts by status, **Follow up** (applications still Applied after the configured delay), recent activity
-- [ ] Restyled Log in and Account pages
+- [x] Restyled Log in and Account pages
 - [ ] Create the account at first start, before the app is usable, instead of leaving registration open to whoever comes first ([ADR 0017](adr/0017-account-creation-local-or-github.md))
 
 ## Phase 2 — Docker, deployment & demo
