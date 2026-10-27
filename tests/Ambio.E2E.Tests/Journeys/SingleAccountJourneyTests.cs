@@ -23,6 +23,7 @@ public class SingleAccountJourneyTests : IClassFixture<AmbioAppFixture>
     private const string ConfirmationLinkText = "Click here to confirm your account";
     private const string EmailConfirmedMessage = "Thank you for confirming your email.";
     private const string AccountAlreadyExistsMessage = "An account already exists";
+    private const string RegistrationClosedMessage = "Registration is closed";
 
     [Fact]
     public async Task FirstUser_RegistersConfirmsLogsInAndClosesRegistration()
@@ -46,10 +47,11 @@ public class SingleAccountJourneyTests : IClassFixture<AmbioAppFixture>
         await Expect(page.GetByRole(AriaRole.Link, new() { Name = AmbioAppFixture.UserEmail })).ToBeVisibleAsync();
 
         await page.GetByRole(AriaRole.Button, new() { Name = "Log out" }).ClickAsync();
-        await Expect(page.GetByRole(AriaRole.Link, new() { Name = "Log in" })).ToBeVisibleAsync();
+        await Expect(page.GetByRole(AriaRole.Heading, new() { Name = "Log in", Level = 1 })).ToBeVisibleAsync();
 
         await page.GotoAsync(RegisterPath);
         await Expect(page).ToHaveURLAsync(new Regex(LoginPath));
         await Expect(page.GetByRole(AriaRole.Alert)).ToHaveTextAsync(AccountAlreadyExistsMessage);
+        await Expect(page.GetByText(RegistrationClosedMessage)).ToBeVisibleAsync();
     }
 }

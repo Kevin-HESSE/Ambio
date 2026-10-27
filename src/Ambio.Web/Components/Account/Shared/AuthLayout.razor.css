@@ -1,0 +1,18 @@
+.auth {
+    --gap: var(--ambio-space-24);
+    min-height: 100dvh;
+    align-items: center;
+    justify-content: center;
+    padding: var(--ambio-space-32) var(--ambio-space-16);
+}
+
+.auth-card {
+    --bs-card-spacer-x: var(--ambio-space-24);
+    --bs-card-spacer-y: var(--ambio-space-24);
+    width: 100%;
+    max-width: 400px;
+}
+
+.auth-card .card-body {
+    --gap: var(--ambio-space-16);
+}

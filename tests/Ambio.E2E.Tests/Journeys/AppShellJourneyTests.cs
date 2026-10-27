@@ -42,7 +42,7 @@ public class AppShellJourneyTests : IClassFixture<AmbioAppFixture>
         await Expect(sheet.GetByRole(AriaRole.Radio, new() { Name = "Dark" })).ToBeCheckedAsync();
 
         await sheet.GetByRole(AriaRole.Button, new() { Name = "Log out" }).ClickAsync();
-        await page.GetByRole(AriaRole.Button, new() { Name = "More" }).ClickAsync();
-        await Expect(sheet.GetByRole(AriaRole.Link, new() { Name = "Log in" })).ToBeVisibleAsync();
+        await Expect(page.GetByRole(AriaRole.Heading, new() { Name = "Log in", Level = 1 })).ToBeVisibleAsync();
+        await Expect(html).ToHaveAttributeAsync("data-bs-theme", "dark");
     }
 }

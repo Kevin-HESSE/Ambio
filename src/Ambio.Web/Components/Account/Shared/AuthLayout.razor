@@ -1,0 +1,19 @@
+@inherits LayoutComponentBase
+@using Microsoft.AspNetCore.Components.Sections
+
+@* The pages shown before logging in (docs/ui.md#screens): the logo above a centered card, without the app shell.
+   A page puts a line under the card with a SectionContent named FootSection. *@
+<main class="auth stack">
+    <Logo Large />
+    <section class="card auth-card">
+        <div class="card-body stack">
+            @Body
+        </div>
+    </section>
+    <SectionOutlet SectionName="@FootSection" />
+</main>
+
+@code {
+    /// <summary>Section for a line under the card, such as the registration note of Log in.</summary>
+    public const string FootSection = "auth-foot";
+}
