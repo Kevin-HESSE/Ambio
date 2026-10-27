@@ -31,7 +31,7 @@ The screens of the MVP ([Phase 1](roadmap.md#phase-1--application-tracking-mvp))
 | More (sheet) | Bottom of the sidebar | — |
 
 - The sidebar groups the four sections under "Tracking". Its bottom holds Settings, the theme selector, and the account (email, log out).
-- The **More** tab opens a bottom sheet with the same entries: Settings, Account, Theme, Log out.
+- The **More** tab opens a bottom sheet with the same entries: Settings, Account, Theme, Log out. Settings and Account show only once logged in, and the More tab is active on their pages.
 - **Later phases add entries, never tabs.** The tab bar stays at five items:
 
 | Phase | Added to the sidebar and the More sheet |
@@ -93,7 +93,7 @@ The screens of the MVP ([Phase 1](roadmap.md#phase-1--application-tracking-mvp))
 | 14 | Companies — list | `/companies`, `?archived=true` with the archived ones | Kind, industry, location, offers and applications counts. "Show archived" above the list. | — |
 | 15 | Company — detail | `/companies/{slug}` | Profile, description, Offers and Applications tabs (`?tab=applications`), each with its count. The Applications tab lists the applications to its offers and the spontaneous ones; its empty state opens a spontaneous application to the company. | Notes and Contacts tabs (2b) |
 | 16 | More sheet | mobile only | Settings, Account, Theme, Log out. | Profile, My CVs, Export |
-| 17 | Settings | `/settings` | Follow-up delay (days), theme. | — |
+| 17 | Settings | `/settings` | Two cards. **Follow-ups**: the follow-up delay, from 1 to 30 days (7 until first saved), and "Save settings", a static form that stays on the page with a toast; a value out of bounds shows its error under the field. **Appearance**: the theme selector, applied at once and kept by the browser, outside the form. No back arrow on mobile, as for Account. | — |
 | 18 | Account | `/Account/Manage` | Identity management: section list on desktop, scrolling tabs on mobile. | — |
 
 **Follow up** lists the applications still `Applied` after the delay set in Settings (7 days by default, `UserSettings.FollowUpAfterDays`), oldest first. An item leaves the list when its status changes. In Phase 2b, logging a follow-up interaction also resets the delay.

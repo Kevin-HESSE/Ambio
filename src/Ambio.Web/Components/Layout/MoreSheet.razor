@@ -1,8 +1,16 @@
+@using Ambio.Web.Components.Settings
+
 @* The fifth tab of the mobile tab bar: what the sidebar shows at its bottom (docs/ui.md#navigation). *@
 <Sheet Id="@Id" Label="More">
     <AuthorizeView>
         <Authorized>
             <ul class="menu-list">
+                <li>
+                    <a class="menu-item" href="@UserSettingsRoutes.Edit">
+                        <i class="bi bi-gear" aria-hidden="true"></i>
+                        Settings
+                    </a>
+                </li>
                 <li>
                     <a class="menu-item" href="Account/Manage">
                         <i class="bi bi-person-circle" aria-hidden="true"></i>

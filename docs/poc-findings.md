@@ -52,6 +52,14 @@ Newest first. Each entry follows this format:
 - Change in the official version: what to do differently
 ```
 
+### 2026-10-27 — Settings (#52)
+
+- Kept: the settings are a single row created by the first save, and the defaults come from the domain (`UserSettings.DefaultFollowUpAfterDays`) while there is none, so a fresh database needs no seed.
+- Kept: one page saves to two places, the database for the follow-up delay and the browser for the theme. Two cards keep them apart: only the delay has a Save button, and the theme says it is "Saved in this browser", applied at once like in the sidebar and the More sheet.
+- Kept: the form is static and enhanced, and stays on the page with a toast: there is no other page to go back to.
+- Not needed: nothing so far. The delay is only read by the dashboard (#37), which will tell whether the bounds (1 to 30 days) fit real use.
+- Change in the official version: the single row isn't enforced by the schema. An API serving several people or devices would key the settings by user, and could store the theme with them so it follows the user across devices.
+
 ### 2026-10-27 — CV upload (#39)
 
 - Kept: the file is named after the id of its row (`documents/<yyyy>/<id>.pdf`, GUID v7), so it is written before the row is saved, and removed if the row fails. The stored path is a key that always uses `/`, so a backup of `/data` moves between systems.

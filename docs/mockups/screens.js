@@ -711,13 +711,15 @@ Hybrid: 2 days a week at the Nantes office.</p></div>
             <span class="form-text">Applications still Applied after this delay show up in Follow up on the dashboard.</span>
           </div>
         </div>
+        <div class="action-bar"><button class="btn btn-primary">Save settings</button></div>
+      </div></section>
+      <section class="card form-page"><div class="card-body" style="display:flex;flex-direction:column;gap:24px">
         <div class="form-section"><h2>Appearance</h2>
           <div class="field"><span class="form-label">Theme</span>
             <div class="segmented"><button class="active">${ic("circle-half")}System</button><button>${ic("sun")}Light</button><button>${ic("moon-stars")}Dark</button></div>
             <span class="form-text">System follows your device. Saved in this browser.</span>
           </div>
         </div>
-        <div class="action-bar"><button class="btn btn-primary">Save settings</button></div>
       </div></section>`,
     }).replace(/<nav class="tabbar"[\s\S]*?<\/nav>/, tabbar("more"));
   }
@@ -815,7 +817,7 @@ Hybrid: 2 days a week at the Nantes office.</p></div>
       content: "Fifth tab of the mobile bar. Holds what the desktop sidebar shows at its bottom: Settings, Account, theme, Log out.",
       later: "Phase 3 adds Profile and My CVs, Phase 4 Export. Entries are added here and in the sidebar, never as new tabs." },
     { id: "settings", group: "Navigation & settings", title: "Settings", route: "/settings", render: settings,
-      content: "Follow-up delay (7 days by default, stored in UserSettings) and theme (System, Light, Dark, stored in the browser).",
+      content: "Two cards: the follow-up delay (1 to 30 days, 7 by default, stored in UserSettings) with Save, and the theme (System, Light, Dark, stored in the browser), applied at once.",
       later: "—" },
     { id: "account", group: "Navigation & settings", title: "Account", route: "/Account/Manage", render: account,
       content: "Identity management pages in the app shell: section list on the left on desktop, scrolling tabs on mobile. Every other Identity page uses the same template.",

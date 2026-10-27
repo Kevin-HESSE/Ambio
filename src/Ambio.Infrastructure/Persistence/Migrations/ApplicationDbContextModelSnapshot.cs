@@ -307,6 +307,19 @@ namespace Ambio.Infrastructure.Persistence.Migrations
                     b.ToTable("JobOfferPostings", (string)null);
                 });
 
+            modelBuilder.Entity("Ambio.Domain.Settings.UserSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("FollowUpAfterDays")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("UserSettings", (string)null);
+                });
+
             modelBuilder.Entity("Ambio.Infrastructure.Users.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")

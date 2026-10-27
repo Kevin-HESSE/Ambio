@@ -1,6 +1,7 @@
 using Ambio.Web.Components.Companies;
 using Ambio.Web.Components.JobApplications;
 using Ambio.Web.Components.Offers;
+using Ambio.Web.Components.Settings;
 
 using Microsoft.AspNetCore.Components.Routing;
 
@@ -24,6 +25,7 @@ public static class AppNavigation
     /// <summary>Base-relative paths of the pages reached from the More sheet, where the "More" tab is active.</summary>
     public static IReadOnlyList<string> MoreRoutes { get; } =
     [
+        UserSettingsRoutes.Edit,
         "Account/Manage",
     ];
 }
