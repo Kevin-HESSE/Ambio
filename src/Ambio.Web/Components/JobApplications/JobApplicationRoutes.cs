@@ -36,6 +36,9 @@ public static class JobApplicationRoutes
     /// <summary>Value of the Cover letters tab of the application page.</summary>
     public const string LettersTab = "letters";
 
+    /// <summary>Value of the CV tab of the application page.</summary>
+    public const string CvTab = "cv";
+
     /// <summary>The new application page with this offer already chosen.</summary>
     public static string NewForOffer(string offerShortId) => $"applications/new?offer={offerShortId}";
 

@@ -2,6 +2,7 @@
 @attribute [Authorize]
 @inject IJobApplicationService JobApplicationService
 @inject ICoverLetterService CoverLetterService
+@inject ICvDocumentService CvDocumentService
 @inject NavigationManager NavigationManager
 @inject ToastService Toasts
 
@@ -82,6 +83,11 @@
                    lose the letter being written. *@
                 <CoverLetterEditor @key="_application.Id" @rendermode="InteractiveServer" ApplicationId="_application.Id" Letters="_letters" />
             }
+            else if (ActiveTab == JobApplicationRoutes.CvTab)
+            {
+                <PdfUpload @rendermode="InteractiveServer" ApplicationId="_application.Id" />
+                <CvDocumentList Documents="_cvs" />
+            }
             else
             {
                 <JobApplicationOverview Application="_application" EditHref="@EditHref" />
@@ -100,7 +106,7 @@
     [Parameter]
     public string Key { get; set; } = "";
 
-    /// <summary>The tab shown, from <c>?tab=</c>: Overview unless it is Cover letters.</summary>
+    /// <summary>The tab shown, from <c>?tab=</c>: Overview unless it is Cover letters or CV.</summary>
     [SupplyParameterFromQuery(Name = "tab")]
     public string? Tab { get; set; }
 
@@ -108,12 +114,15 @@
 
     private IReadOnlyList<CoverLetterDto> _letters = [];
 
-    private string ActiveTab => Tab == JobApplicationRoutes.LettersTab ? JobApplicationRoutes.LettersTab : JobApplicationRoutes.OverviewTab;
+    private IReadOnlyList<CvDocumentDto> _cvs = [];
+
+    private string ActiveTab => Tab is JobApplicationRoutes.LettersTab or JobApplicationRoutes.CvTab ? Tab : JobApplicationRoutes.OverviewTab;
 
     private IReadOnlyList<TabNavItem> Tabs =>
     [
         new(JobApplicationRoutes.OverviewTab, "Overview", JobApplicationRoutes.Details(_application!.ShortId, _application.Slug, JobApplicationRoutes.OverviewTab)),
         new(JobApplicationRoutes.LettersTab, "Cover letters", JobApplicationRoutes.Details(_application!.ShortId, _application.Slug, JobApplicationRoutes.LettersTab), _letters.Count),
+        new(JobApplicationRoutes.CvTab, "CV", JobApplicationRoutes.Details(_application!.ShortId, _application.Slug, JobApplicationRoutes.CvTab), _cvs.Count),
     ];
 
     private string EditHref => JobApplicationRoutes.Edit(_application!.ShortId, _application.Slug);
@@ -151,11 +160,12 @@
         }
     }
 
-    // The letters are read on every tab, for the count of theirs.
+    // The letters and the CVs are read on every tab, for the counts of theirs.
     private async Task LoadAsync()
     {
         _application = await JobApplicationService.GetAsync(ShortIdKey.ShortIdOf(Key));
         _letters = _application is null ? [] : await CoverLetterService.ListAsync(_application.Id);
+        _cvs = _application is null ? [] : await CvDocumentService.ListAsync(_application.Id);
     }
 
     private async Task ArchiveAsync()
