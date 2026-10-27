@@ -3,6 +3,10 @@ namespace Ambio.Application.CvDocuments;
 /// <summary>Error messages returned by <see cref="ICvDocumentService"/>.</summary>
 public static class CvDocumentErrors
 {
+    public const string NotFound = "This CV doesn't exist anymore.";
+
+    public const string FileMissing = "The file of this CV is missing from the storage.";
+
     public const string ApplicationNotFound = "This application doesn't exist anymore.";
 
     public const string NotPdf = "This file isn't a PDF. Choose the PDF you sent.";

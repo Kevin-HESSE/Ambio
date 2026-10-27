@@ -1,5 +1,6 @@
-@* The CVs sent with the application, newest first, in the CV tab of its page (docs/ui.md, screen 7). Nothing is shown
-   while there is none: the drop zone above says what the tab is for. *@
+@* The CVs sent with the application, newest first, in the CV tab of its page (docs/ui.md, screen 7), each with
+   Preview (a new tab) and Download. Nothing is shown while there is none: the drop zone above says what the tab is
+   for. *@
 @if (Documents.Count > 0)
 {
     <section class="card" aria-labelledby="cv-list-title">
@@ -18,6 +19,10 @@
                             <time datetime="@document.UploadedAt.ToString("yyyy-MM-dd")">@document.UploadedAt.ToDisplayDate()</time>
                         </span>
                     </div>
+                    <ButtonLink Href="@CvDocumentRoutes.Preview(document.Id)" Icon="eye" IconOnly class="btn-sm"
+                                target="_blank" rel="noopener" data-enhance-nav="false" aria-label="@($"Preview {document.FileName}")" />
+                    <ButtonLink Href="@CvDocumentRoutes.Download(document.Id)" Icon="download" IconOnly class="btn-sm"
+                                data-enhance-nav="false" aria-label="@($"Download {document.FileName}")" />
                 </li>
             }
         </ul>

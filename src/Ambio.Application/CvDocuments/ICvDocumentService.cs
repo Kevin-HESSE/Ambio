@@ -17,4 +17,8 @@ public interface ICvDocumentService
     /// <see cref="CvDocumentErrors.TooLarge"/> (over <see cref="MaxUploadSize"/>), <see cref="CvDocumentErrors.NotPdf"/>
     /// or <see cref="CvDocumentErrors.UploadFailed"/>.</summary>
     public Task<ServiceResult<Guid>> UploadAsync(Guid applicationId, string fileName, Stream content, CancellationToken cancellationToken = default);
+
+    /// <summary>The file of the CV, to preview or download. Fails with <see cref="CvDocumentErrors.NotFound"/>, or
+    /// <see cref="CvDocumentErrors.FileMissing"/> when its file was removed from the storage (ADR 0005).</summary>
+    public Task<ServiceResult<CvFileDto>> OpenAsync(Guid id, CancellationToken cancellationToken = default);
 }

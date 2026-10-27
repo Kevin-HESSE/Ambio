@@ -101,6 +101,32 @@ internal class CvDocumentService : ICvDocumentService
         return ServiceResult<Guid>.Success(document.Id);
     }
 
+    public async Task<ServiceResult<CvFileDto>> OpenAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
+
+        var document = await db.CvDocuments
+            .AsNoTracking()
+            .Where(d => d.Id == id)
+            .Select(d => new { d.FileName, d.StoragePath })
+            .SingleOrDefaultAsync(cancellationToken);
+        if (document is null)
+        {
+            return ServiceResult<CvFileDto>.Failure(CvDocumentErrors.NotFound);
+        }
+
+        var content = await _storage.OpenReadAsync(document.StoragePath, cancellationToken);
+        if (content is null)
+        {
+            _logger.LogWarning("The file of the CV {CvDocumentId} is missing at {StoragePath}.", id, document.StoragePath);
+            return ServiceResult<CvFileDto>.Failure(CvDocumentErrors.FileMissing);
+        }
+
+        return ServiceResult<CvFileDto>.Success(new CvFileDto(
+            FileName: document.FileName,
+            Content: content));
+    }
+
     private DateTime Now => _timeProvider.GetUtcNow().UtcDateTime;
 
     // Copies the content, and stops as soon as it goes over the limit: the size given by the browser isn't trusted.

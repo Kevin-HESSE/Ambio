@@ -144,6 +144,42 @@ public class CvDocumentServiceTests : IAsyncLifetime
         await AssertNothingStoredAsync();
     }
 
+    [Fact]
+    public async Task OpenAsync_UploadedCv_GivesItsNameAndContent()
+    {
+        var story = await SaveApplicationsAsync(1);
+        (await UploadAsync(story.Applications[0].Id, Pdf)).TryGetValue(out var id);
+
+        var result = await _services.CallAsync((ICvDocumentService service) =>
+            service.OpenAsync(id, TestContext.Current.CancellationToken));
+
+        Assert.True(result.TryGetValue(out var file));
+        Assert.Equal(FileName, file.FileName);
+        Assert.Equal(Pdf, await ReadAsync(file.Content));
+    }
+
+    [Fact]
+    public async Task OpenAsync_UnknownCv_FailsWithNotFound()
+    {
+        var result = await _services.CallAsync((ICvDocumentService service) =>
+            service.OpenAsync(Guid.CreateVersion7(), TestContext.Current.CancellationToken));
+
+        Assert.Equal(CvDocumentErrors.NotFound, result.GetMessage);
+    }
+
+    [Fact]
+    public async Task OpenAsync_FileRemovedFromTheStorage_FailsWithFileMissing()
+    {
+        var story = await SaveApplicationsAsync(1);
+        var document = CvDocumentFactory.GetGenerator(story.Applications[0].Id).Generate();
+        await _services.AddAsync(document);
+
+        var result = await _services.CallAsync((ICvDocumentService service) =>
+            service.OpenAsync(document.Id, TestContext.Current.CancellationToken));
+
+        Assert.Equal(CvDocumentErrors.FileMissing, result.GetMessage);
+    }
+
     private async Task<OfferApplicationStory> SaveApplicationsAsync(int count)
     {
         var story = new OfferApplicationStory().WithApplications(count);
@@ -168,13 +204,18 @@ public class CvDocumentServiceTests : IAsyncLifetime
             service.UploadAsync(applicationId, fileName, stream, TestContext.Current.CancellationToken));
     }
 
-    private async Task<byte[]> ReadStoredFileAsync(string storagePath)
+    private async Task<byte[]> ReadStoredFileAsync(string storagePath) =>
+        await ReadAsync((await _services.CallAsync((IDocumentStorage storage) =>
+            storage.OpenReadAsync(storagePath, TestContext.Current.CancellationToken)))!);
+
+    private static async Task<byte[]> ReadAsync(Stream stream)
     {
-        await using var stream = await _services.CallAsync((IDocumentStorage storage) =>
-            storage.OpenReadAsync(storagePath, TestContext.Current.CancellationToken));
-        using var copy = new MemoryStream();
-        await stream!.CopyToAsync(copy, TestContext.Current.CancellationToken);
-        return copy.ToArray();
+        await using (stream)
+        {
+            using var copy = new MemoryStream();
+            await stream.CopyToAsync(copy, TestContext.Current.CancellationToken);
+            return copy.ToArray();
+        }
     }
 
     private async Task AssertNothingStoredAsync()

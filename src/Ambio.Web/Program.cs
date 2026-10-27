@@ -2,6 +2,7 @@ using Ambio.Infrastructure;
 using Ambio.Infrastructure.Users;
 using Ambio.Web.Components;
 using Ambio.Web.Components.Account;
+using Ambio.Web.Components.CvDocuments;
 using Ambio.Web.Components.Layout;
 
 using Microsoft.AspNetCore.Components.Authorization;
@@ -55,5 +56,6 @@ app.MapRazorComponents<App>()
 
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
+app.MapCvDocumentEndpoints();
 
 app.Run();
