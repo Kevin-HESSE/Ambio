@@ -274,7 +274,8 @@ Dated events of an application: `Interview`, `PhoneCall`, `Email`, `FollowUp`, `
 
 A single row of preferences for the account ([ADR 0002](adr/0002-single-user-application.md)), edited on the Settings page ([ui.md](ui.md#screens)). It's not linked to the other entities, so it's left out of the diagram.
 
-- `FollowUpAfterDays` (default `7`): an application still `Applied` after this many days, with no status change, appears in **Follow up** on the dashboard.
+- `FollowUpAfterDays` (default `7`, from `1` to `30`): an application still `Applied` after this many days, with no status change, appears in **Follow up** on the dashboard. The domain refuses a value out of bounds.
+- The row is created by the first save of the Settings page; until then, `IUserSettingsService.GetAsync` returns the defaults. Nothing in the schema prevents a second row: the single account (ADR 0002) makes it unlikely.
 - The theme isn't stored here: it's a per-browser choice kept in `localStorage`.
 
 ## Relationships and deletion
