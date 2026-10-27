@@ -1,0 +1,42 @@
+@* The "Pipeline" card of the dashboard (docs/ui.md, screen 2): a bar with a segment per status as wide as its count,
+   then a counter per status, which opens the applications list filtered on it. *@
+<section class="card" aria-labelledby="pipeline-title">
+    <div class="card-header">
+        <h2 id="pipeline-title" class="t-h3">Pipeline</h2>
+        <span class="pipeline-total t-small t-muted">@Total active @(Total == 1 ? "application" : "applications")</span>
+    </div>
+    <div class="pipeline-body card-body stack">
+        @* The counters below give the same numbers to assistive technologies. *@
+        <div class="pipeline-bar" aria-hidden="true">
+            @foreach (var status in Statuses.Where(s => Count(s) > 0))
+            {
+                <span class="pipeline-segment status-@QueryValue.Of(status)" style="flex-grow: @Count(status)"
+                      title="@($"{status.ToLabel()}: {Count(status)}")"></span>
+            }
+        </div>
+        <div class="pipeline-stats">
+            @foreach (var status in Statuses)
+            {
+                <a class="pipeline-stat stack status-@QueryValue.Of(status)" href="@JobApplicationRoutes.Filtered(new JobApplicationFilter(Status: status))">
+                    <span class="pipeline-stat-label cluster t-small t-secondary fw-semibold">
+                        <i class="bi bi-@status.ToIcon()" aria-hidden="true"></i>
+                        @status.ToLabel()
+                    </span>
+                    <span class="pipeline-stat-value t-h1">@Count(status)</span>
+                </a>
+            }
+        </div>
+    </div>
+</section>
+
+@code {
+    private static readonly ApplicationStatus[] Statuses = Enum.GetValues<ApplicationStatus>();
+
+    /// <summary>The number of active applications in each status.</summary>
+    [Parameter, EditorRequired]
+    public IReadOnlyDictionary<ApplicationStatus, int> CountsByStatus { get; set; } = new Dictionary<ApplicationStatus, int>();
+
+    private int Total => CountsByStatus.Values.Sum();
+
+    private int Count(ApplicationStatus status) => CountsByStatus.GetValueOrDefault(status);
+}

@@ -1,0 +1,60 @@
+@* The "Follow up" card of the dashboard (docs/ui.md, screen 2): the applications still Applied after the follow-up
+   delay, oldest first, each with the days waited since it was sent. *@
+<section class="card" aria-labelledby="follow-up-title">
+    <div class="card-header">
+        <div class="follow-up-heading stack">
+            <h2 id="follow-up-title" class="t-h3 cluster">
+                Follow up
+                <CountBadge Count="FollowUps.Count" />
+            </h2>
+            <p class="t-small t-secondary">Sent @Days(FollowUpAfterDays) ago or more, no news since</p>
+        </div>
+    </div>
+    @if (FollowUps.Count == 0)
+    {
+        <div class="card-body">
+            <p class="follow-up-empty t-muted">Nothing to follow up.</p>
+        </div>
+    }
+    else
+    {
+        <ul class="list-divided">
+            @foreach (var application in FollowUps)
+            {
+                <li>
+                    <ListCard Title="@application.Title" Href="@JobApplicationRoutes.Details(application.ShortId, application.Slug)"
+                              Subtitle="@application.CompanyName"
+                              Tags="@(application.Kind == ApplicationKind.Spontaneous ? _spontaneousTag : null)">
+                        <Aside>
+                            <span class="follow-up-age status-interview">
+                                <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+                                @Days(Waited(application))
+                            </span>
+                        </Aside>
+                    </ListCard>
+                </li>
+            }
+        </ul>
+    }
+</section>
+
+@code {
+    private readonly RenderFragment _spontaneousTag = @<SpontaneousTag />;
+
+    /// <summary>The applications to follow up, oldest first.</summary>
+    [Parameter, EditorRequired]
+    public IReadOnlyList<JobApplicationSummaryDto> FollowUps { get; set; } = [];
+
+    /// <summary>The follow-up delay of the settings, in days.</summary>
+    [Parameter, EditorRequired]
+    public int FollowUpAfterDays { get; set; }
+
+    /// <summary>The day the delays are counted to.</summary>
+    [Parameter, EditorRequired]
+    public DateOnly Today { get; set; }
+
+    // An application to follow up is always sent.
+    private int Waited(JobApplicationSummaryDto application) => Today.DayNumber - (application.SentOn ?? Today).DayNumber;
+
+    private static string Days(int days) => days == 1 ? "1 day" : $"{days} days";
+}

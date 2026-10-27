@@ -1,0 +1,57 @@
+.pipeline-body {
+    --gap: var(--ambio-space-16);
+}
+
+.pipeline-total {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Each segment takes the solid color of its status (css/statuses.css). */
+.pipeline-bar {
+    display: flex;
+    gap: var(--ambio-space-2);
+    height: 8px;
+    border-radius: var(--ambio-radius-full);
+    overflow: hidden;
+}
+
+.pipeline-segment {
+    background: var(--status-solid);
+}
+
+.pipeline-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--ambio-space-8);
+}
+
+.pipeline-stat {
+    --gap: var(--ambio-space-2);
+    padding: var(--ambio-space-12);
+    border: 1px solid var(--ambio-border-default);
+    border-radius: var(--ambio-radius-md);
+    color: inherit;
+    text-decoration: none;
+}
+
+.pipeline-stat:hover {
+    background: var(--ambio-bg-subtle);
+}
+
+.pipeline-stat-label {
+    --gap: var(--ambio-space-6);
+}
+
+.pipeline-stat-label .bi {
+    color: var(--status-solid);
+}
+
+.pipeline-stat-value {
+    font-variant-numeric: tabular-nums;
+}
+
+@media (min-width: 992px) {
+    .pipeline-stats {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+}
