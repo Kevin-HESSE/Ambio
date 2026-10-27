@@ -37,27 +37,6 @@
     text-transform: uppercase;
 }
 
-.sidebar ::deep .nav-item {
-    display: flex;
-    align-items: center;
-    gap: var(--ambio-space-12);
-    height: 40px;
-    padding: 0 var(--ambio-space-12);
-    border-radius: var(--ambio-radius-md);
-    color: var(--ambio-text-secondary);
-    text-decoration: none;
-}
-
-.sidebar ::deep .nav-item:hover {
-    background: var(--ambio-bg-subtle);
-}
-
-.sidebar ::deep .nav-item.active {
-    background: var(--ambio-accent-subtle);
-    color: var(--ambio-accent-text);
-    font-weight: 600;
-}
-
 .sidebar ::deep .nav-item .bi {
     font-size: 18px;
 }

@@ -1,0 +1,17 @@
+.manage {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--ambio-space-16);
+}
+
+.manage-body {
+    --gap: var(--ambio-space-16);
+}
+
+@media (min-width: 992px) {
+    .manage {
+        grid-template-columns: 240px minmax(0, 640px);
+        align-items: start;
+        column-gap: var(--ambio-space-32);
+    }
+}

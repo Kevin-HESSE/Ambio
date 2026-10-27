@@ -1,0 +1,68 @@
+/* Navigation (docs/ui.md#patterns): the tabs of a page, and the items of the sidebar. */
+
+/* ---------- Tabs ---------- */
+/* Links in a row that scrolls, the active one underlined (TabNav). */
+.tabs {
+    display: flex;
+    gap: var(--ambio-space-24);
+    border-bottom: 1px solid var(--ambio-border-default);
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.tab {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ambio-space-6);
+    padding: var(--ambio-space-12) 0 10px;
+    border-bottom: 2px solid transparent;
+    color: var(--ambio-text-secondary);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.tab:hover {
+    color: var(--ambio-text-primary);
+}
+
+.tab.active {
+    color: var(--ambio-text-primary);
+    border-bottom-color: var(--ambio-accent-default);
+}
+
+/* ---------- Navigation items ---------- */
+/* From 992 px, the items of the sidebar, which only shows there, and the section tabs (TabNav with Sections, the
+   Account pages), which become a list of the same items. */
+@media (min-width: 992px) {
+    .tabs-sections {
+        flex-direction: column;
+        gap: var(--ambio-space-2);
+        border-bottom: 0;
+    }
+
+    .nav-item,
+    .tabs-sections .tab {
+        display: flex;
+        align-items: center;
+        gap: var(--ambio-space-12);
+        height: 40px;
+        padding: 0 var(--ambio-space-12);
+        border: 0;
+        border-radius: var(--ambio-radius-md);
+        color: var(--ambio-text-secondary);
+        text-decoration: none;
+    }
+
+    .nav-item:hover,
+    .tabs-sections .tab:hover {
+        background: var(--ambio-bg-subtle);
+    }
+
+    .nav-item.active,
+    .tabs-sections .tab.active {
+        background: var(--ambio-accent-subtle);
+        color: var(--ambio-accent-text);
+        font-weight: 600;
+    }
+}
