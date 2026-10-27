@@ -3,6 +3,7 @@ using Ambio.Domain.CoverLetters;
 using Ambio.Domain.CvDocuments;
 using Ambio.Domain.JobApplications;
 using Ambio.Domain.Offers;
+using Ambio.Domain.Settings;
 using Ambio.Infrastructure.Users;
 
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -25,6 +26,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<CoverLetter> CoverLetters => Set<CoverLetter>();
 
     public DbSet<CvDocument> CvDocuments => Set<CvDocument>();
+
+    public DbSet<UserSettings> UserSettings => Set<UserSettings>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
