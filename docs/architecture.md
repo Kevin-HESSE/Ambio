@@ -76,6 +76,8 @@ erDiagram
         guid Id
         guid JobApplicationId "null = general CV"
         enum Source "Uploaded | Generated"
+        string FileName "as uploaded"
+        long Size "bytes"
         string TemplateId "Generated only"
         string TemplateVersion "Generated only"
         json Snapshot "Generated only"
@@ -103,7 +105,7 @@ flowchart LR
     St --> CV[CvDocument row]
 ```
 
-An uploaded CV (Phase 1) skips every step up to storage: the file is validated (PDF only, size limit), stored, and recorded as `Source = Uploaded`.
+An uploaded CV (Phase 1) skips every step up to storage: the file is validated (PDF only, size limit), stored, and recorded as `Source = Uploaded`. The browser reads it through two endpoints outside the Blazor pages, `/cvs/{id}` (inline, for the preview) and `/cvs/{id}/download`, for the logged-in user only.
 
 ## Storage layout
 
@@ -114,6 +116,8 @@ An uploaded CV (Phase 1) skips every step up to storage: the file is validated (
   photos/<id>.<ext>       optional profile photo
   keys/                   ASP.NET Core DataProtection keys
 ```
+
+The documents root is `Ambio:Storage:Root` (`/data` in Docker). A relative root starts from the app's content root: `Data` in development, so files land in `src/Ambio.Web/Data`, next to the database. `IDocumentStorage` (Application) takes paths relative to the root; its file system implementation (`Infrastructure/Common/FileSystemDocumentStorage`) never replaces a file, removes a half-written one, and refuses a path outside the root.
 
 See [ADR 0005](adr/0005-sqlite-and-filesystem-storage.md) for why files live on disk rather than in the database.
 
