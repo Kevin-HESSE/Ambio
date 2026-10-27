@@ -125,7 +125,7 @@ Every attribute that isn't a status is a **neutral tag**. The icon distinguishes
 | `text/small` | 14 / 20 | Regular 400 | Metadata, help text |
 | `text/badge` | 13 / 16 | SemiBold 600 | Badges and tags |
 
-- In the app, `wwwroot/css/typography.css` holds the text color classes `t-secondary` (`text/secondary`) and `t-muted` (`text/muted`)
+- In the app, `wwwroot/css/typography.css` holds a class per text style (`t-h1`, `t-h2`, `t-h3`, `t-body-strong`, `t-small`, `t-badge`) and the text color classes `t-secondary` (`text/secondary`) and `t-muted` (`text/muted`)
 - Source Sans reads smaller than most sans-serifs, so body text stays at 16 px (Bootstrap's `1rem`).
 - Tabular figures (`font-variant-numeric: tabular-nums`) are used for dates and counts in tables.
 - The `ShortId` uses the system monospace stack (`ui-monospace, SFMono-Regular, Menlo, monospace`).
