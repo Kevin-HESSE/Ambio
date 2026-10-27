@@ -52,6 +52,14 @@ Newest first. Each entry follows this format:
 - Change in the official version: what to do differently
 ```
 
+### 2026-10-27 — Home dashboard (#37)
+
+- Kept: the counters are links to the filtered applications list (`?status=…`), so the dashboard needs no filter of its own and no island: the whole page is static.
+- Kept: Follow up counts from the sending day typed by the user (`AppliedOn`), not from when the sending was recorded: an application logged late shows at once. The rule sits in the domain (`UserSettings.LastSendingDayToFollowUp`), and the query stays in SQL.
+- Kept: the follow-ups and the events reuse the application summary and its projection, so the dashboard adds no new mapping of the two kinds.
+- Not needed: nothing so far. Follow up has no limit: real use will tell whether a long search, with many applications left unanswered, needs one, or a way to dismiss an item (the follow-up interaction of Phase 2b).
+- Change in the official version: "today" is the server's UTC day, while `AppliedOn` is a day of the user: an API should take the user's time zone. The activity is merged in memory from the status changes and the creations, and a creation as already sent is told apart by its timestamps: an API could store an explicit event log, or the initial status, and page it.
+
 ### 2026-10-27 — Settings (#52)
 
 - Kept: the settings are a single row created by the first save, and the defaults come from the domain (`UserSettings.DefaultFollowUpAfterDays`) while there is none, so a fresh database needs no seed.

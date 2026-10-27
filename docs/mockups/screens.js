@@ -158,7 +158,7 @@
       </section>
       <div class="dash-cols">
         <section class="card">
-          <div class="card-header"><div><h2>Follow up</h2><div class="card-sub">Applied more than 7 days ago, no news since</div></div></div>
+          <div class="card-header"><div><h2>Follow up</h2><div class="card-sub">Sent 7 days ago or more, no news since</div></div></div>
           <ul class="list">${follow}</ul>
         </section>
         <section class="card">
