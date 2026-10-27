@@ -6,6 +6,7 @@ using Ambio.Web.Tests.Fixtures;
 using Bunit;
 
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 
 using NSubstitute;
@@ -71,14 +72,15 @@ public class CompanySearchTests : BunitContext
     }
 
     [Fact]
-    public void Click_OnTheCreateLine_GivesTheTrimmedName()
+    public async Task Click_OnTheCreateLine_GivesTheTrimmedName()
     {
         _companyService.SearchAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns([]);
         string? created = null;
         var cut = RenderSearch(onCreate: name => created = name);
         cut.Find($"#{Id}").Input($"  {NewName} ");
 
-        cut.WaitForElement(".company-search-new").Click();
+        // Click() can return before the handler runs, while the renderer still ends the search; ClickAsync waits for it.
+        await cut.WaitForElement(".company-search-new").ClickAsync(new MouseEventArgs());
 
         Assert.Equal(NewName, created);
     }
