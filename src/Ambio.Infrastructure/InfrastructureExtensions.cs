@@ -2,6 +2,7 @@ using Ambio.Application.Common;
 using Ambio.Application.Companies;
 using Ambio.Application.CoverLetters;
 using Ambio.Application.CvDocuments;
+using Ambio.Application.Dashboard;
 using Ambio.Application.JobApplications;
 using Ambio.Application.Offers;
 using Ambio.Application.Settings;
@@ -10,6 +11,7 @@ using Ambio.Infrastructure.Common;
 using Ambio.Infrastructure.Companies;
 using Ambio.Infrastructure.CoverLetters;
 using Ambio.Infrastructure.CvDocuments;
+using Ambio.Infrastructure.Dashboard;
 using Ambio.Infrastructure.JobApplications;
 using Ambio.Infrastructure.Offers;
 using Ambio.Infrastructure.Persistence;
@@ -74,6 +76,7 @@ public static class InfrastructureExtensions
         services.AddScoped<ICoverLetterService, CoverLetterService>();
         services.AddScoped<ICvDocumentService, CvDocumentService>();
         services.AddScoped<IUserSettingsService, UserSettingsService>();
+        services.AddScoped<IDashboardService, DashboardService>();
 
         return services;
     }
