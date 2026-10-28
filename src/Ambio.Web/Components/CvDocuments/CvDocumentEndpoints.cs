@@ -16,7 +16,7 @@ internal static class CvDocumentEndpoints
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        var group = endpoints.MapGroup($"/{CvDocumentRoutes.Base}").RequireAuthorization();
+        var group = endpoints.MapGroup($"/{CvDocumentRoutes.Base}");
 
         group.MapGet("/{id:guid}", (Guid id, [FromServices] ICvDocumentService service, HttpContext context) =>
             SendAsync(id, download: false, service, context));
