@@ -40,24 +40,15 @@ public class RegisterInputValidationTests
     [Fact]
     public void PasswordShorterThanSixCharacters_FailsOnPassword()
     {
-        var results = Validate(ValidInput() with { Password = "Ab1!", ConfirmPassword = "Ab1!" });
+        var results = Validate(ValidInput() with { Password = "Ab1!" });
 
         Assert.Contains(results, r => r.MemberNames.Contains(nameof(RegisterInput.Password)));
-    }
-
-    [Fact]
-    public void MismatchedConfirmation_FailsOnConfirmPassword()
-    {
-        var results = Validate(ValidInput() with { ConfirmPassword = "Other0rd!" });
-
-        Assert.Contains(results, r => r.MemberNames.Contains(nameof(RegisterInput.ConfirmPassword)));
     }
 
     private static RegisterInput ValidInput() => new()
     {
         Email = "user@example.com",
         Password = "Passw0rd!",
-        ConfirmPassword = "Passw0rd!",
     };
 
     private static List<ValidationResult> Validate(RegisterInput input)

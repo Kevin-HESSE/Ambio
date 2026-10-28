@@ -2,12 +2,8 @@ using Ambio.Application.Common;
 using Ambio.Application.Users;
 using Ambio.Application.Users.Dtos;
 using Ambio.Infrastructure.Tests.Fixtures;
-using Ambio.Infrastructure.Users;
 
 using Microsoft.EntityFrameworkCore;
-
-using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 
 namespace Ambio.Infrastructure.Tests.Users;
 
@@ -16,7 +12,6 @@ public class UserServiceTests : IAsyncLifetime
     private const string UserEmail = "user@example.com";
     private const string OtherUserEmail = "other@example.com";
     private const string UserPassword = "Passw0rd!";
-    private const string ConfirmEmailUrl = "https://localhost/Account/ConfirmEmail";
 
     private SqliteServiceProvider _services = null!;
 
@@ -31,7 +26,7 @@ public class UserServiceTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task RegisterUserAsync_FirstUser_CreatesUser()
+    public async Task RegisterUserAsync_FirstUser_CreatesConfirmedUser()
     {
         var result = await RegisterAsync(ValidInput());
 
@@ -40,7 +35,7 @@ public class UserServiceTests : IAsyncLifetime
         var user = await _services.QueryAsync(context => context.Users.SingleAsync(TestContext.Current.CancellationToken));
         Assert.Equal(userId, user.Id);
         Assert.Equal(UserEmail, user.Email);
-        Assert.False(user.EmailConfirmed);
+        Assert.True(user.EmailConfirmed);
     }
 
     [Fact]
@@ -70,65 +65,20 @@ public class UserServiceTests : IAsyncLifetime
     [MemberData(nameof(PasswordsRejectedByIdentity))]
     public async Task RegisterUserAsync_PasswordRejectedByIdentity_FailsWithoutUser(string password)
     {
-        var result = await RegisterAsync(ValidInput() with { Password = password, ConfirmPassword = password });
+        var result = await RegisterAsync(ValidInput() with { Password = password });
 
         Assert.False(result.IsSuccess);
         Assert.Equal(0, await CountUsersAsync());
-    }
-
-    [Fact]
-    public async Task GenerateConfirmEmailAsync_UnknownUser_Fails()
-    {
-        var result = await GenerateConfirmEmailAsync(Guid.NewGuid().ToString());
-
-        Assert.False(result.IsSuccess);
-        Assert.Equal(UserErrors.NotFound, result.GetMessage);
-        await _services.EmailSender.DidNotReceiveWithAnyArgs().SendConfirmationLinkAsync(default!, default!, default!);
-    }
-
-    [Fact]
-    public async Task GenerateConfirmEmailAsync_KnownUser_SendsConfirmationLink()
-    {
-        (await RegisterAsync(ValidInput())).TryGetValue(out var userId);
-
-        var result = await GenerateConfirmEmailAsync(userId!);
-
-        Assert.True(result.IsSuccess);
-        await _services.EmailSender.Received(1).SendConfirmationLinkAsync(
-            Arg.Is<ApplicationUser>(user => user.Id == userId),
-            UserEmail,
-            Arg.Is<string>(link =>
-                link.StartsWith($"{ConfirmEmailUrl}?")
-                && link.Contains($"userId={userId}")
-                && link.Contains("code=")));
-    }
-
-    [Fact]
-    public async Task GenerateConfirmEmailAsync_SenderThrows_Fails()
-    {
-        (await RegisterAsync(ValidInput())).TryGetValue(out var userId);
-        _services.EmailSender
-            .SendConfirmationLinkAsync(default!, default!, default!)
-            .ThrowsAsyncForAnyArgs(new InvalidOperationException());
-
-        var result = await GenerateConfirmEmailAsync(userId!);
-
-        Assert.False(result.IsSuccess);
-        Assert.Equal(UserErrors.EmailConfirmationFailed, result.GetMessage);
     }
 
     private static RegisterInput ValidInput() => new()
     {
         Email = UserEmail,
         Password = UserPassword,
-        ConfirmPassword = UserPassword,
     };
 
     private Task<ServiceResult<string>> RegisterAsync(RegisterInput input) =>
         _services.CallAsync((IUserService service) => service.RegisterUserAsync(input, TestContext.Current.CancellationToken));
-
-    private Task<ServiceResult> GenerateConfirmEmailAsync(string userId) =>
-        _services.CallAsync((IUserService service) => service.GenerateConfirmEmailAsync(userId, ConfirmEmailUrl));
 
     private Task<bool> HasUserAsync() =>
         _services.CallAsync((IUserService service) => service.HasUserAsync(TestContext.Current.CancellationToken));

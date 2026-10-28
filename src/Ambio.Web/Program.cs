@@ -34,6 +34,9 @@ builder.Services.AddApplicationServices();
 
 var app = builder.Build();
 
+// The single account is created from the Ambio:Account settings before the app accepts requests (ADR 0028).
+await app.Services.CreateAccountAtFirstStartAsync();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

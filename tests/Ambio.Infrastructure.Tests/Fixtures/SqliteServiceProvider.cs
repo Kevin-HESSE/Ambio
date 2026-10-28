@@ -1,7 +1,5 @@
 using Ambio.Infrastructure.Persistence;
-using Ambio.Infrastructure.Users;
 
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -21,8 +19,6 @@ public sealed class SqliteServiceProvider : IAsyncDisposable
 {
     private readonly SqliteConnection _keeperConnection;
     private readonly ServiceProvider _provider;
-
-    public IEmailSender<ApplicationUser> EmailSender { get; } = Substitute.For<IEmailSender<ApplicationUser>>();
 
     public TimeProvider TimeProvider { get; } = Substitute.For<TimeProvider>();
 
@@ -51,7 +47,6 @@ public sealed class SqliteServiceProvider : IAsyncDisposable
         services.AddSingleton(environment);
         services.AddDatabase(configuration);
         services.AddApplicationServices();
-        services.AddSingleton<IEmailSender<ApplicationUser>>(EmailSender);
 
         _provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
     }
