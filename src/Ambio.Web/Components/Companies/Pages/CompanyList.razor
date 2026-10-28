@@ -1,0 +1,61 @@
+@page "/companies"
+@inject ICompanyService CompanyService
+
+<PageTitle>Companies</PageTitle>
+<AppBarTitle>Companies</AppBarTitle>
+<AppBarActions>
+    <ButtonLink Href="@CompanyRoutes.New" Icon="plus-lg" IconOnly aria-label="New company" />
+</AppBarActions>
+
+<PageHeader Title="Companies" Subtitle="Employers, agencies and IT services companies">
+    <Actions>
+        <ButtonLink Href="@CompanyRoutes.New" Variant="ButtonVariant.Primary" Icon="plus-lg">New company</ButtonLink>
+    </Actions>
+</PageHeader>
+
+@if (_list is { Companies.Count: 0, HasArchived: false })
+{
+    <section class="card">
+        <EmptyState Icon="building" Title="No companies yet">
+            <ChildContent>Keep a profile of each employer, recruitment agency or IT services company you apply to, and find it again with every offer.</ChildContent>
+            <Actions>
+                <ButtonLink Href="@CompanyRoutes.New" Variant="ButtonVariant.Primary" Icon="plus-lg">New company</ButtonLink>
+            </Actions>
+        </EmptyState>
+    </section>
+}
+else if (_list is not null)
+{
+    <ArchivedFilter Action="@CompanyRoutes.List" Label="Filter the companies" Checked="IncludeArchived" />
+
+    @if (_list.Companies.Count == 0)
+    {
+        <section class="card">
+            <EmptyState Icon="archive" Title="Every company is archived">
+                <ChildContent>Archived companies are hidden from this list. Show them to find one again, or add a new company.</ChildContent>
+                <Actions>
+                    <ButtonLink Href="@CompanyRoutes.ListWithArchived" Variant="ButtonVariant.Secondary">Show archived</ButtonLink>
+                    <ButtonLink Href="@CompanyRoutes.New" Variant="ButtonVariant.Primary" Icon="plus-lg">New company</ButtonLink>
+                </Actions>
+            </EmptyState>
+        </section>
+    }
+    else
+    {
+        <ResponsiveList Items="_list.Companies">
+            <Card Context="company"><CompanyCard Company="company" /></Card>
+            <Table><CompanyTable Companies="_list.Companies" /></Table>
+        </ResponsiveList>
+    }
+}
+
+@code {
+    [SupplyParameterFromQuery(Name = ShowArchived.Query)]
+    public string? Archived { get; set; }
+
+    private CompanyListDto? _list;
+
+    private bool IncludeArchived => ShowArchived.IsChecked(Archived);
+
+    protected override async Task OnInitializedAsync() => _list = await CompanyService.ListAsync(IncludeArchived);
+}

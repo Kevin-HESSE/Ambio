@@ -1,0 +1,25 @@
+@* A label, such as the kind of a company (docs/ui.md#components): neutral, accent for a spontaneous application, or
+   archived. *@
+<span class="@ComponentClass">
+    @if (Icon is not null)
+    {
+        <i class="bi bi-@Icon" aria-hidden="true"></i>
+    }
+    @ChildContent
+</span>
+
+@code {
+    /// <summary>Bootstrap Icons name, without the <c>bi-</c> prefix.</summary>
+    [Parameter]
+    public string? Icon { get; set; }
+
+    [Parameter]
+    public TagVariant Variant { get; set; } = TagVariant.Neutral;
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private string ComponentClass => CssClassHelper.Serialize(
+        ["tag", "t-badge"],
+        new() { ["tag-accent"] = Variant == TagVariant.Accent, ["tag-archived"] = Variant == TagVariant.Archived });
+}

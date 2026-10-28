@@ -2,7 +2,7 @@
 
 Ambio's visual identity: neutral grays with a single indigo accent. The only other hues mark application statuses. The reasons are in [ADR 0015](adr/0015-neutral-visual-identity-with-status-colors.md).
 
-> Status: the tokens exist in Figma. They are applied to the app in [Phase 1](roadmap.md#phase-1--application-tracking-mvp) (CSS variables mapped onto Bootstrap 5.3).
+> Status: the tokens exist in Figma and are applied to the app in `src/Ambio.Web/wwwroot/app.css` (CSS variables mapped onto Bootstrap 5.3). The theme follows the system unless Light or Dark is chosen with the theme selector of the app shell (sidebar and More sheet), stored in the browser under `ambio-theme`.
 
 **Figma**: [Ambio](https://www.figma.com/design/3ys0FLvxXEynaZmFtUxAda/Ambio) has two pages:
 - `Foundations`: primitives, semantic colors, statuses, tags, typography, spacing and radius.
@@ -91,8 +91,8 @@ Each status of `ApplicationStatus` ([data model](data-model.md#application-hiera
 - **Draft** vs **Withdrawn**: both are gray. Draft is empty with a dashed border ("not sent yet"). Withdrawn is filled ("closed by me").
 - The **indigo accent is never used for a status**, so a badge can't be mistaken for a button or a link.
 - The `feedback/*` tokens share these hues (success = Offer, warning = Interview, danger = Rejected, info = Applied), so each color means the same thing everywhere in the app.
-- The UI and the mockups use the English labels. The French labels come with localization ([Phase 5](roadmap.md#phase-5--identity--i18n)). The Figma components still show the French labels and will be switched to English.
-- Icons come from [Bootstrap Icons](https://icons.getbootstrap.com/) (MIT). Figma shows a dot instead of the icon.
+- The UI and the mockups use the English labels. Localization is out of the proof of concept ([ADR 0024](adr/0024-proof-of-concept.md)). The Figma components still show the French labels and will be switched to English.
+- Icons come from [Bootstrap Icons](https://icons.getbootstrap.com/) (MIT), self-hosted in `wwwroot/lib/bootstrap-icons/` as an icon font (`<i class="bi bi-send"></i>`). Figma shows a dot instead of the icon.
 
 ### Tags
 
@@ -111,12 +111,12 @@ Every attribute that isn't a status is a **neutral tag**. The icon distinguishes
 ## Typography
 
 **[Source Sans 3](https://fonts.google.com/specimen/Source+Sans+3)**, under the SIL Open Font License.
-- It's self-hosted in `wwwroot` (woff2), so the app has no dependency on Google Fonts, which matters for self-hosted Docker installs.
+- It's self-hosted in `wwwroot/fonts/source-sans-3/` (one variable woff2 file covering weights 200 to 900, with its license), so the app has no dependency on Google Fonts, which matters for self-hosted Docker installs.
 - Fallback stack: `"Source Sans 3", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`.
 
 | Style | Size / line height (px) | Weight | Usage |
 |---|---|---|---|
-| `text/display` | 32 / 40 | SemiBold 600 | Dashboard title |
+| `text/display` | 32 / 40 | SemiBold 600 | Not used yet: the dashboard has the page header of every page (`text/h1`), as in the mockups |
 | `text/h1` | 28 / 36 | SemiBold 600 | Page title |
 | `text/h2` | 22 / 30 | SemiBold 600 | Section title |
 | `text/h3` | 18 / 26 | SemiBold 600 | Card title |
@@ -125,6 +125,7 @@ Every attribute that isn't a status is a **neutral tag**. The icon distinguishes
 | `text/small` | 14 / 20 | Regular 400 | Metadata, help text |
 | `text/badge` | 13 / 16 | SemiBold 600 | Badges and tags |
 
+- In the app, `wwwroot/css/typography.css` holds a class per text style (`t-h1`, `t-h2`, `t-h3`, `t-body-strong`, `t-small`, `t-badge`) and the text color classes `t-secondary` (`text/secondary`) and `t-muted` (`text/muted`)
 - Source Sans reads smaller than most sans-serifs, so body text stays at 16 px (Bootstrap's `1rem`).
 - Tabular figures (`font-variant-numeric: tabular-nums`) are used for dates and counts in tables.
 - The `ShortId` uses the system monospace stack (`ui-monospace, SFMono-Regular, Menlo, monospace`).
@@ -133,13 +134,17 @@ Every attribute that isn't a status is a **neutral tag**. The icon distinguishes
 
 | Spacing | Value |
 |---|---|
+| `space/2` | 2 px |
 | `space/4` | 4 px |
+| `space/6` | 6 px |
 | `space/8` | 8 px |
 | `space/12` | 12 px |
 | `space/16` | 16 px |
 | `space/24` | 24 px |
 | `space/32` | 32 px |
 | `space/48` | 48 px |
+
+`space/2` and `space/6` are off the 4 px grid: they only space tightly related lines, such as a label and its value or a field and its message.
 
 | Radius | Value | Usage |
 |---|---|---|
@@ -152,22 +157,28 @@ Shadows are drawn in `#0F172A`:
 - `shadow/sm` (cards): `0 1px 2px` at 6% and `0 1px 3px` at 8%.
 - `shadow/md` (dropdowns, modals): `0 4px 6px -1px` at 8% and `0 10px 15px -3px` at 10%.
 
+The **scrim** (`--ambio-scrim`) dims the page behind a sheet, a modal or the reconnect dialog: `#0F172A` at 45% in light, `#020617` at 70% in dark.
+
 ## Components
 
 | Component | Figma | App (Phase 1) |
 |---|---|---|
 | `StatusBadge` | One variant per status (`Status=Draft…Withdrawn`), dot + label | `StatusBadge.razor`: takes an `ApplicationStatus`, renders the icon + localized label |
-| `Tag` | `Style=Neutral \| Accent \| Archived`, `Label` text property | `Tag.razor`: style + label + optional icon |
+| `Tag` | `Style=Neutral \| Accent \| Archived`, `Label` text property | `Tag.razor`: style (`TagVariant.Neutral`, `Accent` or `Archived`) + label + optional icon; `ArchivedTag.razor` for archived rows and items |
 
 The layout components (app shell, lists, tabs, sheets, toasts…) are listed in [ui.md](ui.md#components).
 
 ## Logo
 
-A monogram and a wordmark:
-- the **mark** is a white "P" (`accent/on`) in a rounded square (`radius/lg`) filled with `accent/default`, 28 px in the app bar and the sidebar, 40 px on the log-in page;
+A mark and a wordmark:
+- the **mark**, "Orbit", is a path that goes around a point and ends on a dot, drawn in `accent/on` in a rounded square filled with `accent/default`. *Ambio* is Latin for "I go around, I canvass", which is what a job search does. It is 28 px in the app bar and the sidebar, 40 px on the log-in page;
 - the **wordmark** "Ambio" is set in Source Sans 3 SemiBold, in `text/primary`, next to the mark.
 
-The mark alone is the favicon. It follows the theme like any other token: `#4F46E5` with a white "P" in light, `#818CF8` with a `#020617` "P" in dark.
+The mark is drawn on a 32 × 32 grid: a square with 9-unit corners, a 270° arc of radius 7.5 and stroke 3 with round caps, from (10.7, 21.3) clockwise to (21.3, 10.7), a dot of radius 3 at the end of the arc and a dot of radius 2.2 in the center.
+
+- In the app, `Logo.razor` draws it as inline SVG colored by the tokens, so it follows the theme like any other element.
+- The mark alone is the favicon (`wwwroot/favicon.svg`): `#4F46E5` with a white shape in light, `#818CF8` with a `#020617` shape in dark. A favicon can't read the page's CSS variables, so it holds the hex values and follows the system color scheme, not the theme chosen in the app. `favicon.png` (32 × 32, light) is the fallback for browsers without SVG favicons.
+- The mark isn't in Figma yet.
 
 ## From tokens to code
 
@@ -182,23 +193,23 @@ Each token becomes a CSS custom property prefixed with `--ambio-`. The `/` in th
 | `--bs-body-bg` | `bg/canvas` |
 | `--bs-body-color` | `text/primary` |
 | `--bs-secondary-color` | `text/secondary` |
+| `--bs-tertiary-color` | `text/muted` |
 | `--bs-tertiary-bg` | `bg/subtle` |
-| `--bs-border-color` | `border/default` |
+| `--bs-border-color`, `--bs-border-color-translucent` | `border/default` |
 | `--bs-primary`, `--bs-primary-rgb` | `accent/default` |
-| `--bs-link-color`, `--bs-link-hover-color` | `accent/text`, `accent/hover` |
+| `--bs-link-color`, `--bs-link-hover-color` (and their `-rgb`) | `accent/text`, `accent/hover` |
 | `--bs-focus-ring-color` | `focus/ring` |
+| `--bs-success`, `--bs-warning`, `--bs-danger`, `--bs-info` (and their `-rgb`) | `feedback/*` |
+| `--bs-{color}-text-emphasis`, `-bg-subtle`, `-border-subtle` (alerts) | `fg`, `bg`, `border` of the status with the same hue: success = `Offer`, warning = `Interview`, danger = `Rejected`, info = `Applied` |
 | `--bs-card-bg`, `--bs-table-bg` | `bg/surface` |
-| `--bs-body-font-family` | Source Sans 3 stack |
-| `--bs-border-radius` | `radius/md` |
+| `--bs-body-font-family`, `--bs-font-monospace` | Source Sans 3 stack, monospace stack |
+| `--bs-border-radius`, `-sm`, `-lg`, `-pill` | `radius/md`, `radius/sm`, `radius/lg`, `radius/full` |
+| `--bs-box-shadow-sm`, `--bs-box-shadow` | `shadow/sm`, `shadow/md` |
 
-## Figma structure
-
-| Collection | Variables | Notes |
-|---|---|---|
-| `Primitives` | 51 colors | Hidden from pickers (no scope) |
-| `Color Light` | 51 semantic colors, aliased to primitives | Scoped to fills, text or strokes |
-| `Color Dark` | Same names, dark aliases | |
-| `Spacing` | 7 | Gap and padding |
-| `Radius` | 4 | Corner radius |
-
-The Figma file is on the **Starter** plan, where a collection can hold only one mode. Light and dark are therefore two collections with identical variable names, instead of two modes of one collection. The components are bound to `Color Light`, and the dark preview rebinds them to `Color Dark`. With a paid plan, the two collections can be merged into one collection with `Light` and `Dark` modes, without renaming any variable.
+- Bootstrap reads some colors as `r, g, b` triplets (`--bs-primary-rgb`, link and contextual colors). A triplet can't be derived from a hex variable, so `app.css` repeats their light and dark values as literals.
+- Some components are compiled with fixed colors. `app.css` sets their component variables:
+  - `.btn-primary`: the `accent/*` tokens;
+  - `.btn-danger`: outlined, as in the mockups (`feedback/danger` text, `bg/surface`, `border/strong`);
+  - inputs, selects and checkboxes: `bg/surface` and `border/strong`; their focus: `focus/ring`;
+  - checked checkboxes: `accent/default`;
+  - card headers: no tint, `space/12` and `space/16` padding, and a flex row with the title on the left and its actions on the right.

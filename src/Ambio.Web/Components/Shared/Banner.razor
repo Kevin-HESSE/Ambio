@@ -1,0 +1,45 @@
+@* A state that lasts, shown inside the page (docs/ui.md#patterns), such as a possible duplicate. A class passed by
+   the caller is added to its own, and other attributes pass through. *@
+<div class="@ComponentClass" role="status" @attributes="OtherAttributes">
+    <i class="banner-icon bi bi-@Icon" aria-hidden="true"></i>
+    <div class="banner-body stack">
+        <div>
+            <p class="banner-title t-body-strong">@Title</p>
+            <div class="banner-text t-small t-secondary">@ChildContent</div>
+        </div>
+        @if (Actions is not null)
+        {
+            <div class="banner-actions cluster">@Actions</div>
+        }
+    </div>
+</div>
+
+@code {
+    /// <summary>Bootstrap Icons name, without the <c>bi-</c> prefix.</summary>
+    [Parameter, EditorRequired]
+    public string Icon { get; set; } = "";
+
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = "";
+
+    [Parameter]
+    public BannerVariant Variant { get; set; } = BannerVariant.Neutral;
+
+    /// <summary>The explanation under the title.</summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public RenderFragment? Actions { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string ComponentClass => CssClassHelper.Serialize(
+        ["banner"],
+        new() { ["banner-info"] = Variant == BannerVariant.Info },
+        AdditionalAttributes);
+
+    private IEnumerable<KeyValuePair<string, object>>? OtherAttributes =>
+        AdditionalAttributes?.Where(attribute => attribute.Key != "class");
+}

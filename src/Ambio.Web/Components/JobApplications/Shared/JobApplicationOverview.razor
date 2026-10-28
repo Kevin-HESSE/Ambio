@@ -1,0 +1,93 @@
+@* The Overview of the application page: what the application answers, how and when it was sent, then its notes. *@
+<section class="card application-overview" aria-label="Overview">
+    <div class="card-body">
+        <dl class="application-overview-list">
+            @if (Application is OfferApplicationDetailsDto offer)
+            {
+                <div class="stack">
+                    <dt class="t-small t-muted">Offer</dt>
+                    <dd><a class="application-offer" href="@OfferRoutes.Details(offer.JobOfferShortId, offer.JobOfferSlug)">@offer.Title · @offer.CompanyName</a></dd>
+                </div>
+                <div class="stack">
+                    <dt class="t-small t-muted">Applied via</dt>
+                    <dd class="application-via">
+                        @if (offer.AppliedViaUrl is not null)
+                        {
+                            <a href="@offer.AppliedViaUrl" target="_blank" rel="noopener noreferrer">
+                                @offer.AppliedViaSite <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="t-muted">Not specified</span>
+                        }
+                    </dd>
+                </div>
+            }
+            else
+            {
+                <div class="stack">
+                    <dt class="t-small t-muted">Company</dt>
+                    <dd><a class="application-company-link" href="@CompanyRoutes.Details(Application.CompanySlug)">@Application.CompanyName</a></dd>
+                </div>
+            }
+            <div class="stack">
+                <dt class="t-small t-muted">Channel</dt>
+                <dd class="application-channel cluster">
+                    <Tag Icon="@Application.Channel.ToIcon()">@Application.Channel.ToLabel()</Tag>
+                    @if (Application.ChannelDetail is not null)
+                    {
+                        <span class="application-channel-detail">@Application.ChannelDetail</span>
+                    }
+                </dd>
+            </div>
+            <div class="stack">
+                <dt class="t-small t-muted">Sent on</dt>
+                <dd class="application-sent-on">
+                    @if (Application.SentOn is { } sentOn)
+                    {
+                        <time datetime="@sentOn.ToString("yyyy-MM-dd")">@sentOn.ToDisplayDate()</time>
+                    }
+                    else
+                    {
+                        <span class="t-muted">Not sent yet</span>
+                    }
+                </dd>
+            </div>
+            <div class="stack">
+                <dt class="t-small t-muted">Short ID</dt>
+                <dd class="application-short-id">@Application.ShortId</dd>
+            </div>
+            <div class="stack">
+                <dt class="t-small t-muted">Created</dt>
+                <dd><time datetime="@Application.CreatedAt.ToString("yyyy-MM-dd")">@Application.CreatedAt.ToDisplayDate()</time></dd>
+            </div>
+        </dl>
+    </div>
+</section>
+
+<section class="card application-notes" aria-labelledby="application-notes-title">
+    <div class="card-header">
+        <h2 id="application-notes-title" class="t-h3">Notes</h2>
+        <ButtonLink Href="@EditHref" Icon="pencil" class="btn-sm application-notes-edit">Edit</ButtonLink>
+    </div>
+    <div class="card-body">
+        @if (Application.Notes is not null)
+        {
+            <p class="application-notes-text prose">@Application.Notes</p>
+        }
+        else
+        {
+            <p class="application-notes-empty t-muted">No notes yet.</p>
+        }
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired]
+    public JobApplicationDetailsDto Application { get; set; } = null!;
+
+    /// <summary>Base-relative URL of the edit page, where the notes are changed.</summary>
+    [Parameter, EditorRequired]
+    public string EditHref { get; set; } = "";
+}

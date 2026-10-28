@@ -1,0 +1,25 @@
+@* The "Status" card of the application page, in its side column (docs/ui.md#patterns): the status and the day it was
+   reached, then the action to change it (ChildContent), on its own line. *@
+<section class="card status-panel" aria-label="Status">
+    <div class="card-body cluster justify-content-between">
+        <div class="status-panel-status stack align-items-start">
+            <span class="t-small t-muted">Status</span>
+            <StatusBadge Status="Status" />
+        </div>
+        <span class="status-panel-since t-small t-muted text-nowrap">since <time datetime="@Since.ToString("yyyy-MM-dd")">@Since.ToShortDisplayDate()</time></span>
+        @ChildContent
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired]
+    public ApplicationStatus Status { get; set; }
+
+    /// <summary>When the application reached its status (UTC): its last change, or its creation.</summary>
+    [Parameter, EditorRequired]
+    public DateTime Since { get; set; }
+
+    /// <summary>The action to change the status, such as the change status sheet; none once the status is final.</summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

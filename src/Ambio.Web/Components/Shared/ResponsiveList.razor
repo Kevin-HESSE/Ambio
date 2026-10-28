@@ -1,0 +1,33 @@
+@typeparam TItem
+@* A list shown as cards below 992 px and as a table above, each in a card (docs/ui.md#patterns), closed by an
+   optional footer such as a ListFooter. *@
+<section class="card mobile-only">
+    <ul class="list-divided">
+        @foreach (var item in Items)
+        {
+            <li>@Card(item)</li>
+        }
+    </ul>
+    @Footer
+</section>
+<section class="card desktop-only">
+    @Table
+    @Footer
+</section>
+
+@code {
+    [Parameter, EditorRequired]
+    public IReadOnlyList<TItem> Items { get; set; } = [];
+
+    /// <summary>The card of an item, in the mobile list.</summary>
+    [Parameter, EditorRequired]
+    public RenderFragment<TItem> Card { get; set; } = null!;
+
+    /// <summary>The desktop table of every item, usually built on <see cref="ListTable"/>.</summary>
+    [Parameter, EditorRequired]
+    public RenderFragment Table { get; set; } = null!;
+
+    /// <summary>The end of the list, under the cards and under the table.</summary>
+    [Parameter]
+    public RenderFragment? Footer { get; set; }
+}

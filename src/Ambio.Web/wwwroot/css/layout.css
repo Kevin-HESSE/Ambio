@@ -1,0 +1,72 @@
+/* Layout primitives (docs/ui.md#components): a column or a row that wraps, with a gap between the children.
+   --gap sets the gap on the element itself and isn't inherited, so a stack inside a .page keeps its own gap.
+   Its initial value must be a fixed length: it is --ambio-space-8. */
+@property --gap {
+    syntax: "*";
+    inherits: false;
+    initial-value: var(--ambio-space-8);
+}
+
+/* A row of items that wraps, such as tags or buttons. */
+.cluster {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--gap);
+}
+
+/* A column of items. */
+.stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+}
+
+/* The single breakpoint (docs/ui.md#layout): tablets get the mobile layout. These classes only hide, so an element
+   keeps its own display; !important wins over the scoped rules that set it. */
+@media (max-width: 991px) {
+    .desktop-only {
+        display: none !important;
+    }
+}
+
+@media (min-width: 992px) {
+    .mobile-only {
+        display: none !important;
+    }
+}
+
+/* The grid of a detail page (docs/ui.md#patterns): header, side column, then content below 992 px; the header
+   above the content and a side column on its right above. The side column holds the company profile or the
+   offer's postings and applications, stacked. */
+.detail-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "head" "aside" "main";
+    gap: var(--ambio-space-16);
+}
+
+.detail-layout .detail-head {
+    grid-area: head;
+}
+
+.detail-aside {
+    --gap: var(--ambio-space-16);
+    grid-area: aside;
+}
+
+.detail-main {
+    --gap: var(--ambio-space-16);
+    grid-area: main;
+    min-width: 0;
+}
+
+@media (min-width: 992px) {
+    .detail-layout {
+        grid-template-columns: minmax(0, 1fr) 320px;
+        grid-template-areas: "head head" "main aside";
+        align-items: start;
+        column-gap: var(--ambio-space-32);
+        row-gap: var(--ambio-space-24);
+    }
+}

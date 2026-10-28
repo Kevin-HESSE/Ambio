@@ -2,7 +2,7 @@
 
 This page details the entities behind application tracking. The layering rules (persistence-ignorant domain, mapping classes, DTOs) are in [architecture.md](architecture.md). The reasons for this model are in [ADR 0011](adr/0011-company-centric-model-with-job-offers.md) and [ADR 0012](adr/0012-archive-instead-of-delete.md).
 
-> Status: the core (companies, offers, postings, applications, statuses, cover letters, uploaded CVs) lands in [Phase 1](roadmap.md#phase-1--application-tracking-mvp). Research notes, contacts, recruiters and interactions land in [Phase 2b](roadmap.md#phase-2b--company-research--contacts).
+> Status: the core (companies, offers, postings, applications, statuses, cover letters, uploaded CVs) is built ([Phase 1](roadmap.md#phase-1--application-tracking-mvp)). Research notes, contacts, recruiters and interactions are designed but **not built in the proof of concept**: they are [left to the official version](roadmap.md#left-to-the-official-version) ([ADR 0029](adr/0029-proof-of-concept-ends-after-phase-2.md)), and their sections below are a starting point for it.
 
 ## Overview
 
@@ -30,6 +30,7 @@ erDiagram
     COMPANY {
         guid Id
         string Name "unique, case-insensitive"
+        string Slug "unique, used in URLs"
         enum Kind "Employer | RecruitmentAgency | ServiceCompany"
         string Website
         string Industry
@@ -58,6 +59,7 @@ erDiagram
     }
     JOB_OFFER {
         guid Id
+        string ShortId "NanoId, unique, used in URLs"
         guid CompanyId "end client, nullable"
         guid RecruiterCompanyId "agency, nullable"
         string Title
@@ -66,7 +68,6 @@ erDiagram
         enum ContractType
         enum RemotePolicy
         string Salary "as announced"
-        date PublishedOn
         datetime ArchivedAt
     }
     JOB_OFFER_POSTING {
@@ -74,7 +75,6 @@ erDiagram
         guid JobOfferId
         string Site
         string Url
-        date SeenOn
     }
     JOB_APPLICATION {
         guid Id
@@ -97,9 +97,10 @@ erDiagram
     }
     STATUS_CHANGE {
         guid Id
+        guid JobApplicationId
         enum From
         enum To
-        datetime ChangedAt
+        datetime ChangedAt "UTC, when it was recorded"
         string Comment
     }
     INTERACTION {
@@ -110,18 +111,21 @@ erDiagram
     }
     COVER_LETTER {
         guid Id
+        guid JobApplicationId
         string Title
         text Content "plain text"
     }
     CV_DOCUMENT {
         guid Id
-        guid JobApplicationId "null = general CV"
-        enum Source "Uploaded | Generated"
+        guid JobApplicationId
+        enum Source "Uploaded"
+        string FileName "as uploaded"
+        long Size "bytes"
         string StoragePath
     }
 ```
 
-`OFFER_APPLICATION` and `SPONTANEOUS_APPLICATION` are subtypes of `JOB_APPLICATION`, stored in the same table (see [Application hierarchy](#application-hierarchy)). Every entity also has `CreatedAt` and `UpdatedAt`, which are left out of the diagram.
+`OFFER_APPLICATION` and `SPONTANEOUS_APPLICATION` are subtypes of `JOB_APPLICATION`, stored in the same table (see [Application hierarchy](#application-hierarchy)). Every entity also has `CreatedAt` and `UpdatedAt`, which are left out of the diagram, except `STATUS_CHANGE`: it's never updated, so `ChangedAt` is its only timestamp.
 
 ## Entities
 
@@ -134,13 +138,24 @@ A company profile that is kept across applications.
   - `RecruitmentAgency`: a recruitment firm hiring on behalf of a client.
   - `ServiceCompany`: an IT services company (ESN) that places consultants with clients.
 - `Name` is unique, compared case-insensitively (`COLLATE NOCASE`).
-- `Size` is a range (`1-10`, `11-50`, `51-250`, `251-1000`, `1000+`).
+- `Size` is a range (`1-10`, `11-50`, `51-250`, `251-1000`, `1001+`).
+
+**URL: slug**. The company page is `/companies/{Slug}`, for example `/companies/brightwave` ([ADR 0021](adr/0021-slug-urls-for-companies.md)):
+
+- `Slug` is stored, with a unique index, and generated from the name by `Slug.From(...)` (see [Application hierarchy](#application-hierarchy)). A name with no letter or digit left gives `company`.
+- A slug already held by another company, archived or not, gets the first free numeric suffix: `acme-inc`, `acme-inc-2`, `acme-inc-3`… Slugs caught by a page route (`new`) are reserved and get a suffix too.
+- Only a rename recomputes the slug. Old links aren't kept: the previous slug leads to the Not Found page.
+- `Guid Id` remains the primary key and the target of every foreign key.
 
 ### CompanyNote
+
+_Not built in the proof of concept._
 
 Dated research notes written in plain text, such as "culture, tech stack, feedback from former employees, what was said in the first interview". They are shown as a timeline on the company page, newest first. They are deleted with their company.
 
 ### Contact
+
+_Not built in the proof of concept._
 
 A person at a company: a recruiter, manager or interviewer. A contact belongs to one company and can be linked to several applications and interactions.
 
@@ -150,19 +165,25 @@ Contacts are **optional**. Many applications go through a website form and have 
 
 A job ad, independent of whether you apply to it.
 
-- `CompanyId` is the end client. `RecruiterCompanyId` is the agency or ESN that published the offer. **At least one** of the two is set, because an agency often hides its client.
+- `CompanyId` is the end client. `RecruiterCompanyId` is the agency or ESN that published the offer. **At least one** of the two is set, because an agency often hides its client. `RecruiterCompanyId` isn't built in the proof of concept, so `CompanyId` is required.
+- The company is picked or created from the New offer form: a name matching a company, ignoring case and archived or not, links the offer to it; any other name creates the company as an `Employer`, in the same save as the offer.
 - `Description` is a plain-text copy of the ad, so it survives when the ad goes offline.
 - `ContractType`: `Permanent` (CDI), `FixedTerm` (CDD), `Freelance`, `Internship`, `Apprenticeship`, `Other`.
 - `RemotePolicy`: `OnSite`, `Hybrid`, `FullRemote`, `Unknown`.
 - `Salary` is free text, kept as announced ("45–55 k€", "TJM 500").
+- **No publication date is entered.** The date shown as "Published" is the day the offer was recorded in Ambio, its `CreatedAt`, so there is no `PublishedOn` column.
+- **URL**: `/offers/482913-backend-developer-kelvio`, a `ShortId` followed by a slug of the title and the company name, as for applications (see the URL section of the [application hierarchy](#application-hierarchy), [ADR 0025](adr/0025-short-id-and-slug-urls-for-offers.md)). Offer titles aren't unique, so a stored slug alone, as for companies, can't identify an offer. The fallback slug is `offer`.
 
 ### JobOfferPosting
 
-The same offer is often published on several sites. Each place it was seen is a posting: `Site` (LinkedIn, Indeed, Welcome to the Jungle, the company's careers page…), `Url` and `SeenOn`.
+The same offer is often published on several sites. Each place it was seen is a posting: `Site` (LinkedIn, Indeed, Welcome to the Jungle, the company's careers page…) and `Url`. The day it was seen is the day it was recorded, its `CreatedAt`: there is no `SeenOn` column.
 
-- `Url` is unique per offer.
+- `Url` is unique per offer: `JobOffer.AddPosting` refuses a URL the offer already has, and a unique index on (`JobOfferId`, `Url`) is the final guard.
 - A dead link doesn't lose the offer.
+- An offer keeps at least one posting: `JobOffer.RemovePosting` refuses the last one (`CanRemovePosting`), and the offer page only offers to remove a posting when there are several.
 - Before an offer is created, the UI suggests existing offers from the same company with a similar title, so a new posting can be added to an existing offer instead of creating a duplicate.
+- The company is matched by name ignoring case, archived or not, as when the offer is created; only its active offers are suggested.
+- Two titles are similar when they share at least half of all their words, compared ignoring case, accents and punctuation (`JobOfferTitles.AreSimilar`): "Full-stack Engineer" and "full stack engineer", or "Senior Backend Developer" and "Backend Developer", are similar; "Backend Developer" and "Frontend Developer" aren't.
 
 ### Application hierarchy
 
@@ -170,8 +191,8 @@ The same offer is often published on several sites. Each place it was seen is a 
 
 | Type | Specific fields | Meaning |
 |---|---|---|
-| `OfferApplication` | `JobOfferId` (required), `AppliedViaPostingId` (optional) | Answer to a job offer. The company comes from the offer. The posting records which site's form was used, and must belong to the offer. |
-| `SpontaneousApplication` | `CompanyId` (required), `TargetPosition` (required) | Application sent to a company without any offer. |
+| `OfferApplication` | `JobOfferId` (required), `AppliedViaPostingId` (optional) | Answer to a job offer. The company comes from the offer. The posting records which site's form was used, and must belong to the offer: `OfferApplication.ApplyVia` refuses another offer's posting, and `ClearAppliedVia` sets it back to "not specified". A removed posting sets it back to null. |
+| `SpontaneousApplication` | `CompanyId` (required), `TargetPosition` (required) | Application sent to a company without any offer. The company is searched by name in the form, or typed to create it: a name matching a company, ignoring case and archived or not, links the application to it; any other name creates the company as an `Employer`, in the same save as the application, as for an offer. |
 
 The base class carries everything they share:
 
@@ -183,11 +204,12 @@ The base class carries everything they share:
   - `InPerson`.
   - `Other`.
 - `ChannelDetail`: free text, such as a generic address like `jobs@…` or the name of the person who referred you.
-- `AppliedOn`, which is null while the application is a draft.
+- `AppliedOn`, which is null while the application is a draft. `ChangeStatus` sets it when a draft is sent; `ChangeAppliedOn` corrects it afterwards, and refuses a draft.
+- An edit changes neither the offer nor the company of an application, nor its status.
 - `Notes`.
 - The cover letters, CVs, interactions and contacts.
 
-**URL: short id + slug**. Each application has a `ShortId`: a short random string generated with [NanoId](https://github.com/codeyu/nanoid-net), stored as `TEXT` with a unique index. The application's URL is built from it:
+**URL: short id + slug**. Each application has a `ShortId`, and so does each offer ([JobOffer](#joboffer)): a short random string generated with [NanoId](https://github.com/codeyu/nanoid-net), stored as `TEXT` with a unique index. The application's URL is built from it:
 
 ```text
 /applications/482913-backend-developer-acme
@@ -196,17 +218,32 @@ The base class carries everything they share:
 ```
 
 - The **short id** identifies the application. It keeps two applications with the same title (the same job applied to twice, or the same title at two companies) apart.
-- The **slug** makes the URL readable. It isn't stored: it's computed from the title (offer title or `TargetPosition`) and the effective company name. A `Slug.From(...)` helper in Application lowercases, removes accents, replaces anything that isn't a letter or digit with `-`, and truncates to 60 characters.
+- The **slug** makes the URL readable. It isn't stored: it's computed from the title (offer title or `TargetPosition`) and the effective company name. A `Slug.From(...)` helper in Application keeps lowercase ASCII letters and digits only: it removes accents, spells out `œ`, `æ` and `ß`, replaces any other run of characters with one `-`, truncates to 60 characters, and returns a fallback given by the caller when nothing is left.
+- Applications and offers have their own unique index: an application and an offer can share a short id, as the first segment of the URL tells them apart. The offer's slug is built from its title and company name.
 - The page looks the application up by `ShortId` only. When the slug in the URL doesn't match the current one (the title changed, the link was mistyped), the page redirects to the canonical URL, so old links keep working.
 - The short id is **random rather than sequential**, so the URL doesn't reveal how many applications exist ([ADR 0013](adr/0013-guid-v7-primary-keys.md)).
-- **Generation**: the creating service in Infrastructure calls `Nanoid.Generate(alphabet, size)`. The domain doesn't depend on the library: it receives the value. The service retries while the id is already taken, and the unique index is the final guard.
-- **Alphabet and size** are a single setting (`ShortIdOptions`):
+- **Generation**: the creating service in Infrastructure (applications or offers) draws it through `Common/ShortIdGenerator`, which calls `Nanoid.Generate(alphabet, size)`. The domain doesn't depend on the library: it receives the value. The generator draws again while the id is already taken, up to 100 times before failing, and the unique index is the final guard.
+- **Alphabet and size** are a single setting (`ShortIdOptions`, section `Ambio:ShortId`, validated at startup):
   - It starts **numeric**: alphabet `0123456789`, size 6, so 10⁶ values.
   - It can move to **alphanumeric** (`0123456789abcdefghijklmnopqrstuvwxyz`, 36⁶ ≈ 2 billion values) without a migration, because the column is already text and existing ids stay valid.
   - The alphabet must **never contain `-`**, because the first `-` separates the short id from the slug. This is why NanoId's default alphabet (which contains `-` and `_`) isn't used. Lowercase only, so URLs stay consistent.
 - `Guid Id` remains the primary key and the target of every foreign key. `ShortId` is only an alternate identifier for navigation.
 
-**Status workflow**: `Draft → Applied → Interview → Offer / Rejected / Withdrawn`. Every transition is checked by the domain and recorded as a `StatusChange`.
+**Status workflow**: `Draft → Applied → Interview → Offer / Rejected / Withdrawn` ([ADR 0026](adr/0026-status-workflow-and-history.md)). An application only moves forward:
+
+| From | Allowed next statuses |
+|---|---|
+| `Draft` | `Applied` (asks for `AppliedOn`), `Withdrawn` |
+| `Applied` | `Interview`, `Offer`, `Rejected`, `Withdrawn` |
+| `Interview` | `Offer`, `Rejected`, `Withdrawn` |
+| `Offer` | `Withdrawn` (the offer is declined) |
+| `Rejected`, `Withdrawn` | none: they are final |
+
+- The table lives in `StatusWorkflow` (`Next(status)`, `Allows(from, to)`). `Applied` is only reached from `Draft`: choosing it sends the draft.
+- `JobApplication.ChangeStatus(to, changedAt, comment, appliedOn)` refuses a transition the table doesn't allow (`InvalidOperationException`) and a draft sent without `appliedOn` (`ArgumentException`). It records the change, then moves the status. `appliedOn` isn't used by any other change. `CanChangeStatusTo(to)` lets the service check first.
+- Every application is born `Draft`. One created as already sent records `Draft → Applied` as its first change, at its creation, so the history explains every status but the first.
+- `ChangedAt` is when the change was recorded (`TimeProvider`, UTC), whereas `AppliedOn` is the day typed by the user.
+- An archived application can't change its status ([ADR 0027](adr/0027-archiving-cascade-and-restore.md)): `CanChangeStatusTo` returns false and `ChangeStatus` throws `InvalidOperationException` until it is restored. A wrong status still can't be undone.
 
 **Effective company** of an application:
 - For an `OfferApplication`, `JobOffer.CompanyId` if it's known, otherwise `JobOffer.RecruiterCompanyId`.
@@ -214,9 +251,11 @@ The base class carries everything they share:
 
 ### StatusChange
 
-`From`, `To`, `ChangedAt` and an optional `Comment`. These rows are append-only and are deleted with their application.
+`From`, `To`, `ChangedAt` and an optional `Comment`, trimmed and stored as null when blank. These rows are append-only: only `JobApplication.ChangeStatus` creates them, through the application's `StatusChanges`, and they are deleted with their application. They have no `DbSet`, and are reached through their application.
 
 ### Interaction
+
+_Not built in the proof of concept._
 
 Dated events of an application: `Interview`, `PhoneCall`, `Email`, `FollowUp`, `Other`.
 
@@ -226,20 +265,41 @@ Dated events of an application: `Interview`, `PhoneCall`, `Email`, `FollowUp`, `
 
 ### CoverLetter and CvDocument
 
-- Cover letters are plain text, with 1..n per application.
-- `CvDocument` is the metadata of a CV file (uploaded or generated). With `JobApplicationId = null`, it's a general CV. See [architecture.md](architecture.md#data-model) and [ADR 0007](adr/0007-cv-snapshots-selection-and-override.md).
+- **Cover letters** are plain text: an application has any number of them, none at first. A `CoverLetter` refers to its application by `JobApplicationId`, without a navigation on `JobApplication`, and has its own `DbSet`.
+  - `Title` and `Content` are required, trimmed at both ends; the line breaks inside the text are kept.
+  - They are listed in the order written (`CreatedAt`), so the list doesn't move when one is saved. The day it was last edited is its `UpdatedAt`.
+  - A letter is deleted for good, after a confirmation: nothing refers to it ([ADR 0012](adr/0012-archive-instead-of-delete.md)). The letters are deleted with their application, and those of an archived application can still be edited ([ADR 0027](adr/0027-archiving-cascade-and-restore.md)).
+- **CVs**: a `CvDocument` is the metadata of the PDF sent with an application ([ADR 0007](adr/0007-cv-snapshots-selection-and-override.md)); the file itself is stored on disk through `IDocumentStorage` ([ADR 0005](adr/0005-sqlite-and-filesystem-storage.md)). An application has any number of them, none at first. Like a letter, a `CvDocument` refers to its application by `JobApplicationId`, without a navigation, and has its own `DbSet`.
+  - It is created by `CvDocument.Upload(jobApplicationId, fileName, size, uploadedAt)`, with `Source = Uploaded`, the only source in the proof of concept: CV generation is [left to the official version](roadmap.md#left-to-the-official-version). `JobApplicationId` is required; a general CV, with no application, would make it nullable.
+  - `FileName` is the name of the file as uploaded, trimmed, shown in the list and given back on download. `Size` is in bytes, positive.
+  - `StoragePath` is relative to the storage root, `documents/<yyyy>/<id>.pdf` with the year of the upload, and always uses `/`, so the rows don't depend on the system that wrote them. It has a unique index.
+  - Only a PDF is accepted, checked on its content (it starts with `%PDF-`), not its name, within the configured size limit (`Ambio:Storage:MaxUploadSizeInMegabytes`, 5 MB by default). The file is written first, then the row; a row that can't be saved removes its file.
+  - CVs are listed newest first. There is no delete: the tab is the record of what was sent. An archived application still takes a new CV, as it keeps editable letters ([ADR 0027](adr/0027-archiving-cascade-and-restore.md)).
 
 ### UserSettings
 
 A single row of preferences for the account ([ADR 0002](adr/0002-single-user-application.md)), edited on the Settings page ([ui.md](ui.md#screens)). It's not linked to the other entities, so it's left out of the diagram.
 
-- `FollowUpAfterDays` (default `7`): an application still `Applied` after this many days, with no status change, appears in **Follow up** on the dashboard.
+- `FollowUpAfterDays` (default `7`, from `1` to `30`): an application still `Applied` after this many days, with no status change, appears in **Follow up** on the dashboard. The days count from its sending day: `LastSendingDayToFollowUp(today)` is `today` minus the delay, and an application sent on that day or before is due. Being still `Applied` means no change since the sending, as `Applied` is only reached from `Draft`. The domain refuses a value out of bounds.
+- The row is created by the first save of the Settings page; until then, `IUserSettingsService.GetAsync` returns the defaults. Nothing in the schema prevents a second row: the single account (ADR 0002) makes it unlikely.
 - The theme isn't stored here: it's a per-browser choice kept in `localStorage`.
-- Language joins it in [Phase 5](roadmap.md#phase-5--identity--i18n).
 
 ## Relationships and deletion
 
 Rows are **archived** (`ArchivedAt`) instead of deleted ([ADR 0012](adr/0012-archive-instead-of-delete.md)). A hard delete is only possible when nothing references the row.
+
+`ArchivedAt` only changes through `Archive(archivedAt)` and `Restore()`, on `Company`, `JobOffer` and `JobApplication`; `IsArchived` reads it. `Archive` keeps the day of a row already archived. The services run the cascade ([ADR 0027](adr/0027-archiving-cascade-and-restore.md)), in one save:
+
+| Action | Also changes |
+|---|---|
+| Archive a company | Its active offers and its active applications, to its offers or spontaneous, on the same day |
+| Archive an offer | Its active applications, on the same day |
+| Archive an application | Nothing |
+| Restore a company | Its offers and applications archived on its day |
+| Restore an offer | Its applications archived on its day, and its company when archived (alone) |
+| Restore an application | Its offer and its company when archived (alone) |
+
+Archiving an archived row, or restoring an active one, succeeds without changing anything; an unknown id fails with `NotFound`.
 
 | Relationship | On delete of the parent |
 |---|---|
@@ -261,20 +321,21 @@ Rows are **archived** (`ArchivedAt`) instead of deleted ([ADR 0012](adr/0012-arc
 The application hierarchy is mapped as **table-per-hierarchy** (EF Core's default).
 
 - There is a single `JobApplications` table with a `Kind` discriminator column (`Offer` | `Spontaneous`).
-- `JobApplicationConfiguration` declares the discriminator:
+- `JobApplicationConfiguration` declares the discriminator, whose values are the names of the `ApplicationKind` enum:
 
   ```csharp
   builder.HasDiscriminator<string>("Kind")
-      .HasValue<OfferApplication>("Offer")
-      .HasValue<SpontaneousApplication>("Spontaneous");
+      .HasValue<OfferApplication>(nameof(ApplicationKind.Offer))
+      .HasValue<SpontaneousApplication>(nameof(ApplicationKind.Spontaneous));
   ```
 
 - `OfferApplicationConfiguration` and `SpontaneousApplicationConfiguration` configure the specific columns. The domain classes stay plain C#.
-- The subtype columns are nullable in SQL, so a check constraint restores integrity:
+- The subtype columns are nullable in SQL, so a check constraint, `CK_JobApplications_Kind`, restores integrity: each row has the columns of its kind and none of the other's.
 
   ```sql
-  (Kind = 'Offer' AND JobOfferId IS NOT NULL AND CompanyId IS NULL)
-  OR (Kind = 'Spontaneous' AND CompanyId IS NOT NULL AND JobOfferId IS NULL AND TargetPosition IS NOT NULL)
+  (Kind = 'Offer' AND JobOfferId IS NOT NULL AND CompanyId IS NULL AND TargetPosition IS NULL)
+  OR (Kind = 'Spontaneous' AND CompanyId IS NOT NULL AND TargetPosition IS NOT NULL
+      AND JobOfferId IS NULL AND AppliedViaPostingId IS NULL)
   ```
 
 EF Core supports three inheritance mapping strategies ([docs](https://learn.microsoft.com/ef/core/modeling/inheritance)):
@@ -293,9 +354,8 @@ Every entity uses a `Guid` key created by the domain with `Guid.CreateVersion7()
 
 - **Identity at construction**: an entity has its id as soon as it is created, before `SaveChangesAsync`. The domain factories (`JobApplication`, `JobOffer`…) can build a whole graph (offer, postings, application) and reference ids without a database round trip. Services can also return the new id without reloading.
 - **File names**: a stored document is named after its id (`documents/<yyyy>/<id>.pdf`), so the file can be written before the row is saved and there are no name clashes.
-- **Export and import** ([Phase 6](roadmap.md#phase-6--data--showcase)): ids stay unique across Ambio instances. Importing an export into an instance that already has data doesn't collide with existing rows or require any id remapping.
-- **Demo seeding**: the demo data can use fixed, known ids.
-- **Non-guessable URLs**: `/applications/3` would reveal the number of applications, for example in screenshots or on the public demo. A GUID doesn't.
+- **Moving the data**: ids stay unique outside the instance, so the official version can take over the data of the proof of concept without any id remapping.
+- **Non-guessable URLs**: `/applications/3` would reveal the number of applications, for example in screenshots. A GUID doesn't.
 
 **Why version 7**: a v7 GUID starts with a millisecond timestamp. Unlike a random v4 GUID, new keys are appended at the end of the index instead of being spread across it, which keeps inserts efficient. Rows can also be sorted by creation order using the key alone.
 
@@ -313,7 +373,7 @@ At the data volume of a single user, both costs are negligible.
 |---|---|
 | Keys | `Guid` v7 (`Guid.CreateVersion7()`), generated by the domain (see [above](#keys-guid-v7-rather-than-auto-increment-integers)) |
 | Timestamps | UTC `DateTime`. The SQLite provider can't order or compare `DateTimeOffset`. |
-| Calendar dates | `DateOnly` (`AppliedOn`, `PublishedOn`, `SeenOn`) |
+| Calendar dates | `DateOnly` (`AppliedOn`) |
 | Enums | Stored as strings (`HasConversion<string>()`): readable in the database and stable in the JSON export |
 | `CreatedAt` / `UpdatedAt` | Set by a `SaveChangesInterceptor` in Infrastructure |
 | Archived rows | Filtered out by the services with an explicit `Where`. There is no global query filter, so an archived company still shows up in the history of its old applications. |
@@ -321,17 +381,29 @@ At the data volume of a single user, both costs are negligible.
 
 ### DTOs
 
-- **Lists** use one flat `JobApplicationSummaryDto` (`Id`, `Kind`, `Title`, `CompanyName`, `RecruiterName`, `Status`, `AppliedOn`), projected in LINQ so EF builds a single query:
+- **Lists** use one flat `JobApplicationSummaryDto`, projected in LINQ so EF builds a single query over both kinds. It holds `Id`, `ShortId`, `Kind` (`ApplicationKind.Offer` or `Spontaneous`), `Title`, `CompanyName`, `Status`, `Channel`, `AppliedVia` (the site of the posting, null for a spontaneous application) and `SentOn` (`AppliedOn`); `RecruiterName` comes in Phase 2b. An expression tree accepts neither a `switch` expression nor a pattern that declares a variable (`a is OfferApplication o`), so each member tests the kind and casts:
 
   ```csharp
-  Title = a is OfferApplication o ? o.JobOffer.Title : ((SpontaneousApplication)a).TargetPosition
+  Title: a is OfferApplication
+      ? ((OfferApplication)a).JobOffer.Title
+      : ((SpontaneousApplication)a).TargetPosition
   ```
 
-- Summary and detail DTOs carry `ShortId` and the computed `Slug`, so links are built without another query.
-- **Details** use one DTO per subtype: `OfferApplicationDetailsDto` and `SpontaneousApplicationDetailsDto`.
+- Lists are sorted newest first: by sending day, or by creation day for a draft, then by creation time.
+- Summary and detail DTOs carry `ShortId` and the computed `Slug` (`JobApplicationSlug.From(title, companyName)`, a read-only property, `application` when nothing is left), so links are built without another query.
+- Offer summary and detail DTOs carry `ShortId` and the computed `Slug` (`JobOfferSlug.From(title, companyName)`) the same way. `OfferApplicationDetailsDto` also carries `JobOfferShortId` and `JobOfferSlug`, so the application page links to its offer. Creating or editing an offer returns a `JobOfferLinkDto` (`ShortId`, `Slug`): a new title gives a new slug.
+- **Details** use one DTO per subtype, `OfferApplicationDetailsDto` and `SpontaneousApplicationDetailsDto`, deriving from the abstract `JobApplicationDetailsDto`. The service reads them with one projection per subtype (`OfType<…>()`): a single projection can't build either type.
+- The details carry the `StatusHistory` (`StatusChangeDto`: `From`, `To`, `ChangedAt`, `Comment`), newest first, and the computed `NextStatuses` (`StatusWorkflow.Next(Status)`), which the change status sheet offers.
+- A status is changed with `ChangeStatusAsync(id, StatusChangeInput)`: the new status `To` (required), `SentOn` (required for `Applied`) and `Comment`. It fails with `NotFound`, with `Archived` when the application is archived, or with `StatusNotAllowed` when the status can't follow the current one, such as when another tab changed it.
+- **CVs**: `ICvDocumentService` lists the CVs of an application as `CvDocumentDto` (`Id`, `FileName`, `Size`, `UploadedAt`), uploads one from its name and content and returns its id, and opens one as a `CvFileDto` (`FileName`, `Content`, a stream the caller disposes). `MaxUploadSize` gives the limit in bytes. It fails with `ApplicationNotFound`, `TooLarge`, `NotPdf`, `UploadFailed`, `NotFound` or `FileMissing` (the row is there, its file isn't).
+- **Cover letters**: `ICoverLetterService` lists the letters of an application as `CoverLetterDto` (`Id`, `Title`, `Content`, `EditedAt`), creates one from a `CoverLetterInput` (`Title`, `Content`) and returns its id, updates and deletes one. It fails with `ApplicationNotFound` or `NotFound`.
+- **Dashboard**: `IDashboardService.GetAsync(activityCount)` returns a `DashboardDto` over the active applications: `Today` (the server's UTC day), `CountsByStatus` (every status, 0 included) and its `Total`, `FollowUpAfterDays`, the `FollowUps` as `JobApplicationSummaryDto`, oldest first, and the `RecentActivity` as `ActivityDto` (`Application`, a summary; `Status`, the status reached, `Draft` for a creation; `OccurredAt`, UTC), newest first.
+- **Archiving**: the summaries carry `IsArchived`, the details `ArchivedAt` (and the computed `IsArchived`), for companies, offers and applications. The lists take `includeArchived` (`JobApplicationFilter.IncludeArchived` for the applications list, which `IsEmpty` counts as a criterion); the status counts follow it. `CompanyListDto`, `JobOfferListDto` and `JobApplicationListDto` carry `HasArchived`, true when any row is archived, listed or not, so an empty list can say that everything is archived. Each service has `ArchiveAsync(id)` and `RestoreAsync(id)`, which return a `ServiceResult`. The company search and the similar offers stay limited to active rows.
 
 ## Common queries
 
-- **Everything about a company**: its offers (as client or recruiter), their applications, its spontaneous applications, its notes and contacts. Applications are found with `a is OfferApplication o ? (o.JobOffer.CompanyId == id || o.JobOffer.RecruiterCompanyId == id) : ((SpontaneousApplication)a).CompanyId == id`.
-- **Upcoming interviews**: `Interactions` where `OccursAt >= now`, ordered by `OccursAt`, for applications that aren't archived.
+- **Everything about a company**: its offers (as client or recruiter), their applications, its spontaneous applications, its notes and contacts (not built). Applications are found with `a is OfferApplication ? ((OfferApplication)a).JobOffer.CompanyId == id : ((SpontaneousApplication)a).CompanyId == id`; the offer's `RecruiterCompanyId` would join the test.
+- **Follow up**: active applications with `Status == Applied` and `AppliedOn <= UserSettings.LastSendingDayToFollowUp(today)`, ordered by `AppliedOn`, then `CreatedAt`. Until the settings are saved, the defaults of `new UserSettings()` apply.
+- **Recent activity**: the latest status changes of the active applications (through `StatusChanges`), and the creations of those created as drafts, merged newest first. An application created as already sent records its sending before the save that sets its `CreatedAt`: it has a change with `ChangedAt <= CreatedAt`, and its creation isn't an event, so it only shows its sending.
+- **Upcoming interviews** (not built): `Interactions` where `OccursAt >= now`, ordered by `OccursAt`, for applications that aren't archived.
 - **Applications per site**: `OfferApplication` grouped by `AppliedViaPosting.Site`.

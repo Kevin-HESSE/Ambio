@@ -1,0 +1,61 @@
+@page "/offers"
+@inject IJobOfferService JobOfferService
+
+<PageTitle>Offers</PageTitle>
+<AppBarTitle>Offers</AppBarTitle>
+<AppBarActions>
+    <ButtonLink Href="@OfferRoutes.New" Icon="plus-lg" IconOnly aria-label="New offer" />
+</AppBarActions>
+
+<PageHeader Title="Offers" Subtitle="Job ads you saved, applied to or not">
+    <Actions>
+        <ButtonLink Href="@OfferRoutes.New" Variant="ButtonVariant.Primary" Icon="plus-lg">New offer</ButtonLink>
+    </Actions>
+</PageHeader>
+
+@if (_list is { Offers.Count: 0, HasArchived: false })
+{
+    <section class="card">
+        <EmptyState Icon="briefcase" Title="No offers yet">
+            <ChildContent>Save the job ads you come across, whether you apply or not. A copy of each ad stays here when it goes offline.</ChildContent>
+            <Actions>
+                <ButtonLink Href="@OfferRoutes.New" Variant="ButtonVariant.Primary" Icon="plus-lg">New offer</ButtonLink>
+            </Actions>
+        </EmptyState>
+    </section>
+}
+else if (_list is not null)
+{
+    <ArchivedFilter Action="@OfferRoutes.List" Label="Filter the offers" Checked="IncludeArchived" />
+
+    @if (_list.Offers.Count == 0)
+    {
+        <section class="card">
+            <EmptyState Icon="archive" Title="Every offer is archived">
+                <ChildContent>Archived offers are hidden from this list. Show them to find one again, or save a new offer.</ChildContent>
+                <Actions>
+                    <ButtonLink Href="@OfferRoutes.ListWithArchived" Variant="ButtonVariant.Secondary">Show archived</ButtonLink>
+                    <ButtonLink Href="@OfferRoutes.New" Variant="ButtonVariant.Primary" Icon="plus-lg">New offer</ButtonLink>
+                </Actions>
+            </EmptyState>
+        </section>
+    }
+    else
+    {
+        <ResponsiveList Items="_list.Offers">
+            <Card Context="offer"><OfferCard Offer="offer" /></Card>
+            <Table><OfferTable Offers="_list.Offers" /></Table>
+        </ResponsiveList>
+    }
+}
+
+@code {
+    [SupplyParameterFromQuery(Name = ShowArchived.Query)]
+    public string? Archived { get; set; }
+
+    private JobOfferListDto? _list;
+
+    private bool IncludeArchived => ShowArchived.IsChecked(Archived);
+
+    protected override async Task OnInitializedAsync() => _list = await JobOfferService.ListAsync(IncludeArchived);
+}

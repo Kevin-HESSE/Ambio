@@ -1,0 +1,81 @@
+/* Above the floating action button (docs/mockups), and click-through outside the toast. */
+.toast-host {
+    position: fixed;
+    inset-inline: var(--ambio-space-16);
+    bottom: calc(64px + env(safe-area-inset-bottom, 0px) + var(--ambio-space-16));
+    z-index: 6;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.toast {
+    display: flex;
+    align-items: center;
+    gap: var(--ambio-space-16);
+    width: 100%;
+    max-width: none;
+    padding: var(--ambio-space-12) var(--ambio-space-16);
+    pointer-events: auto;
+    animation: toast-in 200ms ease-out, toast-out 200ms ease-in 8s forwards;
+}
+
+.toast:hover,
+.toast:focus-within {
+    animation-play-state: paused;
+}
+
+.toast-message {
+    flex: 1;
+    min-width: 0;
+}
+
+.toast-action {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--ambio-accent-subtle);
+    font-weight: 600;
+}
+
+.toast-action:hover {
+    text-decoration: underline;
+}
+
+@keyframes toast-in {
+    from {
+        opacity: 0;
+        transform: translateY(var(--ambio-space-16));
+    }
+}
+
+@keyframes toast-out {
+    to {
+        visibility: hidden;
+        opacity: 0;
+    }
+}
+
+@keyframes toast-fade-in {
+    from {
+        opacity: 0;
+    }
+}
+
+/* Without movement: the toast only fades in. */
+@media (prefers-reduced-motion: reduce) {
+    .toast {
+        animation-name: toast-fade-in, toast-out;
+    }
+}
+
+@media (min-width: 992px) {
+    .toast-host {
+        bottom: var(--ambio-space-24);
+    }
+
+    .toast {
+        width: auto;
+        min-width: 360px;
+    }
+}

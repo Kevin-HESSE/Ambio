@@ -1,0 +1,30 @@
+@* An application in the mobile list (< 992 px), linking to its page, dimmed when archived. *@
+<ListCard Title="@Application.Title" Href="@JobApplicationRoutes.Details(Application.ShortId, Application.Slug)" Subtitle="@Application.CompanyName"
+          Archived="Application.IsArchived">
+    <Aside>
+        @if (Application.SentOn is { } sentOn)
+        {
+            <time datetime="@sentOn.ToString("yyyy-MM-dd")">@sentOn.ToShortDisplayDate()</time>
+        }
+        else
+        {
+            @("Not sent")
+        }
+    </Aside>
+    <Tags>
+        <StatusBadge Status="Application.Status" />
+        @if (Application.Kind == ApplicationKind.Spontaneous)
+        {
+            <SpontaneousTag />
+        }
+        @if (Application.IsArchived)
+        {
+            <ArchivedTag />
+        }
+    </Tags>
+</ListCard>
+
+@code {
+    [Parameter, EditorRequired]
+    public JobApplicationSummaryDto Application { get; set; } = null!;
+}

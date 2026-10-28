@@ -1,0 +1,46 @@
+@page "/applications/new"
+@inject IJobOfferService JobOfferService
+@inject ICompanyService CompanyService
+
+<PageTitle>New application</PageTitle>
+<AppBarBack Href="@JobApplicationRoutes.List" />
+<AppBarTitle>New application</AppBarTitle>
+
+<PageHeader Title="New application" />
+
+@if (_loaded)
+{
+    <section class="card form-page">
+        <NewJobApplicationForm @rendermode="InteractiveServer" Offer="_offer" CompanyName="@_company?.Name" />
+    </section>
+}
+
+@code {
+    /// <summary>The offer already chosen, such as from the offer page (<see cref="JobApplicationRoutes.NewForOffer"/>).</summary>
+    [SupplyParameterFromQuery(Name = "offer")]
+    public string? OfferShortId { get; set; }
+
+    /// <summary>The company already chosen, such as from the company page (<see cref="JobApplicationRoutes.NewForCompany"/>):
+    /// the form starts spontaneous. An offer given too wins.</summary>
+    [SupplyParameterFromQuery(Name = "company")]
+    public string? CompanySlug { get; set; }
+
+    private JobOfferDetailsDto? _offer;
+    private CompanyDetailsDto? _company;
+    private bool _loaded;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // An unknown offer or company leaves the search open, as without one.
+        if (!string.IsNullOrWhiteSpace(OfferShortId))
+        {
+            _offer = await JobOfferService.GetAsync(OfferShortId);
+        }
+        else if (!string.IsNullOrWhiteSpace(CompanySlug))
+        {
+            _company = await CompanyService.GetAsync(CompanySlug);
+        }
+
+        _loaded = true;
+    }
+}

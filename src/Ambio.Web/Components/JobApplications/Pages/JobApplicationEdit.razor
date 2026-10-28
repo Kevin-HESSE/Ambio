@@ -1,0 +1,122 @@
+@page "/applications/{Key}/edit"
+@inject IJobApplicationService JobApplicationService
+@inject IJobOfferService JobOfferService
+@inject NavigationManager NavigationManager
+
+@if (_application is not null)
+{
+    <PageTitle>Edit @_application.Title</PageTitle>
+    <AppBarBack Href="@DetailsHref" />
+    <AppBarTitle>Edit application</AppBarTitle>
+
+    @* Neither the offer nor the company of an application is edited: they are named under the title. *@
+    <PageHeader Title="Edit application" Subtitle="@($"{_application.Title} · {_application.CompanyName}")" />
+
+    <section class="card form-page">
+        <EditForm Model="Input" method="post" OnValidSubmit="UpdateAsync" FormName="@FormName" novalidate class="card-body form-sections">
+            <DataAnnotationsValidator />
+
+            <FormSection Title="Application">
+                @if (OfferInput is not null)
+                {
+                    <AppliedViaField Input="OfferInput" Postings="_postings" />
+                }
+                else if (SpontaneousInput is not null)
+                {
+                    <TargetPositionField Input="SpontaneousInput" />
+                }
+                <JobApplicationFormFields Input="Input" />
+            </FormSection>
+
+            <div class="action-bar">
+                <ButtonLink Href="@DetailsHref" Variant="ButtonVariant.Secondary">Cancel</ButtonLink>
+                <button type="submit" class="btn btn-primary">Save changes</button>
+            </div>
+        </EditForm>
+    </section>
+}
+
+@code {
+    private const string OfferFormName = "edit-offer-application";
+    private const string SpontaneousFormName = "edit-spontaneous-application";
+
+    /// <summary>The short id and the slug of the application (<see cref="ShortIdKey"/>).</summary>
+    [Parameter]
+    public string Key { get; set; } = "";
+
+    // One input per kind, each bound from its own form. The shared fields are named after "Input", as in their
+    // components.
+    [SupplyParameterFromForm(Name = "Input", FormName = OfferFormName)]
+    private OfferApplicationInput? OfferInput { get; set; }
+
+    [SupplyParameterFromForm(Name = "Input", FormName = SpontaneousFormName)]
+    private SpontaneousApplicationInput? SpontaneousInput { get; set; }
+
+    // The application as saved: it names the page, even while the form holds unsaved changes.
+    private JobApplicationDetailsDto? _application;
+
+    private IReadOnlyList<JobOfferPostingDto> _postings = [];
+
+    private JobApplicationInput Input => (JobApplicationInput?)OfferInput ?? SpontaneousInput!;
+
+    private string FormName => _application is OfferApplicationDetailsDto ? OfferFormName : SpontaneousFormName;
+
+    private string DetailsHref => JobApplicationRoutes.Details(_application!.ShortId, _application.Slug);
+
+    protected override async Task OnInitializedAsync()
+    {
+        _application = await JobApplicationService.GetAsync(ShortIdKey.ShortIdOf(Key));
+
+        if (_application is null)
+        {
+            NavigationManager.NotFound();
+            return;
+        }
+
+        // An old title or a mistyped slug still finds the application: its form moves to its current URL.
+        if (Key != ShortIdKey.Of(_application.ShortId, _application.Slug))
+        {
+            var editHref = JobApplicationRoutes.Edit(_application.ShortId, _application.Slug);
+            _application = null;
+            NavigationManager.NavigateTo(editHref, replace: true);
+            return;
+        }
+
+        // On a post, the input already holds the submitted values; whether it was sent comes from the application.
+        if (_application is OfferApplicationDetailsDto offer)
+        {
+            OfferInput ??= offer.ToInput();
+            _postings = (await JobOfferService.GetAsync(offer.JobOfferShortId))?.Postings ?? [];
+        }
+        else if (_application is SpontaneousApplicationDetailsDto spontaneous)
+        {
+            SpontaneousInput ??= spontaneous.ToInput();
+        }
+
+        Input.AlreadySent = _application.SentOn is not null;
+    }
+
+    private async Task UpdateAsync(EditContext editContext)
+    {
+        var result = OfferInput is not null
+            ? await JobApplicationService.UpdateAsync(_application!.Id, OfferInput)
+            : await JobApplicationService.UpdateAsync(_application!.Id, SpontaneousInput!);
+
+        // A new target position gives the application a new slug: the page it goes back to has a new URL.
+        if (result.TryGetValue(out var link))
+        {
+            NavigationManager.NavigateTo(JobApplicationRoutes.Details(link.ShortId, link.Slug));
+            return;
+        }
+
+        if (result.GetMessage == JobApplicationErrors.NotFound)
+        {
+            NavigationManager.NotFound();
+            return;
+        }
+
+        // The other failure is a posting that isn't one of the offer's anymore.
+        new ValidationMessageStore(editContext).Add(editContext.Field(nameof(OfferApplicationInput.AppliedViaPostingId)), result.GetMessage);
+        editContext.NotifyValidationStateChanged();
+    }
+}

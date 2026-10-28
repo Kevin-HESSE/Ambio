@@ -1,0 +1,29 @@
+.offer-posting {
+    display: flex;
+    align-items: center;
+    gap: var(--ambio-space-12);
+    padding: var(--ambio-space-12) var(--ambio-space-16);
+}
+
+.offer-posting-icon {
+    color: var(--ambio-text-secondary);
+}
+
+.offer-posting-text {
+    --gap: var(--ambio-space-2);
+    flex: 1;
+    min-width: 0;
+}
+
+.offer-posting-link {
+    min-width: 0;
+}
+
+.offer-posting-date {
+    white-space: nowrap;
+}
+
+.offer-posting-remove {
+    flex: none;
+    color: var(--ambio-text-secondary);
+}

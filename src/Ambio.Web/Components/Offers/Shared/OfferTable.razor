@@ -1,0 +1,36 @@
+@* The offers list on desktop (≥ 992 px), whose archived rows are dimmed. *@
+<ListTable>
+    <Columns>
+        <th scope="col">Offer</th>
+        <th scope="col">Contract</th>
+        <th scope="col" class="num">Postings</th>
+        <th scope="col">Published</th>
+    </Columns>
+    <Rows>
+        @foreach (var offer in Offers)
+        {
+            <tr>
+                <th scope="row">
+                    <a class="list-title t-body-strong @(offer.IsArchived ? "t-muted" : null)" href="@OfferRoutes.Details(offer.ShortId, offer.Slug)">@offer.Title</a>
+                    <div class="offer-company t-small t-secondary">@offer.CompanyName</div>
+                </th>
+                <td>
+                    <div class="offer-tags cluster">
+                        <OfferTags ContractType="offer.ContractType" RemotePolicy="offer.RemotePolicy" />
+                        @if (offer.IsArchived)
+                        {
+                            <ArchivedTag />
+                        }
+                    </div>
+                </td>
+                <td class="num">@offer.PostingCount</td>
+                <td class="offer-date"><time datetime="@offer.RegisterAt.ToString("yyyy-MM-dd")">@offer.RegisterAt.ToDisplayDate()</time></td>
+            </tr>
+        }
+    </Rows>
+</ListTable>
+
+@code {
+    [Parameter, EditorRequired]
+    public IReadOnlyList<JobOfferSummaryDto> Offers { get; set; } = [];
+}

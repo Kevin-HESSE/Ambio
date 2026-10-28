@@ -1,0 +1,14 @@
+/* The offer or the company chosen, with its Change button. */
+.application-choice {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ambio-space-12);
+    min-width: 0;
+}
+
+.application-offer-name,
+.application-company-name {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}

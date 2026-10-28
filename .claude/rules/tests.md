@@ -12,8 +12,8 @@ See [docs/testing.md](../../docs/testing.md) for the full approach.
 |---|---|---|
 | `Ambio.Domain.Tests` | Domain rules (created in Phase 1) | xUnit |
 | `Ambio.Application.Tests` | DTO, validation, mapping extensions | xUnit |
-| `Ambio.Infrastructure.Tests` | Services, EF Core mappings and queries, storage, PDF snapshots | xUnit, SQLite in-memory, NSubstitute |
-| `Ambio.Web.Tests` | Interactive Blazor components | bUnit, NSubstitute |
+| `Ambio.Infrastructure.Tests` | Services, EF Core mappings and queries, storage | xUnit, SQLite in-memory, NSubstitute, Bogus |
+| `Ambio.Web.Tests` | Blazor components with logic: the app shell, the interactive islands, conditional rendering | bUnit, NSubstitute, Bogus |
 | `Ambio.E2E.Tests` | Critical user journeys | xUnit, Playwright |
 
 Shared settings live in `tests/Directory.Build.props`, package versions in `Directory.Packages.props`.
@@ -26,18 +26,20 @@ Shared settings live in `tests/Directory.Build.props`, package versions in `Dire
 - Test names follow `Method_Scenario_Result`, e.g. `RegisterUserAsync_WhenUserExists_Fails`.
 - Member order: tests first, then private helpers (and helper types), then the data sets at the bottom of the class.
 - Theories: more than two rows go in a `[MemberData]` backed by a `TheoryData<T>` property; with one or two rows, keep `[InlineData]`.
-- No magic strings: values reused in a class are `private const` fields at the top; expected messages come from production constants (e.g. `UserErrors.AlreadyExists`), never retyped. Data set rows can stay literal.
+- Test data (Web and Infrastructure): Bogus generators in `Fixtures/` (`XxxFactory.GetGenerator()`), variants as rule set constants (`"default,archived"`), overrides with `with` or `WithCustom…`;. See [Test data](../../docs/testing.md#test-data).
+- No magic strings: expected values are read from the generated data; a `private const` at the top only for a value the test relies on (name case, slug, sort order, displayed format). Expected messages come from production constants (e.g. `UserErrors.AlreadyExists`), never retyped. Data set rows can stay literal.
 - Pass `TestContext.Current.CancellationToken` to async calls that take a token.
 - Mocks use NSubstitute, never hand-written fakes, and only for what the test doesn't own (email sender, external API, Application services consumed by a component). Services under test are resolved through the production DI extensions, not built by hand.
 
 ## EF Core integration tests
 
-- Real SQLite engine in memory, one named database per test, through `Fixtures/SqliteServiceProvider.cs` (uses `AddDatabase()` and `AddApplicationServices()`).
+- Real SQLite engine in memory, one named database per test, through `Fixtures/SqliteServiceProvider.cs` (uses `AddDatabase()` and `AddApplicationServices()`). Use its `AddAsync`, `CallAsync` and `QueryAsync` helpers rather than opening scopes and contexts by hand.
 - Schema created with `Database.EnsureCreated()`.
 - Cover mapping classes (keys, required fields, relationships, cascade rules) and every LINQ projection to DTOs.
 
 ## Component tests
 
+- Only components with logic get bUnit tests (interactive islands, state, conditional rendering). A page that only displays DTOs has none (ADR 0024). Existing tests are kept.
 - Test classes inherit `BunitContext`. The Application services a component consumes are NSubstitute mocks registered in the bUnit `Services`, as in the Infrastructure tests.
 - `Components/Account` pages are rendered statically and need `HttpContext`: cover them with E2E tests, not bUnit.
 

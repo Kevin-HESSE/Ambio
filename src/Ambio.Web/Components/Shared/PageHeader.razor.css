@@ -1,0 +1,15 @@
+.page-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--ambio-space-16);
+}
+
+.page-title {
+    text-wrap: balance;
+}
+
+.page-actions {
+    display: flex;
+    gap: var(--ambio-space-8);
+}

@@ -1,0 +1,44 @@
+@page "/companies/new"
+@inject ICompanyService CompanyService
+@inject NavigationManager NavigationManager
+
+<PageTitle>New company</PageTitle>
+<AppBarBack Href="@CompanyRoutes.List" />
+<AppBarTitle>New company</AppBarTitle>
+
+<PageHeader Title="New company" />
+
+<section class="card form-page">
+    <EditForm Model="Input" method="post" OnValidSubmit="CreateCompany" FormName="new-company" novalidate class="card-body form-sections">
+        <DataAnnotationsValidator />
+
+        <CompanyFormFields Input="Input" />
+
+        <div class="action-bar">
+            <ButtonLink Href="@CompanyRoutes.List" Variant="ButtonVariant.Secondary">Cancel</ButtonLink>
+            <button type="submit" class="btn btn-primary">Create company</button>
+        </div>
+    </EditForm>
+</section>
+
+@code {
+    [SupplyParameterFromForm]
+    private CompanyInput Input { get; set; } = default!;
+
+    protected override void OnInitialized() => Input ??= new();
+
+    private async Task CreateCompany(EditContext editContext)
+    {
+        var result = await CompanyService.CreateAsync(Input);
+
+        if (!result.TryGetValue(out var slug))
+        {
+            // The only failure is a duplicate name: the message goes under the Name field.
+            new ValidationMessageStore(editContext).Add(() => Input.Name, result.GetMessage);
+            editContext.NotifyValidationStateChanged();
+            return;
+        }
+
+        NavigationManager.NavigateTo(CompanyRoutes.Details(slug));
+    }
+}

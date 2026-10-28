@@ -1,0 +1,43 @@
+/* The colors of each application status (docs/design-system.md#application-statuses), read by the status badge, the
+   status filter chips and the dots of the history: background, label, border and solid color. */
+.status-draft {
+    --status-bg: var(--ambio-status-draft-bg);
+    --status-fg: var(--ambio-status-draft-fg);
+    --status-border: var(--ambio-status-draft-border);
+    --status-solid: var(--ambio-status-draft-solid);
+}
+
+.status-applied {
+    --status-bg: var(--ambio-status-applied-bg);
+    --status-fg: var(--ambio-status-applied-fg);
+    --status-border: var(--ambio-status-applied-border);
+    --status-solid: var(--ambio-status-applied-solid);
+}
+
+.status-interview {
+    --status-bg: var(--ambio-status-interview-bg);
+    --status-fg: var(--ambio-status-interview-fg);
+    --status-border: var(--ambio-status-interview-border);
+    --status-solid: var(--ambio-status-interview-solid);
+}
+
+.status-offer {
+    --status-bg: var(--ambio-status-offer-bg);
+    --status-fg: var(--ambio-status-offer-fg);
+    --status-border: var(--ambio-status-offer-border);
+    --status-solid: var(--ambio-status-offer-solid);
+}
+
+.status-rejected {
+    --status-bg: var(--ambio-status-rejected-bg);
+    --status-fg: var(--ambio-status-rejected-fg);
+    --status-border: var(--ambio-status-rejected-border);
+    --status-solid: var(--ambio-status-rejected-solid);
+}
+
+.status-withdrawn {
+    --status-bg: var(--ambio-status-withdrawn-bg);
+    --status-fg: var(--ambio-status-withdrawn-fg);
+    --status-border: var(--ambio-status-withdrawn-border);
+    --status-solid: var(--ambio-status-withdrawn-solid);
+}

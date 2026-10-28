@@ -1,0 +1,53 @@
+@* A group of native radio buttons styled as segments (docs/ui.md#components). Inside an interactive component, bind
+   its value with @bind-Value; a static page, such as for the theme, reads the radios from JavaScript instead. *@
+<div class="@ComponentClass" role="radiogroup" aria-label="@Label" @attributes="AdditionalAttributes">
+    @foreach (var option in Options)
+    {
+        var id = $"{Name}-{option.Value}";
+        <input type="radio" class="segmented-input" id="@id" name="@Name" value="@option.Value" checked="@(option.Value == Value)"
+               disabled="@Disabled" @onchange="() => ValueChanged.InvokeAsync(option.Value)" />
+        <label class="segmented-option t-small" for="@id" title="@(IconsOnly ? option.Label : null)">
+            @if (option.Icon is not null)
+            {
+                <i class="bi bi-@option.Icon" aria-hidden="true"></i>
+            }
+            <span class="@(IconsOnly ? "visually-hidden" : null)">@option.Label</span>
+        </label>
+    }
+</div>
+
+@code {
+    /// <summary>Name of the radio group, also the prefix of the inputs' ids: unique in the page.</summary>
+    [Parameter, EditorRequired]
+    public string Name { get; set; } = "";
+
+    /// <summary>Accessible name of the group.</summary>
+    [Parameter, EditorRequired]
+    public string Label { get; set; } = "";
+
+    [Parameter, EditorRequired]
+    public IReadOnlyList<SegmentedOption> Options { get; set; } = [];
+
+    /// <summary>Value of the checked option, none when null.</summary>
+    [Parameter]
+    public string? Value { get; set; }
+
+    /// <summary>Called with the value of the option the user checks.</summary>
+    [Parameter]
+    public EventCallback<string> ValueChanged { get; set; }
+
+    /// <summary>Disables every option, such as until the circuit is up.</summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>Shows the icons only; the labels stay as accessible names and tooltips.</summary>
+    [Parameter]
+    public bool IconsOnly { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string ComponentClass => CssClassHelper.Serialize(
+        ["segmented"],
+        new Dictionary<string, bool> { ["segmented-icons"] = IconsOnly });
+}

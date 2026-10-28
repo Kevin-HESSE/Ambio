@@ -1,0 +1,26 @@
+.empty {
+    --gap: var(--ambio-space-12);
+    align-items: center;
+    padding: var(--ambio-space-48) var(--ambio-space-16);
+    text-align: center;
+}
+
+.empty-icon {
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    border-radius: var(--ambio-radius-full);
+    background: var(--ambio-accent-subtle);
+    color: var(--ambio-accent-text);
+    font-size: 28px;
+}
+
+.empty-text {
+    max-width: 36ch;
+}
+
+.empty-actions {
+    justify-content: center;
+    margin-top: var(--ambio-space-8);
+}

@@ -1,0 +1,46 @@
+@* An item of a list on mobile (< 992 px), in a ResponsiveList (docs/ui.md#patterns): its title with an aside on the
+   right (usually a date), a subtitle and tags. With Href, the whole card links to the item's page; without it, the
+   <a> has no href and is a placeholder: neither focusable nor clickable. An archived item has its title dimmed. *@
+<a class="list-card stack" href="@Href">
+    <div class="list-card-head">
+        <span class="list-card-title t-body-strong @(Archived ? "t-muted" : null)">@Title</span>
+        @if (Aside is not null)
+        {
+            <span class="list-card-aside t-small t-muted">@Aside</span>
+        }
+    </div>
+    @if (!string.IsNullOrWhiteSpace(Subtitle))
+    {
+        <div class="list-card-subtitle t-small t-secondary">@Subtitle</div>
+    }
+    @if (Tags is not null)
+    {
+        <div class="list-card-tags cluster">@Tags</div>
+    }
+</a>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = "";
+
+    /// <summary>Base-relative URL of the item's page; without it the card isn't a link.</summary>
+    [Parameter]
+    public string? Href { get; set; }
+
+    /// <summary>Dims the title of an archived item, which also ends its <see cref="Tags"/> with an
+    /// <see cref="ArchivedTag"/>.</summary>
+    [Parameter]
+    public bool Archived { get; set; }
+
+    /// <summary>On the right of the title, such as a date.</summary>
+    [Parameter]
+    public RenderFragment? Aside { get; set; }
+
+    /// <summary>A line under the title, such as the company.</summary>
+    [Parameter]
+    public string? Subtitle { get; set; }
+
+    /// <summary>A row under the subtitle, usually <see cref="Tag"/> components.</summary>
+    [Parameter]
+    public RenderFragment? Tags { get; set; }
+}

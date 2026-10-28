@@ -1,0 +1,11 @@
+@* The contract and remote policy of an offer, as tags. *@
+<Tag Icon="briefcase">@ContractType.ToLabel()</Tag>
+<Tag Icon="house-door">@RemotePolicy.ToLabel()</Tag>
+
+@code {
+    [Parameter, EditorRequired]
+    public ContractType ContractType { get; set; }
+
+    [Parameter, EditorRequired]
+    public RemotePolicy RemotePolicy { get; set; }
+}

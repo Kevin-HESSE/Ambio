@@ -5,6 +5,8 @@
 
 (function () {
   const ic = (n, cls = "") => `<svg class="bi ${cls}" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">${window.BI[n] || ""}</svg>`;
+  // The Orbit mark (design-system.md#logo), drawn in the logo-mark square.
+  const MARK = `<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M10.7 21.3A7.5 7.5 0 1 1 21.3 10.7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="21.3" cy="10.7" r="3" fill="currentColor"/><circle cx="16" cy="16" r="2.2" fill="currentColor"/></svg>`;
 
   const STATUS = {
     draft: { label: "Draft", icon: "pencil" },
@@ -67,7 +69,7 @@
       <a class="nav-item ${active === n.id ? "active" : ""}" href="#${n.go}">${ic(active === n.id ? n.iconOn : n.icon)}${n.label}${n.count ? `<span class="count">${n.count}</span>` : ""}</a>`).join("");
     return `
     <aside class="sidebar" aria-label="Main navigation">
-      <a class="logo" href="#dashboard"><span class="logo-mark">P</span>Ambio</a>
+      <a class="logo" href="#dashboard"><span class="logo-mark">${MARK}</span>Ambio</a>
       <div class="nav-label t-eyebrow">Tracking</div>
       ${items}
       <div class="sidebar-foot">
@@ -96,7 +98,7 @@
   function appbar({ title, back, actions = "" }) {
     const lead = back
       ? `<a class="btn btn-icon" href="#${back}" aria-label="Back">${ic("arrow-left")}</a>`
-      : `<span class="logo-mark" aria-hidden="true">P</span>`;
+      : `<span class="logo-mark" aria-hidden="true">${MARK}</span>`;
     return `<header class="appbar">${lead}<div class="appbar-title">${title}</div><div class="appbar-actions">${actions}</div></header>`;
   }
 
@@ -156,7 +158,7 @@
       </section>
       <div class="dash-cols">
         <section class="card">
-          <div class="card-header"><div><h2>Follow up</h2><div class="card-sub">Applied more than 7 days ago, no news since</div></div></div>
+          <div class="card-header"><div><h2>Follow up</h2><div class="card-sub">Sent 7 days ago or more, no news since</div></div></div>
           <ul class="list">${follow}</ul>
         </section>
         <section class="card">
@@ -709,13 +711,15 @@ Hybrid: 2 days a week at the Nantes office.</p></div>
             <span class="form-text">Applications still Applied after this delay show up in Follow up on the dashboard.</span>
           </div>
         </div>
+        <div class="action-bar"><button class="btn btn-primary">Save settings</button></div>
+      </div></section>
+      <section class="card form-page"><div class="card-body" style="display:flex;flex-direction:column;gap:24px">
         <div class="form-section"><h2>Appearance</h2>
           <div class="field"><span class="form-label">Theme</span>
             <div class="segmented"><button class="active">${ic("circle-half")}System</button><button>${ic("sun")}Light</button><button>${ic("moon-stars")}Dark</button></div>
             <span class="form-text">System follows your device. Saved in this browser.</span>
           </div>
         </div>
-        <div class="action-bar"><button class="btn btn-primary">Save settings</button></div>
       </div></section>`,
     }).replace(/<nav class="tabbar"[\s\S]*?<\/nav>/, tabbar("more"));
   }
@@ -743,7 +747,7 @@ Hybrid: 2 days a week at the Nantes office.</p></div>
   function login() {
     return `
     <div class="app-scroll" style="height:100%"><div class="auth">
-      <span class="logo logo-lg"><span class="logo-mark">P</span>Ambio</span>
+      <span class="logo logo-lg"><span class="logo-mark">${MARK}</span>Ambio</span>
       <section class="card"><div class="card-body">
         <div><h1 class="t-h2">Log in</h1><p class="t-small secondary">Use the account created when Ambio was set up.</p></div>
         <div class="field"><label class="form-label" for="li-e">Email</label><input id="li-e" class="form-control" value="jane.doe@example.com" autocomplete="username"></div>
@@ -766,7 +770,7 @@ Hybrid: 2 days a week at the Nantes office.</p></div>
   window.SCREENS = [
     { id: "login", group: "Log in", title: "Log in", route: "/Account/Login", render: login,
       content: "Centered card with the logo, email, password and “Remember me”. No registration link: the app has a single account (ADR 0002).",
-      later: "Phase 5 adds “Continue with GitHub” for a linked account." },
+      later: "—" },
     { id: "dashboard", group: "Dashboard", title: "Dashboard", route: "/", render: dashboard,
       content: "Pipeline bar and six counters by status (each opens the filtered list). Follow up lists Applied applications with no change for the configured delay. Recent activity shows the last status changes.",
       later: "Phase 2b adds an “Upcoming interviews” card and a “Log a follow-up” action that clears an item from Follow up." },
@@ -811,12 +815,12 @@ Hybrid: 2 days a week at the Nantes office.</p></div>
       later: "Phase 2b adds Notes (research timeline) and Contacts tabs." },
     { id: "more", group: "Navigation & settings", title: "“More” sheet", route: "mobile only", render: moreSheet, mobileOnly: true,
       content: "Fifth tab of the mobile bar. Holds what the desktop sidebar shows at its bottom: Settings, Account, theme, Log out.",
-      later: "Phase 3 adds Profile and My CVs, Phase 4 Templates, Phase 6 Export. Entries are added here and in the sidebar, never as new tabs." },
+      later: "Phase 3 adds Profile and My CVs, Phase 4 Export. Entries are added here and in the sidebar, never as new tabs." },
     { id: "settings", group: "Navigation & settings", title: "Settings", route: "/settings", render: settings,
-      content: "Follow-up delay (7 days by default, stored in UserSettings) and theme (System, Light, Dark, stored in the browser).",
-      later: "Phase 5 adds the language." },
+      content: "Two cards: the follow-up delay (1 to 30 days, 7 by default, stored in UserSettings) with Save, and the theme (System, Light, Dark, stored in the browser), applied at once.",
+      later: "—" },
     { id: "account", group: "Navigation & settings", title: "Account", route: "/Account/Manage", render: account,
       content: "Identity management pages in the app shell: section list on the left on desktop, scrolling tabs on mobile. Every other Identity page uses the same template.",
-      later: "Phase 5 adds external logins (GitHub)." },
+      later: "—" },
   ];
 })();

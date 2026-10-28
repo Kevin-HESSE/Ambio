@@ -1,0 +1,18 @@
+@* The ⋯ menu of a detail page on desktop (docs/ui.md#patterns): a button that opens a native popover anchored under
+   it, without script; a click outside or Escape closes it. Its items are <li> of a menu-list (wwwroot/css/menus.css). *@
+<div class="action-menu">
+    <button type="button" class="btn btn-secondary btn-icon action-menu-button" popovertarget="@Id" aria-label="More actions">
+        <i class="bi bi-three-dots" aria-hidden="true"></i>
+    </button>
+    <div id="@Id" class="action-menu-popover" popover>
+        <ul class="menu-list">@ChildContent</ul>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Id { get; set; } = "";
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

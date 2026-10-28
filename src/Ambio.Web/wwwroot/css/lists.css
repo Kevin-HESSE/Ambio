@@ -1,0 +1,26 @@
+/* Lists (docs/ui.md#patterns). */
+
+/* A list without bullets whose items are separated by a line, such as the cards of a list in a card. */
+.list-divided {
+    padding: 0;
+    list-style: none;
+}
+
+.list-divided > li + li {
+    border-top: 1px solid var(--ambio-border-default);
+}
+
+/* The title of a row of a list table, linking to its page. An archived row's title stays dimmed (t-muted). */
+.list-title {
+    display: block;
+    text-decoration: none;
+}
+
+.list-title:not(.t-muted) {
+    color: var(--ambio-text-primary);
+}
+
+.list-title:hover {
+    color: var(--ambio-accent-text);
+    text-decoration: underline;
+}

@@ -1,0 +1,27 @@
+@* The banner of an archived item, above its page (docs/ui.md, screen 8): the day it was archived, what it means for
+   this item (ChildContent), and Restore (ArchiveForms). *@
+<Banner Icon="archive" Title="@($"This {Noun} is archived")" class="archived-banner">
+    <ChildContent>
+        Archived on <time datetime="@ArchivedAt.ToString("yyyy-MM-dd")">@ArchivedAt.ToDisplayDate()</time>. @ChildContent
+    </ChildContent>
+    <Actions>
+        <button type="submit" form="@ArchiveForms.RestoreFormId" class="btn btn-secondary btn-sm">
+            <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+            Restore
+        </button>
+    </Actions>
+</Banner>
+
+@code {
+    /// <summary>What the page shows, such as "application".</summary>
+    [Parameter, EditorRequired]
+    public string Noun { get; set; } = "";
+
+    /// <summary>When it was archived (UTC).</summary>
+    [Parameter, EditorRequired]
+    public DateTime ArchivedAt { get; set; }
+
+    /// <summary>What archiving means for this item, after the day.</summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

@@ -1,0 +1,63 @@
+@page "/settings"
+@inject IUserSettingsService UserSettingsService
+@inject ToastService Toasts
+
+<PageTitle>Settings</PageTitle>
+<AppBarTitle>Settings</AppBarTitle>
+
+<PageHeader Title="Settings" />
+
+@* The follow-up delay is saved in the database by the form; the theme is applied and kept by the browser as soon as it
+   is chosen, so it stays out of the form. *@
+<section class="card form-page">
+    <EditForm Model="Input" method="post" OnValidSubmit="SaveAsync" FormName="settings" Enhance novalidate class="card-body form-sections">
+        <DataAnnotationsValidator />
+
+        <FormSection Title="Follow-ups">
+            <FormField Id="follow-up-after-days" Label="Suggest a follow-up after" For="() => Input.FollowUpAfterDays"
+                       Hint="Applications still Applied after this delay show up in Follow up on the dashboard.">
+                <div class="cluster">
+                    <InputNumber id="follow-up-after-days" class="form-control follow-up-days" @bind-Value="Input.FollowUpAfterDays"
+                                 min="@UserSettings.MinFollowUpAfterDays" max="@UserSettings.MaxFollowUpAfterDays"
+                                 aria-describedby="follow-up-after-days-hint" />
+                    <span>days</span>
+                </div>
+            </FormField>
+        </FormSection>
+
+        <div class="action-bar">
+            <button type="submit" class="btn btn-primary">Save settings</button>
+        </div>
+    </EditForm>
+</section>
+
+<section class="card form-page">
+    <div class="card-body form-sections">
+        <div class="form-section">
+            <h2 class="t-h3">Appearance</h2>
+            <div class="field">
+                <span class="form-label t-small" aria-hidden="true">Theme</span>
+                <ThemeSelector Name="theme-settings" />
+                <div class="form-text t-small">System follows your device. Saved in this browser.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@code {
+    [SupplyParameterFromForm]
+    private UserSettingsInput Input { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // On a post, Input already holds the submitted values.
+        Input ??= (await UserSettingsService.GetAsync()).ToInput();
+    }
+
+    // The page stays as it is: the response of the enhanced form carries the toast.
+    private async Task SaveAsync()
+    {
+        await UserSettingsService.UpdateAsync(Input);
+        Toasts.Show(new Toast("Settings saved", Icon: "check-circle"));
+    }
+}

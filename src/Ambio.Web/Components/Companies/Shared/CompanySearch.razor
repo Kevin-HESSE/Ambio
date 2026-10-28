@@ -1,0 +1,50 @@
+@inject ICompanyService CompanyService
+
+@* Finds a company by its name as the user types, such as on the new application page, ignoring case and accents. Its
+   last line creates a company with the typed name, unless a result already has it. Render it inside an interactive
+   component; its field waits for the circuit. *@
+<SearchField TItem="CompanySummaryDto" Id="@Id" Placeholder="Search by name" ResultsLabel="Matching companies"
+             Search="SearchAsync" OnSelect="OnSelect">
+    <ResultContent Context="company">
+        <span class="company-search-name t-body-strong">@company.Name</span>
+        <span class="company-search-meta t-small t-secondary">
+            @company.Kind.ToLabel()@(company.Location is null ? null : $" · {company.Location}")
+        </span>
+    </ResultContent>
+    <EmptyContent Context="text">No company matches “@text”.</EmptyContent>
+    <Footer Context="text">
+        @if (!HasResultNamed(text))
+        {
+            <li>
+                <button type="button" class="search-field-result search-field-action company-search-new"
+                        @onclick="() => OnCreate.InvokeAsync(text.Trim())">
+                    <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                    Create the company “@text.Trim()”
+                </button>
+            </li>
+        }
+    </Footer>
+</SearchField>
+
+@code {
+    /// <summary>Id of the search field, for its label.</summary>
+    [Parameter, EditorRequired]
+    public string Id { get; set; } = "";
+
+    /// <summary>Called with the company the user picks among the results.</summary>
+    [Parameter]
+    public EventCallback<CompanySummaryDto> OnSelect { get; set; }
+
+    /// <summary>Called with the typed name, trimmed, when the user chooses to create the company.</summary>
+    [Parameter]
+    public EventCallback<string> OnCreate { get; set; }
+
+    private IReadOnlyList<CompanySummaryDto> _results = [];
+
+    private async Task<IReadOnlyList<CompanySummaryDto>> SearchAsync(string text, CancellationToken cancellationToken) =>
+        _results = await CompanyService.SearchAsync(text, cancellationToken);
+
+    // Names are unique ignoring case, as in the database.
+    private bool HasResultNamed(string text) =>
+        _results.Any(company => string.Equals(company.Name, text.Trim(), StringComparison.OrdinalIgnoreCase));
+}

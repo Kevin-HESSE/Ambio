@@ -1,0 +1,30 @@
+@inject IJobOfferService JobOfferService
+
+@* Finds an offer by its title or company as the user types, such as on the new application page, ignoring case and
+   accents. Render it inside an interactive component; its field waits for the circuit. *@
+<SearchField TItem="JobOfferSummaryDto" Id="@Id" Placeholder="Search by title or company" ResultsLabel="Matching offers"
+             Search="JobOfferService.SearchAsync" OnSelect="OnSelect">
+    <ResultContent Context="offer">
+        <span class="offer-search-title t-body-strong">@offer.Title</span>
+        <span class="offer-search-meta t-small t-secondary">@offer.CompanyName · @offer.ContractType.ToLabel()</span>
+    </ResultContent>
+    <EmptyContent Context="text">No offer matches “@text”.</EmptyContent>
+    <Footer>
+        <li>
+            <a class="search-field-result search-field-action offer-search-new" href="@OfferRoutes.New">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                Create a new offer
+            </a>
+        </li>
+    </Footer>
+</SearchField>
+
+@code {
+    /// <summary>Id of the search field, for its label.</summary>
+    [Parameter, EditorRequired]
+    public string Id { get; set; } = "";
+
+    /// <summary>Called with the offer the user picks among the results.</summary>
+    [Parameter]
+    public EventCallback<JobOfferSummaryDto> OnSelect { get; set; }
+}

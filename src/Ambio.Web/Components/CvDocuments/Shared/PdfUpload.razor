@@ -1,0 +1,79 @@
+@using Ambio.Application.Common
+@inject ICvDocumentService CvDocumentService
+@inject NavigationManager NavigationManager
+
+@* The upload of the CV tab of the application page (docs/ui.md, screen 7): a drop zone covered by a transparent file
+   input, so a PDF dropped anywhere on it or picked with "Choose a file" is sent at once. Rendered in InteractiveServer
+   mode by the static application page, which it refreshes once the CV is stored, so the list and the count of the tab
+   follow. The input waits for the circuit. *@
+<div class="@(_dragging ? "pdf-upload dragging" : "pdf-upload")"
+     @ondragenter="() => _dragging = true" @ondragleave="() => _dragging = false" @ondrop="() => _dragging = false">
+    <i class="bi bi-cloud-arrow-up pdf-upload-icon" aria-hidden="true"></i>
+    <p class="t-body-strong">@(_uploading ? "Uploading…" : "Drop the PDF you sent here")</p>
+    <label for="@InputId" class="btn btn-secondary btn-sm">Choose a file</label>
+    <InputFile id="@InputId" class="pdf-upload-input" accept="application/pdf,.pdf" OnChange="UploadAsync"
+               aria-describedby="@HintId" disabled="@(!RendererInfo.IsInteractive || _uploading)" />
+    <p id="@HintId" class="form-text t-small">PDF only, @CvDocumentService.MaxUploadSize.ToDisplaySize() max</p>
+    @if (_error is not null)
+    {
+        <p class="pdf-upload-error validation-message t-small" role="alert">
+            <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+            @_error
+        </p>
+    }
+</div>
+
+@code {
+    /// <summary>Id of the file input, which "Choose a file" labels.</summary>
+    public const string InputId = "cv-upload";
+
+    private const string HintId = "cv-upload-hint";
+
+    [Parameter, EditorRequired]
+    public Guid ApplicationId { get; set; }
+
+    private bool _dragging;
+    private bool _uploading;
+    private string? _error;
+
+    private async Task UploadAsync(InputFileChangeEventArgs args)
+    {
+        var file = args.File;
+        _error = null;
+
+        // The size given by the browser saves sending a file sure to be refused; the service checks what it reads.
+        if (file.Size > CvDocumentService.MaxUploadSize)
+        {
+            _error = CvDocumentErrors.TooLarge;
+            return;
+        }
+
+        _uploading = true;
+        ServiceResult<Guid> result;
+        try
+        {
+            await using var content = file.OpenReadStream(CvDocumentService.MaxUploadSize);
+            result = await CvDocumentService.UploadAsync(ApplicationId, file.Name, content);
+        }
+        catch (IOException)
+        {
+            // The browser sent more than it announced, or the transfer broke off.
+            result = ServiceResult<Guid>.Failure(CvDocumentErrors.UploadFailed);
+        }
+
+        _uploading = false;
+
+        if (result.GetMessage == CvDocumentErrors.ApplicationNotFound)
+        {
+            NavigationManager.NotFound();
+        }
+        else if (!result.IsSuccess)
+        {
+            _error = result.GetMessage;
+        }
+        else
+        {
+            NavigationManager.Refresh();
+        }
+    }
+}

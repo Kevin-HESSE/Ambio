@@ -1,0 +1,36 @@
+@* The tabs of a page (docs/ui.md#patterns): links whose URL holds the active tab, either ?tab= on a detail page or
+   one route per section (the Account pages). *@
+<nav class="@ComponentClass" aria-label="@Label">
+    @foreach (var tab in Tabs)
+    {
+        var active = tab.Value == Active;
+        <a class="@(active ? "tab active" : "tab")" href="@tab.Href" aria-current="@(active ? "page" : null)">
+            @tab.Label
+            @if (tab.Count is { } count)
+            {
+                <CountBadge Count="count" class="tab-count" />
+            }
+        </a>
+    }
+</nav>
+
+@code {
+    /// <summary>Accessible name of the tabs, such as "Company sections".</summary>
+    [Parameter, EditorRequired]
+    public string Label { get; set; } = "";
+
+    [Parameter, EditorRequired]
+    public IReadOnlyList<TabNavItem> Tabs { get; set; } = [];
+
+    /// <summary>Value of the active tab.</summary>
+    [Parameter, EditorRequired]
+    public string Active { get; set; } = "";
+
+    /// <summary>Tabs below 992 px, a list of sections above, such as the Account pages.</summary>
+    [Parameter]
+    public bool Sections { get; set; }
+
+    private string ComponentClass => CssClassHelper.Serialize(
+        ["tabs"],
+        new Dictionary<string, bool> { ["tabs-sections"] = Sections });
+}

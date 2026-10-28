@@ -6,21 +6,31 @@ paths: src/Ambio.Web/**
 
 `Ambio.Web` references Application and Infrastructure.
 
-- Blazor Interactive Server only, no WebAssembly.
+- Blazor Interactive Server only, no WebAssembly. Pages are static; only the smallest component that needs interactivity gets `@rendermode InteractiveServer`, set by its page, with serializable parameters and its buttons disabled until `RendererInfo.IsInteractive` ([ADR 0023](../../docs/adr/0023-interactive-islands-in-static-pages.md)).
 - Components consume Application interfaces and DTOs only, never `ApplicationDbContext` or domain entities. The template Identity pages in `Components/Account` are the only exception.
 - Code is organised by feature ([ADR 0018](../../docs/adr/0018-feature-folders-in-every-project.md)): `Components/<Feature>/Pages/` for routable pages and `Components/<Feature>/Shared/` for the feature's components, like the existing `Components/Account/` (the Identity feature). Cross-feature code goes in `Components/Layout/`, `Components/Shared/`, and `Components/Pages/` only for app-level pages (Home, Error, NotFound).
 
 ## Routing and Identity
 
-- `Components/Routes.razor` uses `AuthorizeRouteView`; unauthenticated access to `[Authorize]` pages redirects via `RedirectToLogin`.
+- Every endpoint requires the logged-in user through the fallback policy of `Program.cs` ([ADR 0028](../../docs/adr/0028-account-created-at-first-start.md)): pages, file endpoints and the `_blazor` hub, so no `[Authorize]` or `RequireAuthorization()` is needed. Only the Identity pages shown before logging in (`Account/Pages`, not `Manage`), `Pages/Error.razor` and `MapStaticAssets()` are anonymous, each page with its own `@attribute [AllowAnonymous]`, never in an `_Imports.razor` (it would reach `Manage`). `tests/Ambio.Web.Tests/Components/AnonymousPagesTests` checks that list.
+- The policy is checked by the middleware on every request, which holds because routing is static (ADR 0023). `Components/Routes.razor` keeps `AuthorizeRouteView` and `RedirectToLogin`.
 - `IdentityRevalidatingAuthenticationStateProvider` periodically revalidates the security stamp for interactive circuits. `MapAdditionalIdentityEndpoints()` (in `Components/Account/IdentityComponentsEndpointRouteBuilderExtensions.cs`) adds the non-Razor endpoints (logout, external login, personal data download).
-- Account creation goes only through `IUserService.RegisterUserAsync`; registration is open only while no user exists (ADR 0002, ADR 0017).
-- `ExternalLogin.razor` has its `@page` commented out until the GitHub OAuth issue, which must create accounts through `IUserService` too.
-- Email is a no-op (`IdentityNoOpEmailSender`); `RegisterConfirmation.razor` special-cases it to show the confirmation link on screen. Remove that branch when a real sender is added.
+- Identity pages shown before logging in render in `Account/Shared/AuthLayout` (logo and centered card, set in `Account/Pages/_Imports.razor`); the `Manage` pages in `ManageLayout` (app shell, sections in a `TabNav` with `Sections`, page in a card).
+- There is no registration page: the account is created at first start from the `Ambio:Account` settings (`CreateAccountAtFirstStartAsync()` in `Program.cs`, right after `Build()`), through `IUserService.RegisterUserAsync` (ADR 0017, ADR 0028).
+- `ExternalLogin.razor` has its `@page` commented out: GitHub login is out of the proof of concept (ADR 0024).
+- Email is a no-op (`IdentityNoOpEmailSender`): there is no real sender in the proof of concept (ADR 0024), and the account's email is confirmed when it is created.
 
 ## UI
 
 - Colors, typography and spacing come from the `--ambio-*` CSS variables mapped onto Bootstrap. No hard-coded colors in components ([docs/design-system.md](../../docs/design-system.md), [ADR 0015](../../docs/adr/0015-neutral-visual-identity-with-status-colors.md)).
+- Size text fields in lines with the `lh` unit (`min-height: 6lh` for a textarea), not in pixels, so they follow the font and its line height.
 - Layout: bottom tab bar + "More" sheet below 992 px, sidebar above. Lists are tables on desktop and cards on mobile; detail pages put their tab in the URL (`?tab=`) ([docs/ui.md](../../docs/ui.md), mockups in `docs/mockups/`, [ADR 0016](../../docs/adr/0016-responsive-navigation-bottom-tabs-and-sidebar.md)).
-- Application URLs are `/applications/{ShortId}-{slug}`: resolve by `ShortId`, redirect to the canonical slug ([ADR 0014](../../docs/adr/0014-short-id-and-slug-urls.md)).
+- The shell is rendered statically; its behaviors (sheets, the ⋯ popover, theme, the static filter forms) are in `wwwroot/js/shell.js` and the `<head>` script of `App.razor`. A new page adds its section to `Components/Layout/AppNavigation.cs` and sets its mobile title with `<AppBarTitle>`; a page below a list (detail, new, edit) adds `<AppBarBack>` towards its parent.
+- An island that keeps a state through a refresh of its page (`NavigationManager.Refresh()`) carries a `@key`: without it, the refresh starts a new island instead of giving the running one its new parameters.
+- Copy to the clipboard is a `data-copy` button handled by `wwwroot/js/shell.js` during the click (Safari refuses a copy after a round trip to the server), with its toast messages in `data-copied` and `data-copy-failed`; the browser shows that toast from the template of `ToastHost`.
+- Archive and restore are the hidden static forms of `Shared/ArchiveForms.razor`, handled by the detail page and sent by buttons anywhere through their `form` attribute (`ArchiveMenuItem` in `DetailHeader`'s `Menu`, `ArchivedBanner`, the Undo of the toast). A page shows a toast with the request-scoped `ToastService` from its handler; `ToastHost` in the layout renders it.
+- Each feature lists its base-relative URLs in `Components/<Feature>/<Feature>Routes.cs` (constants, plus builders such as `CompanyRoutes.Details(slug)`). Links, redirects, tests and `AppNavigation` use it; pages keep their `@page` template.
+- Company URLs are `/companies/{slug}`: resolve by the stored slug; a new literal route under `/companies/` adds its segment to the reserved slugs of `CompanySlugs` ([ADR 0021](../../docs/adr/0021-slug-urls-for-companies.md)).
+- Application and offer URLs are `/applications/{ShortId}-{slug}` and `/offers/{ShortId}-{slug}`, the key built and read by `Components/Shared/ShortIdKey.cs`: resolve by `ShortId`, redirect to the canonical slug ([ADR 0014](../../docs/adr/0014-short-id-and-slug-urls.md), [ADR 0025](../../docs/adr/0025-short-id-and-slug-urls-for-offers.md)).
+- A feature that serves files outside the Blazor pages maps them in `Components/<Feature>/<Feature>Endpoints.cs` (`MapCvDocumentEndpoints()`, called in `Program.cs`); the fallback policy keeps them for the logged-in user. Links to them carry `data-enhance-nav="false"`, otherwise enhanced navigation fetches the file as a page.
 - Static assets are served by `MapStaticAssets()` and referenced through `@Assets["..."]` in `App.razor`; Bootstrap is vendored in `wwwroot/lib`.

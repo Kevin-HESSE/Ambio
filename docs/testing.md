@@ -1,7 +1,5 @@
 # Testing
 
-> Status: the test projects exist since [Phase 0](roadmap.md#phase-0--foundations), except `Ambio.Domain.Tests`, created in [Phase 1](roadmap.md#phase-1--application-tracking-mvp) with the first domain rule.
-
 ```bash
 # every test, end-to-end included
 dotnet test
@@ -20,6 +18,7 @@ Tests run on xUnit v3 with Microsoft.Testing.Platform, enabled for `dotnet test`
 - **Critical points first.** There is no coverage target. Test business rules, guards (such as the single-account semaphore of [ADR 0017](adr/0017-account-creation-local-or-github.md)), data access, integrations (such as email sending) and the journeys that would hurt if they broke. Don't test trivial getters or framework behavior.
 - **A test project is created when its layer has something worth testing.** `Ambio.Domain.Tests` comes with the first domain rule, not before.
 - **Real dependencies where they are cheap.** Services run against a real SQLite engine in memory, wired with the production DI extensions, rather than the EF in-memory provider or mocked contexts. Mocks are kept for what the test doesn't own, and are always NSubstitute mocks, never hand-written fakes.
+- **Component tests only where there is logic.** bUnit covers components with behavior: interactive islands, state, conditional rendering. A page that only displays DTOs has no component test ([ADR 0024](adr/0024-proof-of-concept.md)). The existing tests are kept.
 - **A few end-to-end journeys** cover what unit and component tests can't reach, such as the statically rendered Identity pages.
 
 ## Test projects
@@ -30,8 +29,8 @@ The content listed below is typical, not exhaustive: each project grows with its
 |---|---|---|
 | `tests/Ambio.Domain.Tests` | Domain rules (status workflow, invariants) — created in Phase 1 | xUnit |
 | `tests/Ambio.Application.Tests` | DTO validation, `ServiceResult`, mapping extensions | xUnit |
-| `tests/Ambio.Infrastructure.Tests` | Service implementations (user management, email sending…), EF Core mappings and queries, file storage, plugin loader, PDF snapshots | xUnit, SQLite in-memory, NSubstitute |
-| `tests/Ambio.Web.Tests` | Interactive Blazor components | bUnit, NSubstitute |
+| `tests/Ambio.Infrastructure.Tests` | Service implementations (user management, email sending…), EF Core mappings and queries, file storage | xUnit, SQLite in-memory, NSubstitute, Bogus |
+| `tests/Ambio.Web.Tests` | Blazor components with logic: the app shell, the interactive islands, conditional rendering | bUnit, NSubstitute, Bogus |
 | `tests/Ambio.E2E.Tests` | Critical user journeys in a real browser | xUnit, Playwright |
 
 Shared settings (target framework, xUnit package, global `using Xunit;`) live in `tests/Directory.Build.props`, and package versions in `Directory.Packages.props`.
@@ -42,8 +41,19 @@ Shared settings (target framework, xUnit package, global `using Xunit;`) live in
 - **Names.** `Method_Scenario_Result`, e.g. `RegisterUserAsync_WhenUserExists_Fails`.
 - **Member order.** Tests first, then private helpers (and helper types), then the data sets at the bottom of the class.
 - **Theories.** More than two rows go in a `[MemberData]` backed by a `TheoryData<T>` property. With one or two rows, keep `[InlineData]`.
-- **No magic strings.** Values reused in a class are named constants. Expected messages come from the production constants (e.g. `UserErrors.AlreadyExists`), never retyped. Data set rows can stay literal.
+- **Test data.** Entities, DTOs and form inputs come from Bogus generators ([ADR 0022](adr/0022-test-data-with-bogus.md)), see [Test data](#test-data).
+- **No magic strings.** Expected values are read from the generated data. A named constant is kept only for a value the test relies on: a name whose case or slug is checked, a sort order, a displayed date format. Expected messages come from the production constants (e.g. `UserErrors.AlreadyExists`), never retyped. Data set rows can stay literal.
 - **Mocks.** Use NSubstitute, never hand-written fakes, only for what the test doesn't own (an email sender, an external API, the Application services consumed by a component). Services under test are resolved through the production DI extensions rather than built by hand.
+
+## Test data
+
+The Web and Infrastructure test projects build their data with [Bogus](https://github.com/bchavez/Bogus), in `Fixtures/`. Values are random on every run, without a seed.
+
+- **A generator per type.** Each factory exposes `GetGenerator()`, a `Faker<T>` that fills every field with realistic values. Positional DTOs are built with the `WithRecord()` extension.
+- **Variants are rule sets.** A factory exposes them as constants that include the default rules, such as `CompanyFactory.IsArchivedRuleSet` (`"default,archived"`) or `CompanyDetailsFactory.RequiredOnlyRuleSet`: `generator.Generate(CompanyFactory.IsArchivedRuleSet)`.
+- **Set what the test checks or relies on.** Override a field with `with` on a record, or with a `WithCustom…` extension such as `WithCustomName("Acme Inc.")`, which adds the rule to a copy of the generator. Everything else stays random, and the assertions read it from the generated object.
+- **Unique values.** `Name` and `Slug` are unique in the database. Bogus company names always have several words, so a test that needs two companies distinct by construction gives one of them a single-word name.
+- **Stories for related entities.** Each test creates its own story, so no data is shared between tests.
 
 ## EF Core integration tests
 
@@ -52,32 +62,45 @@ Tests run against a real SQLite engine in memory, so they catch mapping and tran
 - Each test gets its own named in-memory database (`DataSource=file:<guid>?mode=memory&cache=shared`). A keeper `SqliteConnection` stays open for the test's lifetime, so the database survives while contexts open and close their own connections.
 - Services are registered with the production extensions (`AddDatabase()`, `AddApplicationServices()`), so tests use the same `IDbContextFactory<ApplicationDbContext>` and Identity setup as the app. See `tests/Ambio.Infrastructure.Tests/Fixtures/SqliteServiceProvider.cs`.
 - Create the schema with `Database.EnsureCreated()`.
+- `SqliteServiceProvider` has helpers so tests don't open scopes and contexts by hand: `AddAsync(entities)` saves entities on a new context, `CallAsync((ICompanyService service) => …)` calls a service resolved in its own scope, as a request would, and `QueryAsync(context => …)` reads what was saved on a new context. A test opens a context itself only to change an entity it has loaded.
+- `SqliteServiceProvider.CreateAsync(settings)` overrides the app configuration, such as a one-character `Ambio:ShortId:Alphabet` to make short ids collide.
+- Its `ContentRootPath` is a new temporary folder, given to the app through an `IHostEnvironment` substitute and deleted with the provider: the documents stored by a test land under it, in the default root `Data`.
 - Test mapping classes (keys, required fields, relationships, cascade rules) and every LINQ projection to DTOs.
+- `Persistence/MigrationsTests` checks that the model has no change without its migration (`HasPendingModelChanges()`): the app migrates its database at start, and would stop on such a change.
 
 ## Component tests
 
 bUnit renders components with NSubstitute mocks of the Application services, registered in the test context's `Services`, and asserts on markup and interactions (filters, forms, validation messages). Test classes inherit `BunitContext`.
 
+An interactive component ([ADR 0023](adr/0023-interactive-islands-in-static-pages.md)) reads `RendererInfo`: the test sets it with `SetRendererInfo(new RendererInfo("Server", isInteractive: true))`, or `("Static", false)` for a static page that renders one. A JavaScript call such as `ambio.sheet.close` is mocked with `JSInterop.SetupVoid(...).SetVoidResult()`, then checked with `JSInterop.VerifyInvoke`.
+
+bUnit doesn't bind `[SupplyParameterFromForm]` from a post: a static form whose submit buttons carry a `name` and a `value`, or whose values come from hidden fields, is checked on its markup in bUnit and through the end-to-end tests, such as the duplicate suggestion of a new offer.
+
 The Identity pages under `Components/Account` are rendered statically on the server and read `HttpContext`, which bUnit doesn't provide. They are covered by the end-to-end tests instead.
+
+`Components/AnonymousPagesTests` is a plain xUnit test: by reflection, it checks that the routable pages carrying `[AllowAnonymous]` are exactly the Identity pages shown before logging in and the error page, so no `_Imports.razor` opens the Account pages by mistake ([ADR 0028](adr/0028-account-created-at-first-start.md)).
 
 ## End-to-end tests
 
 Playwright drives a headless Chromium against the real app, hosted in the test process.
 
-- `AmbioAppFactory` is a `WebApplicationFactory<Program>` that starts Kestrel on a free port (`UseKestrel(0)`) and overrides `ConnectionStrings:DefaultConnection`.
-- `AmbioAppFixture` creates a temporary SQLite file, applies the migrations, starts the browser, and deletes the file at the end. The development database is never touched.
+- `AmbioAppFactory` is a `WebApplicationFactory<Program>` that starts Kestrel on a free port (`UseKestrel(0)`) and overrides `ConnectionStrings:DefaultConnection`, `Ambio:Storage:Root` and `Ambio:Account` (`AmbioAppFixture.UserEmail`, `UserPassword`), so the app creates the account at start.
+- `AmbioAppFixture` gives the app a new temporary SQLite file and storage folder, which the app migrates and fills at start like a real instance, starts the browser, and deletes both at the end. The development database and documents are never touched.
 - Chromium is installed on the first run (`Microsoft.Playwright.Program.Main(["install", "chromium"])`), so no separate install step is needed locally. On a Linux CI runner, the browser's system dependencies must be installed too (see [ci-cd.md](ci-cd.md)).
 - Every E2E test class carries `[Trait("Category", "E2E")]`, so the fast loop can exclude it.
-- Only **critical journeys** get an E2E test, as one test per journey. The current one is `Journeys/SingleAccountJourneyTests`: register, confirm the email, log in, log out, then check that registration is closed.
+- Only **critical journeys** get an E2E test, as one test per journey. The current ones are:
+  - `Journeys/SingleAccountJourneyTests`: a visitor not logged in gets the styles and scripts, is sent to Log in from the old Register page and from Account, sees that registration is closed, opens Forgot your password, then logs in with the account created at start, lands back on the page asked first, and logs out. It covers the fallback policy and its exceptions;
+  - `Journeys/AppShellJourneyTests`: on a phone-sized viewport, open the More sheet, choose the Dark theme, check that it survives a reload, then log out from the sheet. It covers the shell script (`wwwroot/js/shell.js`), which bUnit doesn't run. It starts from `AmbioAppFixture.NewLoggedInPageAsync` with a phone viewport and the light color scheme;
+  - `Journeys/CompanyJourneyTests`: create a company (after a link refused by the validation), check its detail page, edit it, then open it again from the list. It covers the statically rendered forms and their redirects, which bUnit doesn't post;
+  - `Journeys/OfferJourneyTests`: create an offer while typing a new company name (after a link refused by the validation), land on its page, add a posting in the sheet (after a link refused inside it), remove the first one after confirming, then open the offer again from the Offers tab of the company created with it. It covers the form post, the inline company creation and the interactive postings card, whose circuit bUnit doesn't run;
+  - `Journeys/JobApplicationJourneyTests`: create an offer, start from the empty applications list, find the offer by typing part of its title without its accents, apply to it as already sent, land on the application page, edit it (posting, channel, sending date, notes), open it again from the list, check that another slug leads to its current URL, then from the offer page and from the Applications tab of its company. It covers the interactive new application form and its search, whose circuit bUnit doesn't run, and the statically rendered edit form, which bUnit doesn't post;
+  - `Journeys/ApplicationFiltersJourneyTests`: create a sent and a draft spontaneous application, then on desktop search without the accents (Enter), pick a status in the bar, which applies at once, and clear the filters; on a phone, tap a status chip, choose a company in the Filters sheet, then tap the All chip. It checks the URL at each step. It covers the static GET forms, their enhanced navigation and `shell.js` (auto-submit, empty fields left out, the sheet closed before its form is sent), which bUnit doesn't run;
+  - `Journeys/StatusChangeJourneyTests`: create a company, then an offer for it, apply to the offer as a draft from the offer page, then change the status in the sheet: only Applied and Withdrawn are offered, sending asks for the day (refused without it), then the page shows Applied, the sending day and the comment in the history; a second change to Interview checks that the island follows the refreshed page, then the list shows the new status. It covers the change status island and the refresh of the static page, which bUnit doesn't run. It has its own class, so its database holds only its application.
+  - `Journeys/ArchivingJourneyTests`: create an offer and apply to it, archive the application from the ⋯ popover (toast, banner, "Restore to change status"), undo it, archive the company, then find the application in the list only with "Show archived", dimmed and tagged; restore it from its banner, which restores its company too; on a phone, archive it again from the ⋯ of the app bar, whose sheet closes. It covers the static archive and restore forms, the toast of the request and `shell.js` (popover and sheet closed on send, auto-submitted checkbox), which bUnit doesn't run.
+  - `Journeys/CvUploadJourneyTests`: create an offer and apply to it, open the CV tab, send a text file named `.pdf` (refused), then a PDF, which shows in the list with the count of the tab and stays after a reload; download it under its name, check that its preview is served inline in a new tab, and that a visitor not logged in is sent to Log in. It covers the `InputFile` island and the file endpoints, which bUnit doesn't run.
+  - `Journeys/SettingsJourneyTests`: on desktop, open Settings from the sidebar, where the delay is the default one; a delay of 0 is refused, 14 is saved with a toast and stays after a reload; choosing Dark on the page applies it at once and checks Dark in the sidebar. It covers the enhanced static form, its toast and `shell.js`, which bUnit doesn't run. It has its own class, so its database holds no settings at first.
+  - `Journeys/DashboardJourneyTests`: on desktop, the dashboard shows its empty state; after a spontaneous application sent long ago and a draft, it counts them in the pipeline, lists the sent one in Follow up and both events in Recent activity, then the Applied counter opens the list filtered on it; on a phone, the floating button opens the new application form. It covers the static page behind the login and its links, with the migrations of the real database. It has its own class, so its database holds only its applications. Its step creating a spontaneous application is shared with `ApplicationFiltersJourneyTests` in `Fixtures/PageExtensions.cs`.
+  - `Journeys/SpontaneousApplicationJourneyTests`: switch the new application form to Spontaneous, type a new company name and create it from the search, send the application, land on its page, change its target position (and so its URL), then find it with its Spontaneous tag in the list and in the Applications tab of the company created with it. It has its own class, so its database doesn't hold the applications of the previous journey.
+- A journey that doesn't test the account itself starts with `var page = await _app.NewLoggedInPageAsync();`. The app creates the account (`AmbioAppFixture.UserEmail`, `UserPassword`) at start; the fixture opens a browser context on the app with the given options (viewport, color scheme), and logs in.
+- Steps shared by several journeys are extension methods on Playwright's `IPage` in `Fixtures/PageExtensions.cs`, such as `LogInAsync`, which works at any viewport width.
 - Select elements by role or label (`GetByRole`, `GetByLabel`), and add a `data-testid` only when nothing else is stable. Assert with Playwright's `Expect`, which waits for the page instead of failing at once.
-
-## PDF snapshot tests
-
-Every CV template (built-in or bundled plugin) is rendered with a fixed `CvModel` fixture.
-
-- The test checks that the PDF is valid and has the expected page count.
-- Pages are rasterized to images and compared with approved images stored next to the test. A differing snapshot fails the test and writes the new image for review.
-
-## Designing templates by hand
-
-`tools/Ambio.CvPlayground` renders a template with sample data in the QuestPDF Companion for live preview. It isn't a test, but it's the fastest way to iterate on a layout before approving new snapshots. See [plugins.md](plugins.md#developing-a-template).

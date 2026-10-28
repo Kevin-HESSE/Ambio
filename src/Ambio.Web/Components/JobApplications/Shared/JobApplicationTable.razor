@@ -1,0 +1,50 @@
+@* The applications list on desktop (≥ 992 px), whose titles link to the application pages and whose archived rows
+   are dimmed. *@
+<ListTable>
+    <Columns>
+        <th scope="col">Position</th>
+        <th scope="col">Status</th>
+        <th scope="col">Channel</th>
+        <th scope="col">Sent on</th>
+    </Columns>
+    <Rows>
+        @foreach (var application in Applications)
+        {
+            <tr>
+                <th scope="row">
+                    <a class="application-title list-title t-body-strong @(application.IsArchived ? "t-muted" : null)" href="@JobApplicationRoutes.Details(application.ShortId, application.Slug)">@application.Title</a>
+                    <div class="application-company t-small t-secondary">@application.CompanyName</div>
+                </th>
+                <td><StatusBadge Status="application.Status" /></td>
+                <td>
+                    <div class="cluster">
+                        <Tag Icon="@application.Channel.ToIcon()">@application.Channel.ToLabel()</Tag>
+                        @if (application.Kind == ApplicationKind.Spontaneous)
+                        {
+                            <SpontaneousTag />
+                        }
+                        @if (application.IsArchived)
+                        {
+                            <ArchivedTag />
+                        }
+                    </div>
+                </td>
+                <td class="application-date">
+                    @if (application.SentOn is { } sentOn)
+                    {
+                        <time datetime="@sentOn.ToString("yyyy-MM-dd")">@sentOn.ToDisplayDate()</time>
+                    }
+                    else
+                    {
+                        <span class="t-muted">Not sent</span>
+                    }
+                </td>
+            </tr>
+        }
+    </Rows>
+</ListTable>
+
+@code {
+    [Parameter, EditorRequired]
+    public IReadOnlyList<JobApplicationSummaryDto> Applications { get; set; } = [];
+}

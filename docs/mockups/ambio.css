@@ -196,8 +196,9 @@
 
 /* Logo */
 .pf .logo { display: inline-flex; align-items: center; gap: var(--ambio-space-8); color: var(--ambio-text-primary); font-weight: 600; font-size: 18px; line-height: 26px; }
-.pf .logo-mark { width: 28px; height: 28px; border-radius: var(--ambio-radius-lg); background: var(--ambio-accent-default); color: var(--ambio-accent-on); display: grid; place-items: center; font-size: 17px; line-height: 1; font-weight: 700; letter-spacing: -0.02em; }
-.pf .logo-lg .logo-mark { width: 40px; height: 40px; font-size: 24px; }
+.pf .logo-mark { width: 28px; height: 28px; border-radius: var(--ambio-radius-lg); background: var(--ambio-accent-default); color: var(--ambio-accent-on); display: grid; place-items: center; }
+.pf .logo-mark svg { width: 100%; height: 100%; }
+.pf .logo-lg .logo-mark { width: 40px; height: 40px; }
 .pf .logo-lg { font-size: 24px; line-height: 32px; gap: var(--ambio-space-12); }
 
 /* App bar (mobile) */

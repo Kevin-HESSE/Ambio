@@ -1,0 +1,167 @@
+@page "/offers/new"
+@using Ambio.Application.Companies
+@inject IJobOfferService JobOfferService
+@inject ICompanyService CompanyService
+@inject NavigationManager NavigationManager
+
+<PageTitle>New offer</PageTitle>
+<AppBarBack Href="@OfferRoutes.List" />
+<AppBarTitle>New offer</AppBarTitle>
+
+<PageHeader Title="New offer" />
+
+@if (ShowsBanner)
+{
+    <Banner Icon="info-circle" Title="This offer may already exist" Variant="BannerVariant.Info" class="form-page offer-duplicates">
+        <ChildContent>
+            <div class="stack">
+                <p class="offer-duplicates-text">
+                    If it's the same job, add this @Posting.Site link to @(_similarOffers.Count == 1 ? "it" : "one of them")
+                    instead of creating a duplicate.
+                </p>
+                @* A form of its own: pressing Enter in the offer form must not add the posting to an existing offer. It
+                   posts the site and the link just validated, and the offer of the clicked button. *@
+                <EditForm Model="Posting" method="post" OnValidSubmit="AddPostingToOfferAsync" FormName="@AddPostingFormName" novalidate>
+                    <DataAnnotationsValidator />
+                    <InputText type="hidden" @bind-Value="Posting.Site" />
+                    <InputText type="hidden" @bind-Value="Posting.Url" />
+                    <ul class="offer-duplicates-list list-unstyled stack">
+                        @foreach (var offer in _similarOffers)
+                        {
+                            <li class="offer-duplicate cluster">
+                                <span id="offer-duplicate-@offer.ShortId">
+                                    <a href="@OfferRoutes.Details(offer.ShortId, offer.Slug)">@offer.Title · @offer.CompanyName</a>,
+                                    published <time datetime="@offer.RegisterAt.ToString("yyyy-MM-dd")">@offer.RegisterAt.ToShortDisplayDate()</time>
+                                    with @offer.PostingCount @OfferLabels.PostingWord(offer.PostingCount).
+                                </span>
+                                <button type="submit" name="@nameof(ExistingOfferShortId)" value="@offer.ShortId" class="btn btn-secondary btn-sm"
+                                        aria-describedby="offer-duplicate-@offer.ShortId">
+                                    Add this posting to this offer
+                                </button>
+                            </li>
+                        }
+                    </ul>
+                </EditForm>
+            </div>
+        </ChildContent>
+        <Actions>
+            <button type="submit" form="@FormId" class="btn btn-secondary btn-sm">Create a new offer anyway</button>
+        </Actions>
+    </Banner>
+}
+
+<section class="card form-page">
+    <EditForm id="@FormId" Model="Input" method="post" OnValidSubmit="CreateOfferAsync" FormName="@NewOfferFormName" novalidate class="card-body form-sections">
+        <DataAnnotationsValidator />
+        @if (_similarOffers.Count > 0)
+        {
+            @* The suggestions have been seen: the next submission creates the offer. *@
+            <input type="hidden" name="@nameof(CreateAnyway)" value="true" />
+        }
+
+        <OfferFormFields Input="Input">
+            <Company>
+                <FormField Id="offer-company" Label="Company" For="() => Input.CompanyName" Hint="Pick a company or type a new name to create it.">
+                    <InputText id="offer-company" @bind-Value="Input.CompanyName" class="form-control" list="offer-companies"
+                               autocomplete="off" aria-required="true" aria-describedby="offer-company-hint" />
+                    <datalist id="offer-companies">
+                        @foreach (var name in _companyNames)
+                        {
+                            <option value="@name"></option>
+                        }
+                    </datalist>
+                </FormField>
+            </Company>
+            <ChildContent>
+                <FormSection Title="Where you saw it">
+                    <FormField Id="offer-site" Label="Site" For="() => Input.Site">
+                        <InputText id="offer-site" @bind-Value="Input.Site" class="form-control" list="offer-sites" aria-required="true" />
+                        <SiteSuggestions Id="offer-sites" />
+                    </FormField>
+                    <FormField Id="offer-url" Label="Link" For="() => Input.Url">
+                        <InputText id="offer-url" type="url" @bind-Value="Input.Url" class="form-control" placeholder="https://" aria-required="true" />
+                    </FormField>
+                </FormSection>
+            </ChildContent>
+        </OfferFormFields>
+
+        <div class="action-bar">
+            <ButtonLink Href="@OfferRoutes.List" Variant="ButtonVariant.Secondary">Cancel</ButtonLink>
+            <button type="submit" class="btn btn-primary">Create offer</button>
+        </div>
+    </EditForm>
+</section>
+
+@code {
+    /// <summary>Id of the offer form, which the "Create a new offer anyway" button of the banner submits.</summary>
+    public const string FormId = "new-offer-form";
+
+    private const string NewOfferFormName = "new-offer";
+    private const string AddPostingFormName = "add-posting-to-offer";
+
+    [SupplyParameterFromForm(FormName = NewOfferFormName)]
+    private NewJobOfferInput Input { get; set; } = default!;
+
+    /// <summary>Set by the offer form once the similar offers have been shown.</summary>
+    [SupplyParameterFromForm(FormName = NewOfferFormName)]
+    private bool CreateAnyway { get; set; }
+
+    /// <summary>The site and the link of the offer form, posted again by the banner.</summary>
+    [SupplyParameterFromForm(FormName = AddPostingFormName)]
+    private JobOfferPostingInput Posting { get; set; } = default!;
+
+    /// <summary>The existing offer whose button was clicked in the banner.</summary>
+    [SupplyParameterFromForm(FormName = AddPostingFormName)]
+    private string? ExistingOfferShortId { get; set; }
+
+    private IReadOnlyList<string> _companyNames = [];
+    private IReadOnlyList<JobOfferSummaryDto> _similarOffers = [];
+
+    // A posted form is only handled when the page renders it: the banner's form stays while its post is handled.
+    private bool ShowsBanner => _similarOffers.Count > 0 || ExistingOfferShortId is not null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Input ??= new();
+        Posting ??= new();
+        _companyNames = (await CompanyService.ListAsync()).Companies.Select(company => company.Name).ToList();
+    }
+
+    private async Task CreateOfferAsync()
+    {
+        if (!CreateAnyway)
+        {
+            _similarOffers = await JobOfferService.FindSimilarAsync(Input.CompanyName, Input.Title);
+
+            if (_similarOffers.Count > 0)
+            {
+                Posting = Input.ToPostingInput();
+                return;
+            }
+        }
+
+        var link = await JobOfferService.CreateAsync(Input);
+        NavigationManager.NavigateTo(OfferRoutes.Details(link.ShortId, link.Slug));
+    }
+
+    private async Task AddPostingToOfferAsync()
+    {
+        var offer = ExistingOfferShortId is not null ? await JobOfferService.GetAsync(ExistingOfferShortId) : null;
+        if (offer is null)
+        {
+            NavigationManager.NotFound();
+            return;
+        }
+
+        var result = await JobOfferService.AddPostingAsync(offer.Id, Posting);
+
+        if (result.GetMessage == JobOfferErrors.NotFound)
+        {
+            NavigationManager.NotFound();
+            return;
+        }
+
+        // Added, or the offer already had this link: either way, the posting is on the offer.
+        NavigationManager.NavigateTo(OfferRoutes.Details(offer.ShortId, offer.Slug));
+    }
+}

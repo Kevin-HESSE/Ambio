@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace Ambio.Web.Components.Account;
 
-// Remove the "else if (EmailSender is IdentityNoOpEmailSender)" block from RegisterConfirmation.razor after updating with a real implementation.
+// Ambio sends no email (ADR 0024): the account is confirmed when it is created at first start (ADR 0028).
 internal sealed class IdentityNoOpEmailSender : IEmailSender<ApplicationUser>
 {
     private readonly IEmailSender emailSender = new NoOpEmailSender();

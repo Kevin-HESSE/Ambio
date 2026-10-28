@@ -1,0 +1,192 @@
+@page "/applications/{Key}"
+@inject IJobApplicationService JobApplicationService
+@inject ICoverLetterService CoverLetterService
+@inject ICvDocumentService CvDocumentService
+@inject NavigationManager NavigationManager
+@inject ToastService Toasts
+
+@if (_application is not null)
+{
+    <PageTitle>@_application.Title</PageTitle>
+    <AppBarBack Href="@JobApplicationRoutes.List" />
+    <AppBarTitle>Application</AppBarTitle>
+    <AppBarActions>
+        <ButtonLink Href="@EditHref" Icon="pencil" IconOnly aria-label="Edit application" />
+        <DetailMenuButton />
+    </AppBarActions>
+
+    <ArchiveForms OnArchive="ArchiveAsync" OnRestore="RestoreAsync" />
+    @if (_application.ArchivedAt is { } archivedAt)
+    {
+        <ArchivedBanner Noun="application" ArchivedAt="archivedAt">It's hidden from the lists. Restore it to track it again.</ArchivedBanner>
+    }
+
+    <div class="application-detail detail-layout">
+        <DetailHeader Title="@_application.Title" ParentTitle="Applications" ParentHref="@JobApplicationRoutes.List">
+            <Subtitle>
+                <a class="application-company" href="@CompanyRoutes.Details(_application.CompanySlug)">@_application.CompanyName</a>
+                @if (Location is not null)
+                {
+                    @(" · ")<span class="application-location">@Location</span>
+                }
+            </Subtitle>
+            <Tags>
+                @if (_application is OfferApplicationDetailsDto offer)
+                {
+                    <OfferTags ContractType="offer.ContractType" RemotePolicy="offer.RemotePolicy" />
+                    @if (offer.Salary is not null)
+                    {
+                        <Tag>@offer.Salary</Tag>
+                    }
+                }
+                else
+                {
+                    <SpontaneousTag />
+                }
+                @if (_application.IsArchived)
+                {
+                    <ArchivedTag />
+                }
+            </Tags>
+            <Actions>
+                <ButtonLink Href="@EditHref" Variant="ButtonVariant.Secondary" Icon="pencil">Edit</ButtonLink>
+            </Actions>
+            <Menu>
+                <ArchiveMenuItem Archived="_application.IsArchived" />
+            </Menu>
+        </DetailHeader>
+
+        <div class="application-detail-aside detail-aside stack">
+            <StatusPanel Status="_application.Status" Since="StatusSince">
+                @* An archived application keeps its status until it is restored. *@
+                @if (_application.NextStatuses.Count > 0 && _application.IsArchived)
+                {
+                    <button type="submit" form="@ArchiveForms.RestoreFormId" class="btn btn-secondary w-100 status-panel-restore">
+                        <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+                        Restore to change status
+                    </button>
+                }
+                else if (_application.NextStatuses.Count > 0)
+                {
+                    <ChangeStatusSheet @rendermode="InteractiveServer" ApplicationId="_application.Id" Status="_application.Status"
+                                       NextStatuses="_application.NextStatuses" />
+                }
+            </StatusPanel>
+        </div>
+
+        <div class="application-detail-main detail-main stack">
+            <TabNav Label="Application sections" Tabs="Tabs" Active="@ActiveTab" />
+            @if (ActiveTab == JobApplicationRoutes.LettersTab)
+            {
+                @* Its key lets a refresh of the page update the running island instead of starting a new one, which would
+                   lose the letter being written. *@
+                <CoverLetterEditor @key="_application.Id" @rendermode="InteractiveServer" ApplicationId="_application.Id" Letters="_letters" />
+            }
+            else if (ActiveTab == JobApplicationRoutes.CvTab)
+            {
+                <PdfUpload @rendermode="InteractiveServer" ApplicationId="_application.Id" />
+                <CvDocumentList Documents="_cvs" />
+            }
+            else
+            {
+                <JobApplicationOverview Application="_application" EditHref="@EditHref" />
+            }
+        </div>
+
+        @* The history closes the Overview tab on mobile, and stays in the side column on desktop. *@
+        <div class="@(ActiveTab == JobApplicationRoutes.OverviewTab ? "application-detail-history" : "application-detail-history desktop-only")">
+            <StatusTimeline History="_application.StatusHistory" CreatedAt="_application.CreatedAt" />
+        </div>
+    </div>
+}
+
+@code {
+    /// <summary>The short id and the slug of the application (<see cref="ShortIdKey"/>).</summary>
+    [Parameter]
+    public string Key { get; set; } = "";
+
+    /// <summary>The tab shown, from <c>?tab=</c>: Overview unless it is Cover letters or CV.</summary>
+    [SupplyParameterFromQuery(Name = "tab")]
+    public string? Tab { get; set; }
+
+    private JobApplicationDetailsDto? _application;
+
+    private IReadOnlyList<CoverLetterDto> _letters = [];
+
+    private IReadOnlyList<CvDocumentDto> _cvs = [];
+
+    private string ActiveTab => Tab is JobApplicationRoutes.LettersTab or JobApplicationRoutes.CvTab ? Tab : JobApplicationRoutes.OverviewTab;
+
+    private IReadOnlyList<TabNavItem> Tabs =>
+    [
+        new(JobApplicationRoutes.OverviewTab, "Overview", JobApplicationRoutes.Details(_application!.ShortId, _application.Slug, JobApplicationRoutes.OverviewTab)),
+        new(JobApplicationRoutes.LettersTab, "Cover letters", JobApplicationRoutes.Details(_application!.ShortId, _application.Slug, JobApplicationRoutes.LettersTab), _letters.Count),
+        new(JobApplicationRoutes.CvTab, "CV", JobApplicationRoutes.Details(_application!.ShortId, _application.Slug, JobApplicationRoutes.CvTab), _cvs.Count),
+    ];
+
+    private string EditHref => JobApplicationRoutes.Edit(_application!.ShortId, _application.Slug);
+
+    /// <summary>When the application reached its status: its last change, or its creation.</summary>
+    private DateTime StatusSince => _application!.StatusHistory.FirstOrDefault()?.ChangedAt ?? _application.CreatedAt;
+
+    /// <summary>Where the job is: the offer's location, or the company's for a spontaneous application.</summary>
+    private string? Location => _application switch
+    {
+        OfferApplicationDetailsDto offer => offer.Location,
+        SpontaneousApplicationDetailsDto spontaneous => spontaneous.CompanyLocation,
+        _ => null,
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+
+        if (_application is null)
+        {
+            NavigationManager.NotFound();
+            return;
+        }
+
+        // An old title or a mistyped slug still finds the application: it moves to its current URL, on the same tab.
+        var key = ShortIdKey.Of(_application.ShortId, _application.Slug);
+        if (Key != key)
+        {
+            NavigationManager.NavigateTo(
+                ActiveTab == JobApplicationRoutes.OverviewTab
+                    ? JobApplicationRoutes.Details(_application.ShortId, _application.Slug)
+                    : JobApplicationRoutes.Details(_application.ShortId, _application.Slug, ActiveTab),
+                replace: true);
+        }
+    }
+
+    // The letters and the CVs are read on every tab, for the counts of theirs.
+    private async Task LoadAsync()
+    {
+        _application = await JobApplicationService.GetAsync(ShortIdKey.ShortIdOf(Key));
+        _letters = _application is null ? [] : await CoverLetterService.ListAsync(_application.Id);
+        _cvs = _application is null ? [] : await CvDocumentService.ListAsync(_application.Id);
+    }
+
+    private async Task ArchiveAsync()
+    {
+        if (!(await JobApplicationService.ArchiveAsync(_application!.Id)).IsSuccess)
+        {
+            NavigationManager.NotFound();
+            return;
+        }
+
+        Toasts.Show(ArchiveForms.UndoToast("Application archived"));
+        await LoadAsync();
+    }
+
+    private async Task RestoreAsync()
+    {
+        if (!(await JobApplicationService.RestoreAsync(_application!.Id)).IsSuccess)
+        {
+            NavigationManager.NotFound();
+            return;
+        }
+
+        await LoadAsync();
+    }
+}

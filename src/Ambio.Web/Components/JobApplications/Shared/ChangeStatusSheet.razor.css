@@ -1,0 +1,28 @@
+/* A status to choose, as a card: the radio, its badge and what it means. */
+.change-status-option {
+    display: flex;
+    align-items: center;
+    gap: var(--ambio-space-12);
+    min-height: 52px;
+    padding: var(--ambio-space-8) var(--ambio-space-12);
+    border: 1px solid var(--ambio-border-strong);
+    border-radius: var(--ambio-radius-md);
+    background: var(--ambio-bg-surface);
+    cursor: pointer;
+}
+
+.change-status-option:has(:checked) {
+    border-color: var(--ambio-accent-default);
+    box-shadow: 0 0 0 1px var(--ambio-accent-default);
+}
+
+.change-status-option ::deep input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--ambio-accent-default);
+}
+
+.change-status-hint {
+    margin-left: auto;
+    text-align: right;
+}

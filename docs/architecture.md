@@ -1,6 +1,6 @@
 # Architecture
 
-Ambio is a .NET 10 Blazor Web App (Interactive Server only) using ASP.NET Core Identity, EF Core with SQLite, and QuestPDF.
+Ambio is a .NET 10 Blazor Web App (Interactive Server only) using ASP.NET Core Identity and EF Core with SQLite.
 
 ## Solution layout
 
@@ -8,16 +8,12 @@ Ambio is a .NET 10 Blazor Web App (Interactive Server only) using ASP.NET Core I
 src/
   Ambio.Domain/                   Entities, value objects, domain rules — no infrastructure dependency
   Ambio.Application/              Service interfaces, DTOs, mapping extensions
-  Ambio.Infrastructure/           Service implementations (EF Core via IDbContextFactory), storage, PDF, plugins, SMTP
+  Ambio.Infrastructure/           Service implementations (EF Core via IDbContextFactory), storage
   Ambio.Web/                      Blazor UI, Identity, composition root
-  Ambio.Plugins.CV.Abstractions/  Public contract for CV template authors
-  Ambio.Plugins.CV.Default/       Built-in CV template (also the reference plugin)
-tools/
-  Ambio.CvPlayground/             Console app + QuestPDF Companion for designing templates
 tests/
   Ambio.Domain.Tests/             Domain rules (created in Phase 1)
   Ambio.Application.Tests/        DTO validation, mapping extensions
-  Ambio.Infrastructure.Tests/     Services, EF integration (SQLite in-memory), PDF snapshots
+  Ambio.Infrastructure.Tests/     Services, EF integration (SQLite in-memory), storage
   Ambio.Web.Tests/                bUnit component tests
   Ambio.E2E.Tests/                Playwright critical journeys
 ```
@@ -30,10 +26,7 @@ flowchart LR
     Web --> Infrastructure
     Infrastructure --> Application
     Infrastructure --> Domain
-    Infrastructure --> CVAbs[Plugins.CV.Abstractions]
     Application --> Domain
-    Application --> CVAbs
-    CVDefault[Plugins.CV.Default] --> CVAbs
 ```
 
 - **Domain** references nothing: no EF Core, no data annotations, no `DbContext` ([ADR 0006](adr/0006-persistence-ignorant-domain-and-dtos.md)).
@@ -41,7 +34,6 @@ flowchart LR
 - **Infrastructure** implements the Application services with a short-lived `DbContext` per operation, created by `IDbContextFactory<ApplicationDbContext>`, as Microsoft recommends for Blazor Server. There are no repositories and no unit of work ([ADR 0010](adr/0010-dbcontext-factory-without-repositories.md)).
 - **Infrastructure** configures persistence exclusively with `IEntityTypeConfiguration<T>` classes kept in the feature folder of their entity, which are applied with `ApplyConfigurationsFromAssembly` ([ADR 0018](adr/0018-feature-folders-in-every-project.md)).
 - **Web** only consumes Application services and DTOs. It wires everything together in `Program.cs`.
-- **Plugins** only reference `Ambio.Plugins.CV.Abstractions` and QuestPDF.
 
 ## Conventions
 
@@ -54,9 +46,9 @@ flowchart LR
 | Data access | `await using var db = await dbFactory.CreateDbContextAsync(ct);` in each service method. No repositories, no unit of work. |
 | Queries | LINQ projections to DTOs so EF translates them to SQL, `AsNoTracking()` for reads |
 | Application URLs | `/applications/{ShortId}-{slug}`, `ShortId` generated with NanoId, looked up by `ShortId`, redirected to the canonical slug ([ADR 0014](adr/0014-short-id-and-slug-urls.md)) |
+| Company URLs | `/companies/{slug}`, slug stored with a unique index, numeric suffix on collision, recomputed on rename ([ADR 0021](adr/0021-slug-urls-for-companies.md)) |
 | UI tokens | Colors, typography and spacing come from `--ambio-*` CSS variables mapped onto Bootstrap. No hard-coded colors in components. See [design-system.md](design-system.md) ([ADR 0015](adr/0015-neutral-visual-identity-with-status-colors.md)) |
 | UI layout | Bottom tab bar + "More" sheet below 992 px, sidebar above. Lists are tables on desktop and cards on mobile; detail pages use tabs in the URL (`?tab=`). See [ui.md](ui.md) ([ADR 0016](adr/0016-responsive-navigation-bottom-tabs-and-sidebar.md)) |
-| Plugin naming | `Ambio.Plugins.<Domain>.<Purpose>` — see [plugins.md](plugins.md) |
 
 ## Data model
 
@@ -82,6 +74,8 @@ erDiagram
         guid Id
         guid JobApplicationId "null = general CV"
         enum Source "Uploaded | Generated"
+        string FileName "as uploaded"
+        long Size "bytes"
         string TemplateId "Generated only"
         string TemplateVersion "Generated only"
         json Snapshot "Generated only"
@@ -98,18 +92,20 @@ The company is the anchor: its profile, research notes and contacts are kept acr
 
 ## CV generation flow
 
+_Not built in the proof of concept: CV generation is [left to the official version](roadmap.md#left-to-the-official-version) ([ADR 0029](adr/0029-proof-of-concept-ends-after-phase-2.md)). The flow below is its design._
+
 ```mermaid
 flowchart LR
     P[CandidateProfile] --> S[Select items + override title/summary]
     S --> Snap[Immutable snapshot JSON]
     Snap --> M[CvModel]
-    M --> T[ICvTemplate.Compose]
+    M --> T[Built-in QuestPDF template]
     T --> PDF[QuestPDF document]
     PDF --> St[IDocumentStorage → /data/documents]
     St --> CV[CvDocument row]
 ```
 
-An uploaded CV (Phase 1) skips every step up to storage: the file is validated (PDF only, size limit), stored, and recorded as `Source = Uploaded`.
+An uploaded CV, the only kind built, skips every step up to storage: the file is validated (PDF only, size limit), stored, and recorded as `Source = Uploaded`. The browser reads it through two endpoints outside the Blazor pages, `/cvs/{id}` (inline, for the preview) and `/cvs/{id}/download`, for the logged-in user only.
 
 ## Storage layout
 
@@ -117,20 +113,23 @@ An uploaded CV (Phase 1) skips every step up to storage: the file is validated (
 /data
   ambio.db              SQLite database
   documents/<yyyy>/<id>.pdf
-  photos/<id>.<ext>       optional profile photo
   keys/                   ASP.NET Core DataProtection keys
-/plugins
-  <PluginName>/<PluginName>.dll (+ dependencies)
 ```
+
+The database file comes from the `DefaultConnection` connection string (`/data/ambio.db` in Docker). The documents root is `Ambio:Storage:Root` (`/data` in Docker). A relative root starts from the app's content root: `Data` in development, so files land in `src/Ambio.Web/Data`, next to the database. `IDocumentStorage` (Application) takes paths relative to the root; its file system implementation (`Infrastructure/Common/FileSystemDocumentStorage`) never replaces a file, removes a half-written one, and refuses a path outside the root.
+
+The ASP.NET Core DataProtection keys, which protect the login cookies and the 2FA tokens, are stored under the same root, in `keys/` (`StorageOptions.KeysFolder`), with the application name `Ambio`. They live with the data, so a new container keeps the sessions; `AddApplicationServices()` sets them up.
 
 See [ADR 0005](adr/0005-sqlite-and-filesystem-storage.md) for why files live on disk rather than in the database.
 
 ## Authentication
 
-- Single user ([ADR 0002](adr/0002-single-user-application.md)): registration is closed once the account exists.
+- Single user ([ADR 0002](adr/0002-single-user-application.md)), with no registration page.
+- At start, before the app accepts requests, `Program.cs` calls `MigrateDatabaseAsync()`, which applies the migrations the database hasn't got yet, then `CreateAccountAtFirstStartAsync()`.
+- The account is created at first start ([ADR 0028](adr/0028-account-created-at-first-start.md)). While no account exists, it creates it from the `Ambio:Account` settings (`AccountOptions`), with its email confirmed, or stops the start when they are missing or refused. Once the account exists, the settings are ignored.
+- Account creation goes through `IUserService.RegisterUserAsync`, which serializes "check that no account exists, then create it" with an in-process semaphore: one instance per database ([ADR 0017](adr/0017-account-creation-local-or-github.md)).
+- Every endpoint requires the logged-in user through a fallback authorization policy. Only the Identity pages shown before logging in, the error page and the static assets carry `[AllowAnonymous]`.
 - 2FA with an authenticator app, and recovery codes.
-- The account is created locally or with GitHub, and GitHub can be linked to a local account ([ADR 0017](adr/0017-account-creation-local-or-github.md)). Neither way can create a second account.
-- Account creation goes through `IUserService`, which serializes "check that no account exists, then create it" with an in-process semaphore: one instance per database.
 - Passkeys from the template are removed.
-- Email is sent through SMTP (MailKit) when configured, and falls back to the no-op sender otherwise.
+- Email goes through the no-op sender ([ADR 0024](adr/0024-proof-of-concept.md)): password reset and email change send nothing.
 - `IdentityRevalidatingAuthenticationStateProvider` (from the template) revalidates the security stamp for interactive circuits.

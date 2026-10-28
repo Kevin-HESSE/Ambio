@@ -1,0 +1,13 @@
+@using Microsoft.AspNetCore.Components.Sections
+
+@* Replaces the logo of the mobile app bar with a back arrow to the parent page.
+   Same render-mode constraint as <AppBarTitle>. *@
+<SectionContent SectionName="@AppBar.BackSection">
+    <ButtonLink Href="@Href" Icon="arrow-left" IconOnly aria-label="Back" />
+</SectionContent>
+
+@code {
+    /// <summary>Base-relative URL of the parent page.</summary>
+    [Parameter, EditorRequired]
+    public string Href { get; set; } = "";
+}

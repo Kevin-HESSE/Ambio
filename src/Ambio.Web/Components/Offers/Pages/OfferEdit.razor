@@ -1,0 +1,78 @@
+@page "/offers/{Key}/edit"
+@inject IJobOfferService JobOfferService
+@inject NavigationManager NavigationManager
+
+@if (_offer is not null)
+{
+    <PageTitle>Edit @_offer.Title</PageTitle>
+    <AppBarBack Href="@DetailsHref" />
+    <AppBarTitle>Edit offer</AppBarTitle>
+
+    @* The company of an offer isn't edited: it is named under the title. *@
+    <PageHeader Title="Edit offer" Subtitle="@($"{_offer.Title} · {_offer.CompanyName}")" />
+
+    <section class="card form-page">
+        <EditForm Model="Input" method="post" OnValidSubmit="UpdateOffer" FormName="edit-offer" novalidate class="card-body form-sections">
+            <DataAnnotationsValidator />
+
+            <OfferFormFields Input="Input" />
+
+            <div class="action-bar">
+                <ButtonLink Href="@DetailsHref" Variant="ButtonVariant.Secondary">Cancel</ButtonLink>
+                <button type="submit" class="btn btn-primary">Save changes</button>
+            </div>
+        </EditForm>
+    </section>
+}
+
+@code {
+    /// <summary>The short id and the slug of the offer (<see cref="ShortIdKey"/>).</summary>
+    [Parameter]
+    public string Key { get; set; } = "";
+
+    [SupplyParameterFromForm]
+    private JobOfferInput Input { get; set; } = default!;
+
+    // The offer as saved: it names the page, even while the form holds unsaved changes.
+    private JobOfferDetailsDto? _offer;
+
+    private string DetailsHref => OfferRoutes.Details(_offer!.ShortId, _offer.Slug);
+
+    protected override async Task OnInitializedAsync()
+    {
+        _offer = await JobOfferService.GetAsync(ShortIdKey.ShortIdOf(Key));
+
+        if (_offer is null)
+        {
+            NavigationManager.NotFound();
+            return;
+        }
+
+        // An old title or a mistyped slug still finds the offer: its form moves to its current URL.
+        if (Key != ShortIdKey.Of(_offer.ShortId, _offer.Slug))
+        {
+            var editHref = OfferRoutes.Edit(_offer.ShortId, _offer.Slug);
+            _offer = null;
+            NavigationManager.NavigateTo(editHref, replace: true);
+            return;
+        }
+
+        // On a post, Input already holds the submitted values.
+        Input ??= _offer.ToInput();
+    }
+
+    private async Task UpdateOffer()
+    {
+        var result = await JobOfferService.UpdateAsync(_offer!.Id, Input);
+
+        // A new title gives the offer a new slug: the page it goes back to has a new URL.
+        if (!result.TryGetValue(out var link))
+        {
+            // The only failure is an offer that no longer exists.
+            NavigationManager.NotFound();
+            return;
+        }
+
+        NavigationManager.NavigateTo(OfferRoutes.Details(link.ShortId, link.Slug));
+    }
+}

@@ -1,0 +1,32 @@
+.search-field-results {
+    box-shadow: var(--ambio-shadow-md);
+}
+
+/* The last line comes from the caller: ::deep reaches its link or button. */
+.search-field-results ::deep .search-field-result {
+    --gap: var(--ambio-space-2);
+    width: 100%;
+    padding: var(--ambio-space-12) var(--ambio-space-16);
+    border: 0;
+    background: none;
+    color: inherit;
+    text-align: start;
+    text-decoration: none;
+}
+
+.search-field-results ::deep .search-field-result:hover {
+    background: var(--ambio-bg-subtle);
+}
+
+/* A line that creates what wasn't found, in the accent color. */
+.search-field-results ::deep .search-field-action {
+    display: flex;
+    align-items: center;
+    gap: var(--ambio-space-8);
+    color: var(--ambio-accent-text);
+    font-weight: 600;
+}
+
+.search-field-empty {
+    padding: var(--ambio-space-12) var(--ambio-space-16);
+}

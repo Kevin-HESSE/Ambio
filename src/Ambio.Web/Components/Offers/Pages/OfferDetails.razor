@@ -1,0 +1,140 @@
+@page "/offers/{Key}"
+@inject IJobOfferService JobOfferService
+@inject IJobApplicationService JobApplicationService
+@inject NavigationManager NavigationManager
+@inject ToastService Toasts
+
+@if (_offer is not null)
+{
+    <PageTitle>@_offer.Title</PageTitle>
+    <AppBarBack Href="@OfferRoutes.List" />
+    <AppBarTitle>Offer</AppBarTitle>
+    <AppBarActions>
+        <ButtonLink Href="@EditHref" Icon="pencil" IconOnly aria-label="Edit offer" />
+        <DetailMenuButton />
+    </AppBarActions>
+
+    <ArchiveForms OnArchive="ArchiveAsync" OnRestore="RestoreAsync" />
+    @if (_offer.ArchivedAt is { } archivedAt)
+    {
+        <ArchivedBanner Noun="offer" ArchivedAt="archivedAt">It's hidden from the lists, with the applications archived with it. Restore it to bring them back.</ArchivedBanner>
+    }
+
+    <div class="offer-detail detail-layout">
+        <DetailHeader Title="@_offer.Title" ParentTitle="Offers" ParentHref="@OfferRoutes.List">
+            <Subtitle>
+                <a class="offer-company" href="@CompanyRoutes.Details(_offer.CompanySlug)">@_offer.CompanyName</a>
+                @if (_offer.Location is not null)
+                {
+                    @(" · ")<span class="offer-location">@_offer.Location</span>
+                }
+                @(" · ")<span class="offer-published">Published <time datetime="@_offer.RegisterAt.ToString("yyyy-MM-dd")">@_offer.RegisterAt.ToDisplayDate()</time></span>
+            </Subtitle>
+            <Tags>
+                <OfferTags ContractType="_offer.ContractType" RemotePolicy="_offer.RemotePolicy" />
+                @if (_offer.Salary is not null)
+                {
+                    <Tag>@_offer.Salary</Tag>
+                }
+                @if (_offer.IsArchived)
+                {
+                    <ArchivedTag />
+                }
+            </Tags>
+            <Actions>
+                <ButtonLink Href="@EditHref" Variant="ButtonVariant.Secondary" Icon="pencil">Edit</ButtonLink>
+            </Actions>
+            <Menu>
+                <ArchiveMenuItem Archived="_offer.IsArchived" />
+            </Menu>
+        </DetailHeader>
+
+        <div class="offer-detail-aside detail-aside stack">
+            <OfferPostings @rendermode="InteractiveServer" OfferId="_offer.Id" OfferShortId="@_offer.ShortId" Postings="_offer.Postings" />
+            <OfferApplications OfferShortId="@_offer.ShortId" Applications="_applications" />
+        </div>
+
+        <div class="offer-detail-main detail-main stack">
+            <section class="card offer-ad" aria-labelledby="offer-ad-title">
+                <div class="card-header">
+                    <h2 id="offer-ad-title" class="t-h3">Job ad</h2>
+                </div>
+                <div class="card-body">
+                    @if (_offer.Description is not null)
+                    {
+                        <p class="offer-description prose">@_offer.Description</p>
+                    }
+                    else
+                    {
+                        <p class="offer-description-empty t-muted">No copy of the ad yet.</p>
+                    }
+                </div>
+            </section>
+        </div>
+    </div>
+}
+
+@code {
+    /// <summary>The short id and the slug of the offer (<see cref="ShortIdKey"/>).</summary>
+    [Parameter]
+    public string Key { get; set; } = "";
+
+    private JobOfferDetailsDto? _offer;
+
+    private IReadOnlyList<JobApplicationSummaryDto> _applications = [];
+
+    private string EditHref => OfferRoutes.Edit(_offer!.ShortId, _offer.Slug);
+
+    protected override async Task OnInitializedAsync()
+    {
+        _offer = await JobOfferService.GetAsync(ShortIdKey.ShortIdOf(Key));
+
+        if (_offer is null)
+        {
+            NavigationManager.NotFound();
+            return;
+        }
+
+        // An old title or a mistyped slug still finds the offer: it moves to its current URL.
+        if (Key != ShortIdKey.Of(_offer.ShortId, _offer.Slug))
+        {
+            NavigationManager.NavigateTo(OfferRoutes.Details(_offer.ShortId, _offer.Slug), replace: true);
+            return;
+        }
+
+        await LoadApplicationsAsync();
+    }
+
+    // An archived offer lists its archived applications too, dimmed: those archived with it.
+    private async Task LoadApplicationsAsync() =>
+        _applications = await JobApplicationService.ListByOfferAsync(_offer!.Id, includeArchived: _offer.IsArchived);
+
+    private async Task ArchiveAsync()
+    {
+        if (!(await JobOfferService.ArchiveAsync(_offer!.Id)).IsSuccess)
+        {
+            NavigationManager.NotFound();
+            return;
+        }
+
+        Toasts.Show(ArchiveForms.UndoToast("Offer archived"));
+        await ReloadAsync();
+    }
+
+    private async Task RestoreAsync()
+    {
+        if (!(await JobOfferService.RestoreAsync(_offer!.Id)).IsSuccess)
+        {
+            NavigationManager.NotFound();
+            return;
+        }
+
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        _offer = await JobOfferService.GetAsync(_offer!.ShortId);
+        await LoadApplicationsAsync();
+    }
+}

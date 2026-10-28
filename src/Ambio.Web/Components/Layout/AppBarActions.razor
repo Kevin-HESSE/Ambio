@@ -1,0 +1,10 @@
+@using Microsoft.AspNetCore.Components.Sections
+
+@* Sets the buttons on the right of the mobile app bar, such as the page's primary action as an icon button.
+   Same render-mode constraint as <AppBarTitle>. *@
+<SectionContent SectionName="@AppBar.ActionsSection">@ChildContent</SectionContent>
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

@@ -1,0 +1,5 @@
+.offer-postings {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ambio-space-6);
+}

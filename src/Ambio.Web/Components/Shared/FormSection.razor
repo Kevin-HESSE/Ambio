@@ -1,0 +1,17 @@
+@* A titled form section (docs/ui.md#patterns): its fields are laid out on one column on mobile and two on desktop.
+   Sections follow each other with a separator; a FormField with FullWidth spans both columns. *@
+<div class="form-section">
+    <h2 class="t-h3">@Title</h2>
+    <div class="form-grid">
+        @ChildContent
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = "";
+
+    /// <summary>The section's fields, usually <see cref="FormField{TValue}"/> components.</summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

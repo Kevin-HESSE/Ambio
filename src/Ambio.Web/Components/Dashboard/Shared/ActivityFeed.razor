@@ -1,0 +1,34 @@
+@* The "Recent activity" card of the dashboard (docs/ui.md, screen 2): the latest events of the applications, newest
+   first, each with the icon of the status it reached. *@
+<section class="card" aria-labelledby="activity-title">
+    <div class="card-header">
+        <h2 id="activity-title" class="t-h3">Recent activity</h2>
+    </div>
+    <ul class="list-divided">
+        @foreach (var activity in Activity)
+        {
+            <li class="activity-item status-@QueryValue.Of(activity.Status)">
+                <span class="activity-icon" aria-hidden="true"><i class="bi bi-@activity.Status.ToIcon()"></i></span>
+                <div class="activity-text t-small t-secondary">
+                    <a class="list-title d-inline fw-semibold" href="@JobApplicationRoutes.Details(activity.Application.ShortId, activity.Application.Slug)">@activity.Application.Title</a>
+                    · @activity.Application.CompanyName @Describe(activity.Status)
+                    <time class="d-block t-muted" datetime="@activity.OccurredAt.ToString("yyyy-MM-dd")">@activity.OccurredAt.ToShortDisplayDate()</time>
+                </div>
+            </li>
+        }
+    </ul>
+</section>
+
+@code {
+    /// <summary>The events, newest first.</summary>
+    [Parameter, EditorRequired]
+    public IReadOnlyList<ActivityDto> Activity { get; set; } = [];
+
+    // A Draft event is a creation: no change leads back to a draft.
+    private static string Describe(ApplicationStatus status) => status switch
+    {
+        ApplicationStatus.Draft => "was created as a draft",
+        ApplicationStatus.Applied => "was sent",
+        _ => $"moved to {status.ToLabel()}",
+    };
+}

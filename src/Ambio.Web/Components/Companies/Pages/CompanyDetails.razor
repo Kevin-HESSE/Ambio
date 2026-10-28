@@ -1,0 +1,180 @@
+@page "/companies/{Slug}"
+@inject ICompanyService CompanyService
+@inject IJobOfferService JobOfferService
+@inject IJobApplicationService JobApplicationService
+@inject NavigationManager NavigationManager
+@inject ToastService Toasts
+
+@if (_company is not null)
+{
+    <PageTitle>@_company.Name</PageTitle>
+    <AppBarBack Href="@CompanyRoutes.List" />
+    <AppBarTitle>Company</AppBarTitle>
+    <AppBarActions>
+        <ButtonLink Href="@CompanyRoutes.Edit(_company.Slug)" Icon="pencil" IconOnly aria-label="Edit company" />
+        <DetailMenuButton />
+    </AppBarActions>
+
+    <ArchiveForms OnArchive="ArchiveAsync" OnRestore="RestoreAsync" />
+    @if (_company.ArchivedAt is { } archivedAt)
+    {
+        <ArchivedBanner Noun="company" ArchivedAt="archivedAt">It's hidden from the lists, with the offers and applications archived with it. Restore it to bring them back.</ArchivedBanner>
+    }
+
+    <div class="company-detail detail-layout">
+        <DetailHeader Title="@_company.Name" ParentTitle="Companies" ParentHref="@CompanyRoutes.List">
+            <Tags>
+                <Tag Icon="building">@_company.Kind.ToLabel()</Tag>
+                @if (_company.IsArchived)
+                {
+                    <ArchivedTag />
+                }
+            </Tags>
+            <Actions>
+                <ButtonLink Href="@CompanyRoutes.Edit(_company.Slug)" Variant="ButtonVariant.Secondary" Icon="pencil">Edit</ButtonLink>
+            </Actions>
+            <Menu>
+                <ArchiveMenuItem Archived="_company.IsArchived" />
+            </Menu>
+        </DetailHeader>
+
+        <div class="company-detail-aside detail-aside">
+            <CompanyProfile Company="_company" />
+        </div>
+
+        <div class="company-detail-main detail-main stack">
+            <section class="card" aria-label="Description">
+                <div class="card-body">
+                    @if (_company.Description is not null)
+                    {
+                        <p class="company-description prose">@_company.Description</p>
+                    }
+                    else
+                    {
+                        <p class="company-description-empty t-muted">No description yet.</p>
+                    }
+                </div>
+            </section>
+
+            <TabNav Label="Company sections" Tabs="Tabs" Active="@ActiveTab" />
+            @if (ActiveTab == CompanyRoutes.ApplicationsTab)
+            {
+                <section class="card" aria-label="Applications">
+                    @if (_applications.Count == 0)
+                    {
+                        <EmptyState Icon="inbox" Title="No applications yet">
+                            <ChildContent>The applications to this company, from its offers or spontaneous, show up here.</ChildContent>
+                            <Actions>
+                                <ButtonLink Href="@JobApplicationRoutes.NewForCompany(_company.Slug)" Variant="ButtonVariant.Primary" Icon="plus-lg">New application</ButtonLink>
+                            </Actions>
+                        </EmptyState>
+                    }
+                    else
+                    {
+                        <ul class="company-applications list-divided">
+                            @foreach (var application in _applications)
+                            {
+                                <li><JobApplicationListItem Application="application" ShowTitle /></li>
+                            }
+                        </ul>
+                    }
+                </section>
+            }
+            else
+            {
+                <section class="card" aria-label="Offers">
+                    @if (_offers is { Count: 0 })
+                    {
+                        <EmptyState Icon="briefcase" Title="No offers yet">
+                            <ChildContent>The offers you save for this company show up here.</ChildContent>
+                            <Actions>
+                                <ButtonLink Href="@OfferRoutes.New" Variant="ButtonVariant.Primary" Icon="plus-lg">New offer</ButtonLink>
+                            </Actions>
+                        </EmptyState>
+                    }
+                    else
+                    {
+                        <ul class="company-offers list-divided">
+                            @foreach (var offer in _offers)
+                            {
+                                <li><OfferListItem Offer="offer" /></li>
+                            }
+                        </ul>
+                    }
+                </section>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string Slug { get; set; } = "";
+
+    private CompanyDetailsDto? _company;
+
+    /// <summary>The tab shown, from <c>?tab=</c>: Offers unless it is Applications.</summary>
+    [SupplyParameterFromQuery(Name = "tab")]
+    public string? Tab { get; set; }
+
+    private IReadOnlyList<JobOfferSummaryDto> _offers = [];
+
+    private IReadOnlyList<JobApplicationSummaryDto> _applications = [];
+
+    private string ActiveTab => Tab == CompanyRoutes.ApplicationsTab ? CompanyRoutes.ApplicationsTab : CompanyRoutes.OffersTab;
+
+    private IReadOnlyList<TabNavItem> Tabs =>
+    [
+        new(CompanyRoutes.OffersTab, "Offers", CompanyRoutes.Details(_company!.Slug, CompanyRoutes.OffersTab), _offers.Count),
+        new(CompanyRoutes.ApplicationsTab, "Applications", CompanyRoutes.Details(_company!.Slug, CompanyRoutes.ApplicationsTab), _applications.Count),
+    ];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _company = await CompanyService.GetAsync(Slug);
+
+        if (_company is null)
+        {
+            NavigationManager.NotFound();
+            return;
+        }
+
+        await LoadListsAsync();
+    }
+
+    // An archived company lists its archived offers and applications too, dimmed: those archived with it.
+    private async Task LoadListsAsync()
+    {
+        _offers = await JobOfferService.ListByCompanyAsync(_company!.Id, includeArchived: _company.IsArchived);
+        _applications = await JobApplicationService.ListByCompanyAsync(_company.Id, includeArchived: _company.IsArchived);
+    }
+
+    private async Task ArchiveAsync()
+    {
+        if (!(await CompanyService.ArchiveAsync(_company!.Id)).IsSuccess)
+        {
+            NavigationManager.NotFound();
+            return;
+        }
+
+        Toasts.Show(ArchiveForms.UndoToast("Company archived"));
+        await ReloadAsync();
+    }
+
+    private async Task RestoreAsync()
+    {
+        if (!(await CompanyService.RestoreAsync(_company!.Id)).IsSuccess)
+        {
+            NavigationManager.NotFound();
+            return;
+        }
+
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        _company = await CompanyService.GetAsync(_company!.Slug);
+        await LoadListsAsync();
+    }
+}

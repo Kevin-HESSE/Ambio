@@ -490,3 +490,6 @@ app.db
 *.db-journal
 src/Ambio.Web/Data/*
 !src/Ambio.Web/Data/.gitkeep
+
+# Data of the Docker container (compose.yaml)
+/data/

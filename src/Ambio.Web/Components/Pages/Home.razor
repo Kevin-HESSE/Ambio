@@ -1,7 +1,50 @@
-﻿@page "/"
+@page "/"
+@using Ambio.Application.Dashboard
+@using Ambio.Application.Dashboard.Dtos
+@using Ambio.Web.Components.Dashboard.Shared
+@using Ambio.Web.Components.JobApplications
+@using Ambio.Web.Components.Offers
+@inject IDashboardService DashboardService
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Dashboard</PageTitle>
+<AppBarTitle>Dashboard</AppBarTitle>
 
-<h1>Hello, world!</h1>
+<PageHeader Title="Dashboard" Subtitle="@_dashboard?.Today.ToLongDisplayDate()">
+    <Actions>
+        <ButtonLink Href="@JobApplicationRoutes.New" Variant="ButtonVariant.Primary" Icon="plus-lg">New application</ButtonLink>
+    </Actions>
+</PageHeader>
 
-Welcome to your new app.
+@if (_dashboard is { Total: 0 })
+{
+    <section class="card">
+        <EmptyState Icon="speedometer2" Title="Nothing to track yet">
+            <ChildContent>Log the jobs you apply to: the dashboard counts them by status and tells you which ones to follow up.</ChildContent>
+            <Actions>
+                <ButtonLink Href="@JobApplicationRoutes.New" Variant="ButtonVariant.Primary" Icon="plus-lg">New application</ButtonLink>
+                <ButtonLink Href="@OfferRoutes.New" Variant="ButtonVariant.Secondary">Add an offer</ButtonLink>
+            </Actions>
+        </EmptyState>
+    </section>
+}
+else if (_dashboard is not null)
+{
+    <PipelineCard CountsByStatus="_dashboard.CountsByStatus" />
+    <div class="dashboard-columns">
+        <FollowUpCard FollowUps="_dashboard.FollowUps" FollowUpAfterDays="_dashboard.FollowUpAfterDays" Today="_dashboard.Today" />
+        <ActivityFeed Activity="_dashboard.RecentActivity" />
+    </div>
+}
+
+@* On mobile, the page's main action floats above the tab bar (docs/ui.md#layout). *@
+<ButtonLink Href="@JobApplicationRoutes.New" Variant="ButtonVariant.Primary" Icon="plus-lg" class="btn-fab mobile-only" aria-label="New application" />
+
+@code {
+    /// <summary>The number of events shown in Recent activity.</summary>
+    public const int RecentActivityCount = 5;
+
+    private DashboardDto? _dashboard;
+
+    protected override async Task OnInitializedAsync() =>
+        _dashboard = await DashboardService.GetAsync(RecentActivityCount);
+}

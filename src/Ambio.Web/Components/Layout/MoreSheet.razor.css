@@ -1,0 +1,13 @@
+.sheet-section {
+    --gap: var(--ambio-space-6);
+    padding: var(--ambio-space-12) var(--ambio-space-16) var(--ambio-space-16);
+}
+
+.menu-list + .sheet-section,
+.sheet-section + .menu-list {
+    border-top: 1px solid var(--ambio-border-default);
+}
+
+.sheet-label {
+    font-weight: 600;
+}

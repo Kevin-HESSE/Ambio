@@ -1,0 +1,37 @@
+@* The companies list on desktop (≥ 992 px), whose archived rows are dimmed. *@
+<ListTable>
+    <Columns>
+        <th scope="col">Company</th>
+        <th scope="col">Kind</th>
+        <th scope="col">Location</th>
+    </Columns>
+    <Rows>
+        @foreach (var company in Companies)
+        {
+            <tr>
+                <th scope="row">
+                    <a class="list-title t-body-strong @(company.IsArchived ? "t-muted" : null)" href="@CompanyRoutes.Details(company.Slug)">@company.Name</a>
+                    @if (!string.IsNullOrWhiteSpace(company.Industry))
+                    {
+                        <div class="company-industry t-small t-secondary">@company.Industry</div>
+                    }
+                </th>
+                <td>
+                    <div class="cluster">
+                        <Tag Icon="building">@company.Kind.ToLabel()</Tag>
+                        @if (company.IsArchived)
+                        {
+                            <ArchivedTag />
+                        }
+                    </div>
+                </td>
+                <td>@company.Location</td>
+            </tr>
+        }
+    </Rows>
+</ListTable>
+
+@code {
+    [Parameter, EditorRequired]
+    public IReadOnlyList<CompanySummaryDto> Companies { get; set; } = [];
+}
