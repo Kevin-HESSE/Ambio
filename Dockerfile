@@ -4,14 +4,9 @@ ENV HUSKY=0
 WORKDIR /source
 
 COPY global.json Directory.Build.props Directory.Build.targets Directory.Packages.props .editorconfig ./
-COPY src/Ambio.Domain/Ambio.Domain.csproj src/Ambio.Domain/
-COPY src/Ambio.Application/Ambio.Application.csproj src/Ambio.Application/
-COPY src/Ambio.Infrastructure/Ambio.Infrastructure.csproj src/Ambio.Infrastructure/
-COPY src/Ambio.Web/Ambio.Web.csproj src/Ambio.Web/
-RUN dotnet restore src/Ambio.Web -a $TARGETARCH
-
 COPY src/ src/
-RUN dotnet publish src/Ambio.Web -c Release -a $TARGETARCH --no-restore -o /app
+RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
+    dotnet publish src/Ambio.Web -c Release -a $TARGETARCH -o /app
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
