@@ -22,6 +22,7 @@ These ADRs are worth reading again when the official version is designed. They a
 | [0014](adr/0014-short-id-and-slug-urls.md) | Short id and slug URLs | |
 | [0015](adr/0015-neutral-visual-identity-with-status-colors.md) | Visual identity and status colors | |
 | [0017](adr/0017-account-creation-local-or-github.md) | One account, created locally | The GitHub part is dropped ([ADR 0024](adr/0024-proof-of-concept.md)) |
+| [0028](adr/0028-account-created-at-first-start.md) | Account created at first start | From the configuration, no public registration |
 | [0021](adr/0021-slug-urls-for-companies.md) | Slug URLs for companies | |
 | [0025](adr/0025-short-id-and-slug-urls-for-offers.md) | Short id and slug URLs for offers | Same scheme as applications |
 
@@ -51,6 +52,13 @@ Newest first. Each entry follows this format:
 - Not needed: what was built and turned out useless
 - Change in the official version: what to do differently
 ```
+
+### 2026-10-28 — Account created at first start (#41)
+
+- Kept: two settings, read only while no account exists, turned into the account before the app accepts requests, through the same guarded `RegisterUserAsync`. A missing or refused setting stops the start with a message that names it.
+- Kept: private by default. A fallback policy requires the logged-in user everywhere; the pages shown before logging in, the error page and the static files are marked `[AllowAnonymous]`, and a test checks that list.
+- Not needed: the Register and Register confirmation pages, `GenerateConfirmEmailAsync`, the confirmation of the account's email, `[Authorize]` on every page and `RequireAuthorization()` on the endpoint groups.
+- Change in the official version: the password sits in the configuration until it is removed; a one-time setup token or a hashed password would avoid that. Static Blazor routing makes every navigation a request that the policy checks; a SPA relies on the API refusing every call by default, with its own list of public endpoints.
 
 ### 2026-10-27 — Log in and Account pages (#53)
 

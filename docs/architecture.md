@@ -123,10 +123,11 @@ See [ADR 0005](adr/0005-sqlite-and-filesystem-storage.md) for why files live on 
 
 ## Authentication
 
-- Single user ([ADR 0002](adr/0002-single-user-application.md)): registration is closed once the account exists.
+- Single user ([ADR 0002](adr/0002-single-user-application.md)), with no registration page.
+- The account is created at first start ([ADR 0028](adr/0028-account-created-at-first-start.md)): `Program.cs` calls `CreateAccountAtFirstStartAsync()` before the app accepts requests. While no account exists, it creates it from the `Ambio:Account` settings (`AccountOptions`), with its email confirmed, or stops the start when they are missing or refused. Once the account exists, the settings are ignored.
+- Account creation goes through `IUserService.RegisterUserAsync`, which serializes "check that no account exists, then create it" with an in-process semaphore: one instance per database ([ADR 0017](adr/0017-account-creation-local-or-github.md)).
+- Every endpoint requires the logged-in user through a fallback authorization policy. Only the Identity pages shown before logging in, the error page and the static assets carry `[AllowAnonymous]`.
 - 2FA with an authenticator app, and recovery codes.
-- The account is created locally ([ADR 0017](adr/0017-account-creation-local-or-github.md), [ADR 0024](adr/0024-proof-of-concept.md)): registration can't create a second account.
-- Account creation goes through `IUserService`, which serializes "check that no account exists, then create it" with an in-process semaphore: one instance per database.
 - Passkeys from the template are removed.
-- Email goes through the no-op sender, which shows the confirmation link on screen.
+- Email goes through the no-op sender ([ADR 0024](adr/0024-proof-of-concept.md)): password reset and email change send nothing.
 - `IdentityRevalidatingAuthenticationStateProvider` (from the template) revalidates the security stamp for interactive circuits.

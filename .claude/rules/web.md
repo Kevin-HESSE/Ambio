@@ -12,12 +12,13 @@ paths: src/Ambio.Web/**
 
 ## Routing and Identity
 
-- `Components/Routes.razor` uses `AuthorizeRouteView`; unauthenticated access to `[Authorize]` pages redirects via `RedirectToLogin`.
+- Every endpoint requires the logged-in user through the fallback policy of `Program.cs` ([ADR 0028](../../docs/adr/0028-account-created-at-first-start.md)): pages, file endpoints and the `_blazor` hub, so no `[Authorize]` or `RequireAuthorization()` is needed. Only the Identity pages shown before logging in (`Account/Pages`, not `Manage`), `Pages/Error.razor` and `MapStaticAssets()` are anonymous, each page with its own `@attribute [AllowAnonymous]`, never in an `_Imports.razor` (it would reach `Manage`). `tests/Ambio.Web.Tests/Components/AnonymousPagesTests` checks that list.
+- The policy is checked by the middleware on every request, which holds because routing is static (ADR 0023). `Components/Routes.razor` keeps `AuthorizeRouteView` and `RedirectToLogin`.
 - `IdentityRevalidatingAuthenticationStateProvider` periodically revalidates the security stamp for interactive circuits. `MapAdditionalIdentityEndpoints()` (in `Components/Account/IdentityComponentsEndpointRouteBuilderExtensions.cs`) adds the non-Razor endpoints (logout, external login, personal data download).
 - Identity pages shown before logging in render in `Account/Shared/AuthLayout` (logo and centered card, set in `Account/Pages/_Imports.razor`); the `Manage` pages in `ManageLayout` (app shell, sections in a `TabNav` with `Sections`, page in a card).
-- Account creation goes only through `IUserService.RegisterUserAsync`; registration is open only while no user exists (ADR 0002, ADR 0017).
+- There is no registration page: the account is created at first start from the `Ambio:Account` settings (`CreateAccountAtFirstStartAsync()` in `Program.cs`, right after `Build()`), through `IUserService.RegisterUserAsync` (ADR 0017, ADR 0028).
 - `ExternalLogin.razor` has its `@page` commented out: GitHub login is out of the proof of concept (ADR 0024).
-- Email is a no-op (`IdentityNoOpEmailSender`); `RegisterConfirmation.razor` special-cases it to show the confirmation link on screen. There is no real sender in the proof of concept (ADR 0024).
+- Email is a no-op (`IdentityNoOpEmailSender`): there is no real sender in the proof of concept (ADR 0024), and the account's email is confirmed when it is created.
 
 ## UI
 
@@ -31,5 +32,5 @@ paths: src/Ambio.Web/**
 - Each feature lists its base-relative URLs in `Components/<Feature>/<Feature>Routes.cs` (constants, plus builders such as `CompanyRoutes.Details(slug)`). Links, redirects, tests and `AppNavigation` use it; pages keep their `@page` template.
 - Company URLs are `/companies/{slug}`: resolve by the stored slug; a new literal route under `/companies/` adds its segment to the reserved slugs of `CompanySlugs` ([ADR 0021](../../docs/adr/0021-slug-urls-for-companies.md)).
 - Application and offer URLs are `/applications/{ShortId}-{slug}` and `/offers/{ShortId}-{slug}`, the key built and read by `Components/Shared/ShortIdKey.cs`: resolve by `ShortId`, redirect to the canonical slug ([ADR 0014](../../docs/adr/0014-short-id-and-slug-urls.md), [ADR 0025](../../docs/adr/0025-short-id-and-slug-urls-for-offers.md)).
-- A feature that serves files outside the Blazor pages maps them in `Components/<Feature>/<Feature>Endpoints.cs` (`MapCvDocumentEndpoints()`, called in `Program.cs`), with `RequireAuthorization()`. Links to them carry `data-enhance-nav="false"`, otherwise enhanced navigation fetches the file as a page.
+- A feature that serves files outside the Blazor pages maps them in `Components/<Feature>/<Feature>Endpoints.cs` (`MapCvDocumentEndpoints()`, called in `Program.cs`); the fallback policy keeps them for the logged-in user. Links to them carry `data-enhance-nav="false"`, otherwise enhanced navigation fetches the file as a page.
 - Static assets are served by `MapStaticAssets()` and referenced through `@Assets["..."]` in `App.razor`; Bootstrap is vendored in `wwwroot/lib`.

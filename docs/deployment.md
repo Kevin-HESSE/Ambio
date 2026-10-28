@@ -22,6 +22,7 @@ Ambio ships as a Docker image published on Docker Hub for `linux/amd64` and `lin
 | Variable | Purpose | Default |
 |---|---|---|
 | `ConnectionStrings__DefaultConnection` | SQLite connection string | `Data Source=/data/ambio.db` |
+| `Ambio__Account__Email`, `Ambio__Account__Password` | The single account, created at first start; required while no account exists, ignored afterwards ([ADR 0028](adr/0028-account-created-at-first-start.md)) | — |
 | `Ambio__Storage__Root` | Root folder for documents and photos; a relative path starts from the app's folder | `/data` |
 | `Ambio__Storage__MaxUploadSizeInMegabytes` | Largest CV PDF accepted on upload, in megabytes | `5` |
 | `Ambio__Demo__Enabled` | Seed a demo account and data | `false` |
@@ -36,6 +37,9 @@ services:
     restart: unless-stopped
     ports:
       - "8080:8080"
+    environment:
+      Ambio__Account__Email: you@example.com
+      Ambio__Account__Password: "<a strong password; write $ as $$>"
     volumes:
       - ./data:/data
 ```
@@ -49,11 +53,16 @@ Run Ambio behind Caddy, Traefik, Nginx or your NAS's proxy.
 
 ## First run
 
-> Run **one instance per database**. The guard that closes registration is in-process: two containers sharing the same SQLite file could each create an account ([ADR 0017](adr/0017-account-creation-local-or-github.md)).
+> Run **one instance per database**. The guard around the account creation is in-process: two containers sharing the same SQLite file could each create an account ([ADR 0017](adr/0017-account-creation-local-or-github.md), [ADR 0028](adr/0028-account-created-at-first-start.md)).
 
-1. Start the container.
-2. Open the app and register with an email and a password: the first account becomes the only account and registration closes ([ADR 0002](adr/0002-single-user-application.md), [ADR 0017](adr/0017-account-creation-local-or-github.md)). Until then, anyone who reaches the instance can register, so do it before exposing the app.
-3. Enable 2FA from **Account → Two-factor authentication**.
+1. Set `Ambio__Account__Email` and `Ambio__Account__Password`. The password must have at least 6 characters, with an uppercase letter, a lowercase letter, a digit and a symbol.
+2. Start the container. While no account exists, Ambio creates it from these variables before accepting requests, with its email already confirmed. Without them, or when they are refused, it stops and its log names the problem. There is no registration page: every page asks to log in.
+3. Log in, then remove `Ambio__Account__Password` from the configuration: once the account exists, the variables are ignored. Change the password from **Account → Password**.
+4. Enable 2FA from **Account → Two-factor authentication**.
+
+In development, `appsettings.Development.json` sets a default account, so a new local database gets one at its first start. That file is never loaded in Production.
+
+Deleting the account from **Account → Personal data** leaves the instance without an account: its next start creates it again from the variables, or refuses to start without them.
 
 ## Demo
 

@@ -53,4 +53,5 @@ See [docs/data-model.md](../../docs/data-model.md#conventions).
 
 - `ApplicationUser : IdentityUser` lives in `Users/`: add profile fields there, then add a migration. Identity tables keep their `string` keys.
 - `RequireConfirmedAccount = true`, Identity schema version 3. Its passkey table is unused: passkey pages and endpoints were removed (ADR 0002).
-- Single account: accounts are only created through `IUserService.RegisterUserAsync`, guarded by the `Common/SemaphoreContainer` semaphore (ADR 0002, ADR 0017).
+- Single account: accounts are only created through `IUserService.RegisterUserAsync`, guarded by the `Common/SemaphoreContainer` semaphore (ADR 0002, ADR 0017), with the email confirmed at creation.
+- At first start, `CreateAccountAtFirstStartAsync()` (`InfrastructureExtensions.cs`) runs `Users/AccountStartup`: while no account exists, it validates `Users/AccountOptions` (`Ambio:Account`, deliberately not validated at start) with the attributes of `RegisterInput`, creates the account, and throws when the settings are missing or refused (ADR 0028). `appsettings.Development.json` sets a default development account, so a fresh clone starts with one.

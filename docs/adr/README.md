@@ -5,7 +5,7 @@ A decision that can serve as a basis for the official version (domain, data, bus
 | # | Decision | Status |
 |---|---|---|
 | [0001](0001-record-architecture-decisions.md) | Record architecture decisions | Accepted, partly superseded by [0024](0024-proof-of-concept.md) |
-| [0002](0002-single-user-application.md) | Single-user application | Accepted, partly superseded by [0024](0024-proof-of-concept.md) |
+| [0002](0002-single-user-application.md) | Single-user application | Accepted, partly superseded by [0024](0024-proof-of-concept.md) and [0028](0028-account-created-at-first-start.md) |
 | [0003](0003-runtime-plugin-loading-at-startup.md) | CV templates as plugin DLLs loaded at startup | Superseded by [0024](0024-proof-of-concept.md) |
 | [0004](0004-questpdf-for-cv-generation.md) | QuestPDF for CV generation | Accepted, partly superseded by [0024](0024-proof-of-concept.md) |
 | [0005](0005-sqlite-and-filesystem-storage.md) | SQLite for data, file system for documents | Accepted |
@@ -20,7 +20,7 @@ A decision that can serve as a basis for the official version (domain, data, bus
 | [0014](0014-short-id-and-slug-urls.md) | Short id and slug in application URLs | Accepted |
 | [0015](0015-neutral-visual-identity-with-status-colors.md) | Neutral visual identity with status colors | Accepted |
 | [0016](0016-responsive-navigation-bottom-tabs-and-sidebar.md) | Responsive navigation: bottom tabs on mobile, sidebar on desktop | Accepted |
-| [0017](0017-account-creation-local-or-github.md) | Account creation: local or GitHub, one account at most | Accepted, partly superseded by [0024](0024-proof-of-concept.md) |
+| [0017](0017-account-creation-local-or-github.md) | Account creation: local or GitHub, one account at most | Accepted, partly superseded by [0024](0024-proof-of-concept.md) and [0028](0028-account-created-at-first-start.md) |
 | [0018](0018-feature-folders-in-every-project.md) | Feature folders in every project | Accepted |
 | [0019](0019-git-hooks-with-husky-net.md) | Git hooks with Husky.Net: formatting and commit messages | Accepted |
 | [0020](0020-ci-and-protected-branches.md) | CI checks and protected `dev` and `main` branches | Accepted |
@@ -31,5 +31,6 @@ A decision that can serve as a basis for the official version (domain, data, bus
 | [0025](0025-short-id-and-slug-urls-for-offers.md) | Short id and slug in offer URLs | Accepted |
 | [0026](0026-status-workflow-and-history.md) | Status workflow and history | Accepted |
 | [0027](0027-archiving-cascade-and-restore.md) | Archiving cascade and restore | Accepted |
+| [0028](0028-account-created-at-first-start.md) | Account created at first start | Accepted |
 
 New ADRs copy the structure of an existing one and take the next number. An ADR is never edited once accepted: a new ADR supersedes it.

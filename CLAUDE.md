@@ -24,6 +24,7 @@ Run from the repo root :
 dotnet build
 
 # run (http profile: http://localhost:5160)
+# on a new database, apply the migrations first: the default account of appsettings.Development.json is created at start
 dotnet run --project src/Ambio.Web
 
 # https://localhost:7009
