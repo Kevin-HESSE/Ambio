@@ -6,7 +6,7 @@ Ambio runs as a Docker container, built from this repository with `docker compos
 
 The `Dockerfile` at the root builds the image in two stages:
 
-- The .NET 10 SDK restores and publishes `src/Ambio.Web` for the target architecture. It runs on the build machine's platform and cross-compiles with `-a $TARGETARCH`, so a `linux/arm64` image builds without emulation. `HUSKY=0` skips the git hooks, since the build has no `.git`.
+- The .NET 10 SDK restores and publishes `src/Ambio.Web` for the target architecture. It runs on the build machine's platform and cross-compiles with `-a $TARGETARCH`, so a `linux/arm64` image builds without emulation. `HUSKY=0` skips the git hooks, since the build has no `.git`. The restore runs with the sources, not with the `.csproj` files alone: the SDK only restores the package that ships `_framework/blazor.web.js` once it sees the Razor components, and without that script no page is interactive. A cache mount keeps the NuGet packages between builds.
 - The ASP.NET Core runtime image runs the app as the non-root user `app` (uid `1654`), on HTTP port `8080`. TLS is handled by the reverse proxy.
 
 At start, the app applies the EF Core migrations the database hasn't got yet, then creates the account while none exists ([First run](#first-run)).
