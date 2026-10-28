@@ -12,7 +12,7 @@ internal sealed class FileSystemDocumentStorage : IDocumentStorage
 
     public FileSystemDocumentStorage(IOptions<StorageOptions> options, IHostEnvironment environment)
     {
-        _root = Path.TrimEndingDirectorySeparator(Path.GetFullPath(options.Value.Root, environment.ContentRootPath));
+        _root = options.Value.GetFullRoot(environment.ContentRootPath);
     }
 
     public async Task SaveAsync(string path, Stream content, CancellationToken cancellationToken = default)
