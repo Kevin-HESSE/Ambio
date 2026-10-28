@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Ambio.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20261014161854_AddJobApplications")]
-    partial class AddJobApplications
+    [Migration("20261028091847_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -76,6 +76,74 @@ namespace Ambio.Infrastructure.Persistence.Migrations
                     b.ToTable("Companies");
                 });
 
+            modelBuilder.Entity("Ambio.Domain.CoverLetters.CoverLetter", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("JobApplicationId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JobApplicationId");
+
+                    b.ToTable("CoverLetters", (string)null);
+                });
+
+            modelBuilder.Entity("Ambio.Domain.CvDocuments.CvDocument", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("JobApplicationId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("Size")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("StoragePath")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JobApplicationId");
+
+                    b.HasIndex("StoragePath")
+                        .IsUnique();
+
+                    b.ToTable("CvDocuments", (string)null);
+                });
+
             modelBuilder.Entity("Ambio.Domain.JobApplications.JobApplication", b =>
                 {
                     b.Property<Guid>("Id")
@@ -121,11 +189,43 @@ namespace Ambio.Infrastructure.Persistence.Migrations
                     b.HasIndex("ShortId")
                         .IsUnique();
 
-                    b.ToTable("JobApplications", (string)null);
+                    b.ToTable("JobApplications", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_JobApplications_Kind", "(\"Kind\" = 'Offer' AND \"JobOfferId\" IS NOT NULL\n    AND \"CompanyId\" IS NULL AND \"TargetPosition\" IS NULL)\nOR (\"Kind\" = 'Spontaneous' AND \"CompanyId\" IS NOT NULL\n    AND \"TargetPosition\" IS NOT NULL AND \"JobOfferId\" IS NULL AND \"AppliedViaPostingId\" IS NULL)");
+                        });
 
                     b.HasDiscriminator<string>("Kind").HasValue("JobApplication");
 
                     b.UseTphMappingStrategy();
+                });
+
+            modelBuilder.Entity("Ambio.Domain.JobApplications.StatusChange", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("ChangedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Comment")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("From")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("JobApplicationId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("To")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JobApplicationId");
+
+                    b.ToTable("StatusChanges", (string)null);
                 });
 
             modelBuilder.Entity("Ambio.Domain.Offers.JobOffer", b =>
@@ -159,6 +259,10 @@ namespace Ambio.Infrastructure.Persistence.Migrations
                     b.Property<string>("Salary")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("ShortId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -169,6 +273,9 @@ namespace Ambio.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CompanyId");
+
+                    b.HasIndex("ShortId")
+                        .IsUnique();
 
                     b.ToTable("JobOffers");
                 });
@@ -201,6 +308,19 @@ namespace Ambio.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("JobOfferPostings", (string)null);
+                });
+
+            modelBuilder.Entity("Ambio.Domain.Settings.UserSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("FollowUpAfterDays")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("UserSettings", (string)null);
                 });
 
             modelBuilder.Entity("Ambio.Infrastructure.Users.ApplicationUser", b =>
@@ -431,7 +551,60 @@ namespace Ambio.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("JobOfferId");
 
+                    b.ToTable(t =>
+                        {
+                            t.HasCheckConstraint("CK_JobApplications_Kind", "(\"Kind\" = 'Offer' AND \"JobOfferId\" IS NOT NULL\n    AND \"CompanyId\" IS NULL AND \"TargetPosition\" IS NULL)\nOR (\"Kind\" = 'Spontaneous' AND \"CompanyId\" IS NOT NULL\n    AND \"TargetPosition\" IS NOT NULL AND \"JobOfferId\" IS NULL AND \"AppliedViaPostingId\" IS NULL)");
+                        });
+
                     b.HasDiscriminator().HasValue("Offer");
+                });
+
+            modelBuilder.Entity("Ambio.Domain.JobApplications.SpontaneousApplication", b =>
+                {
+                    b.HasBaseType("Ambio.Domain.JobApplications.JobApplication");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TargetPosition")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasIndex("CompanyId");
+
+                    b.ToTable(t =>
+                        {
+                            t.HasCheckConstraint("CK_JobApplications_Kind", "(\"Kind\" = 'Offer' AND \"JobOfferId\" IS NOT NULL\n    AND \"CompanyId\" IS NULL AND \"TargetPosition\" IS NULL)\nOR (\"Kind\" = 'Spontaneous' AND \"CompanyId\" IS NOT NULL\n    AND \"TargetPosition\" IS NOT NULL AND \"JobOfferId\" IS NULL AND \"AppliedViaPostingId\" IS NULL)");
+                        });
+
+                    b.HasDiscriminator().HasValue("Spontaneous");
+                });
+
+            modelBuilder.Entity("Ambio.Domain.CoverLetters.CoverLetter", b =>
+                {
+                    b.HasOne("Ambio.Domain.JobApplications.JobApplication", null)
+                        .WithMany()
+                        .HasForeignKey("JobApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Ambio.Domain.CvDocuments.CvDocument", b =>
+                {
+                    b.HasOne("Ambio.Domain.JobApplications.JobApplication", null)
+                        .WithMany()
+                        .HasForeignKey("JobApplicationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Ambio.Domain.JobApplications.StatusChange", b =>
+                {
+                    b.HasOne("Ambio.Domain.JobApplications.JobApplication", null)
+                        .WithMany("StatusChanges")
+                        .HasForeignKey("JobApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Ambio.Domain.Offers.JobOffer", b =>
@@ -572,6 +745,22 @@ namespace Ambio.Infrastructure.Persistence.Migrations
                     b.Navigation("AppliedViaPosting");
 
                     b.Navigation("JobOffer");
+                });
+
+            modelBuilder.Entity("Ambio.Domain.JobApplications.SpontaneousApplication", b =>
+                {
+                    b.HasOne("Ambio.Domain.Companies.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+                });
+
+            modelBuilder.Entity("Ambio.Domain.JobApplications.JobApplication", b =>
+                {
+                    b.Navigation("StatusChanges");
                 });
 
             modelBuilder.Entity("Ambio.Domain.Offers.JobOffer", b =>
