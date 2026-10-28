@@ -29,7 +29,7 @@ The content listed below is typical, not exhaustive: each project grows with its
 |---|---|---|
 | `tests/Ambio.Domain.Tests` | Domain rules (status workflow, invariants) — created in Phase 1 | xUnit |
 | `tests/Ambio.Application.Tests` | DTO validation, `ServiceResult`, mapping extensions | xUnit |
-| `tests/Ambio.Infrastructure.Tests` | Service implementations (user management, email sending…), EF Core mappings and queries, file storage, PDF snapshots | xUnit, SQLite in-memory, NSubstitute, Bogus |
+| `tests/Ambio.Infrastructure.Tests` | Service implementations (user management, email sending…), EF Core mappings and queries, file storage | xUnit, SQLite in-memory, NSubstitute, Bogus |
 | `tests/Ambio.Web.Tests` | Blazor components with logic: the app shell, the interactive islands, conditional rendering | bUnit, NSubstitute, Bogus |
 | `tests/Ambio.E2E.Tests` | Critical user journeys in a real browser | xUnit, Playwright |
 
@@ -104,14 +104,3 @@ Playwright drives a headless Chromium against the real app, hosted in the test p
 - A journey that doesn't test the account itself starts with `var page = await _app.NewLoggedInPageAsync();`. The app creates the account (`AmbioAppFixture.UserEmail`, `UserPassword`) at start; the fixture opens a browser context on the app with the given options (viewport, color scheme), and logs in.
 - Steps shared by several journeys are extension methods on Playwright's `IPage` in `Fixtures/PageExtensions.cs`, such as `LogInAsync`, which works at any viewport width.
 - Select elements by role or label (`GetByRole`, `GetByLabel`), and add a `data-testid` only when nothing else is stable. Assert with Playwright's `Expect`, which waits for the page instead of failing at once.
-
-## PDF snapshot tests
-
-Every built-in CV template is rendered with a fixed `CvModel` fixture.
-
-- The test checks that the PDF is valid and has the expected page count.
-- Pages are rasterized to images and compared with approved images stored next to the test. A differing snapshot fails the test and writes the new image for review.
-
-## Designing templates by hand
-
-`tools/Ambio.CvPlayground` renders a template with sample data in the QuestPDF Companion for live preview. It isn't a test, but it's the fastest way to iterate on a layout before approving new snapshots.

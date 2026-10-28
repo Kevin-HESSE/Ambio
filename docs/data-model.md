@@ -2,7 +2,7 @@
 
 This page details the entities behind application tracking. The layering rules (persistence-ignorant domain, mapping classes, DTOs) are in [architecture.md](architecture.md). The reasons for this model are in [ADR 0011](adr/0011-company-centric-model-with-job-offers.md) and [ADR 0012](adr/0012-archive-instead-of-delete.md).
 
-> Status: the core (companies, offers, postings, applications, statuses, cover letters, uploaded CVs) lands in [Phase 1](roadmap.md#phase-1--application-tracking-mvp). Research notes, contacts, recruiters and interactions land in [Phase 2b](roadmap.md#phase-2b--company-research--contacts).
+> Status: the core (companies, offers, postings, applications, statuses, cover letters, uploaded CVs) is built ([Phase 1](roadmap.md#phase-1--application-tracking-mvp)). Research notes, contacts, recruiters and interactions are designed but **not built in the proof of concept**: they are [left to the official version](roadmap.md#left-to-the-official-version) ([ADR 0029](adr/0029-proof-of-concept-ends-after-phase-2.md)), and their sections below are a starting point for it.
 
 ## Overview
 
@@ -149,9 +149,13 @@ A company profile that is kept across applications.
 
 ### CompanyNote
 
+_Not built in the proof of concept._
+
 Dated research notes written in plain text, such as "culture, tech stack, feedback from former employees, what was said in the first interview". They are shown as a timeline on the company page, newest first. They are deleted with their company.
 
 ### Contact
+
+_Not built in the proof of concept._
 
 A person at a company: a recruiter, manager or interviewer. A contact belongs to one company and can be linked to several applications and interactions.
 
@@ -161,7 +165,7 @@ Contacts are **optional**. Many applications go through a website form and have 
 
 A job ad, independent of whether you apply to it.
 
-- `CompanyId` is the end client. `RecruiterCompanyId` is the agency or ESN that published the offer. **At least one** of the two is set, because an agency often hides its client. Until `RecruiterCompanyId` lands in [Phase 2b](roadmap.md#phase-2b--company-research--contacts), `CompanyId` is required.
+- `CompanyId` is the end client. `RecruiterCompanyId` is the agency or ESN that published the offer. **At least one** of the two is set, because an agency often hides its client. `RecruiterCompanyId` isn't built in the proof of concept, so `CompanyId` is required.
 - The company is picked or created from the New offer form: a name matching a company, ignoring case and archived or not, links the offer to it; any other name creates the company as an `Employer`, in the same save as the offer.
 - `Description` is a plain-text copy of the ad, so it survives when the ad goes offline.
 - `ContractType`: `Permanent` (CDI), `FixedTerm` (CDD), `Freelance`, `Internship`, `Apprenticeship`, `Other`.
@@ -251,6 +255,8 @@ The base class carries everything they share:
 
 ### Interaction
 
+_Not built in the proof of concept._
+
 Dated events of an application: `Interview`, `PhoneCall`, `Email`, `FollowUp`, `Other`.
 
 - `OccursAt` can be in the future, which is how upcoming interviews appear on the dashboard.
@@ -264,7 +270,7 @@ Dated events of an application: `Interview`, `PhoneCall`, `Email`, `FollowUp`, `
   - They are listed in the order written (`CreatedAt`), so the list doesn't move when one is saved. The day it was last edited is its `UpdatedAt`.
   - A letter is deleted for good, after a confirmation: nothing refers to it ([ADR 0012](adr/0012-archive-instead-of-delete.md)). The letters are deleted with their application, and those of an archived application can still be edited ([ADR 0027](adr/0027-archiving-cascade-and-restore.md)).
 - **CVs**: a `CvDocument` is the metadata of the PDF sent with an application ([ADR 0007](adr/0007-cv-snapshots-selection-and-override.md)); the file itself is stored on disk through `IDocumentStorage` ([ADR 0005](adr/0005-sqlite-and-filesystem-storage.md)). An application has any number of them, none at first. Like a letter, a `CvDocument` refers to its application by `JobApplicationId`, without a navigation, and has its own `DbSet`.
-  - It is created by `CvDocument.Upload(jobApplicationId, fileName, size, uploadedAt)`, with `Source = Uploaded`, the only source until generation lands in Phase 3. `JobApplicationId` is required until then: the general CV of [Phase 3](roadmap.md#phase-3--candidate-profile--cv-generation) will make it nullable.
+  - It is created by `CvDocument.Upload(jobApplicationId, fileName, size, uploadedAt)`, with `Source = Uploaded`, the only source in the proof of concept: CV generation is [left to the official version](roadmap.md#left-to-the-official-version). `JobApplicationId` is required; a general CV, with no application, would make it nullable.
   - `FileName` is the name of the file as uploaded, trimmed, shown in the list and given back on download. `Size` is in bytes, positive.
   - `StoragePath` is relative to the storage root, `documents/<yyyy>/<id>.pdf` with the year of the upload, and always uses `/`, so the rows don't depend on the system that wrote them. It has a unique index.
   - Only a PDF is accepted, checked on its content (it starts with `%PDF-`), not its name, within the configured size limit (`Ambio:Storage:MaxUploadSizeInMegabytes`, 5 MB by default). The file is written first, then the row; a row that can't be saved removes its file.
@@ -348,9 +354,8 @@ Every entity uses a `Guid` key created by the domain with `Guid.CreateVersion7()
 
 - **Identity at construction**: an entity has its id as soon as it is created, before `SaveChangesAsync`. The domain factories (`JobApplication`, `JobOffer`…) can build a whole graph (offer, postings, application) and reference ids without a database round trip. Services can also return the new id without reloading.
 - **File names**: a stored document is named after its id (`documents/<yyyy>/<id>.pdf`), so the file can be written before the row is saved and there are no name clashes.
-- **Export** ([Phase 4](roadmap.md#phase-4--export--showcase)): ids stay unique outside the instance, so the official version can import an export without any id remapping.
-- **Demo seeding**: the demo data can use fixed, known ids.
-- **Non-guessable URLs**: `/applications/3` would reveal the number of applications, for example in screenshots or on the public demo. A GUID doesn't.
+- **Moving the data**: ids stay unique outside the instance, so the official version can take over the data of the proof of concept without any id remapping.
+- **Non-guessable URLs**: `/applications/3` would reveal the number of applications, for example in screenshots. A GUID doesn't.
 
 **Why version 7**: a v7 GUID starts with a millisecond timestamp. Unlike a random v4 GUID, new keys are appended at the end of the index instead of being spread across it, which keeps inserts efficient. Rows can also be sorted by creation order using the key alone.
 
@@ -397,8 +402,8 @@ At the data volume of a single user, both costs are negligible.
 
 ## Common queries
 
-- **Everything about a company**: its offers (as client or recruiter), their applications, its spontaneous applications, its notes and contacts. Applications are found with `a is OfferApplication ? ((OfferApplication)a).JobOffer.CompanyId == id : ((SpontaneousApplication)a).CompanyId == id`; the offer's `RecruiterCompanyId` joins the test in Phase 2b.
+- **Everything about a company**: its offers (as client or recruiter), their applications, its spontaneous applications, its notes and contacts (not built). Applications are found with `a is OfferApplication ? ((OfferApplication)a).JobOffer.CompanyId == id : ((SpontaneousApplication)a).CompanyId == id`; the offer's `RecruiterCompanyId` would join the test.
 - **Follow up**: active applications with `Status == Applied` and `AppliedOn <= UserSettings.LastSendingDayToFollowUp(today)`, ordered by `AppliedOn`, then `CreatedAt`. Until the settings are saved, the defaults of `new UserSettings()` apply.
 - **Recent activity**: the latest status changes of the active applications (through `StatusChanges`), and the creations of those created as drafts, merged newest first. An application created as already sent records its sending before the save that sets its `CreatedAt`: it has a change with `ChangedAt <= CreatedAt`, and its creation isn't an event, so it only shows its sending.
-- **Upcoming interviews**: `Interactions` where `OccursAt >= now`, ordered by `OccursAt`, for applications that aren't archived.
+- **Upcoming interviews** (not built): `Interactions` where `OccursAt >= now`, ordered by `OccursAt`, for applications that aren't archived.
 - **Applications per site**: `OfferApplication` grouped by `AppliedViaPosting.Site`.

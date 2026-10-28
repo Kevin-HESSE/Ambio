@@ -1,10 +1,12 @@
 # Roadmap
 
-Ambio is built in small, deployable increments.
+Ambio was built in small, deployable increments.
 
 > **Proof of concept.** Ambio is a proof of concept for an official version built in separate repositories: an API, a SPA frontend, maybe a desktop app ([ADR 0024](adr/0024-proof-of-concept.md)). What it teaches goes into [poc-findings.md](poc-findings.md).
 
-> **Guiding principle: usable early.** The app is packaged and deployable right after the first feature (application tracking). A demo is set up in the same phase, and every later phase adds its new feature to the demo.
+> **The proof of concept ends with Phase 2 (`v0.1.0`).** It is used for a real job search, and the later phases are [left to the official version](#left-to-the-official-version) ([ADR 0029](adr/0029-proof-of-concept-ends-after-phase-2.md)).
+
+> **Guiding principle: usable early.** The app is packaged and deployable right after the first feature (application tracking).
 
 Each phase maps to a GitHub Milestone, and each checkbox maps to an issue.
 
@@ -12,10 +14,7 @@ Each phase maps to a GitHub Milestone, and each checkbox maps to an issue.
 |---|---|---|
 | [0](#phase-0--foundations) | Foundations | Layered solution, CI, template samples removed |
 | [1](#phase-1--application-tracking-mvp) | Application tracking (MVP) | Track applications, cover letters, and uploaded CVs |
-| [2](#phase-2--docker-deployment--demo) | Docker, deployment & demo | Multi-arch image on Docker Hub, running demo |
-| [2b](#phase-2b--company-research--contacts) | Company research & contacts | Research notes, contacts, recruiters, interviews |
-| [3](#phase-3--candidate-profile--cv-generation) | Profile & CV generation | CVs generated with QuestPDF (per application + general CV) |
-| [4](#phase-4--export--showcase) | Export & showcase | JSON export for the official version, screenshots, final README |
+| [2](#phase-2--docker--deployment) | Docker & deployment | Image built with `docker compose`, all data in one volume, `v0.1.0` |
 
 ---
 
@@ -67,46 +66,40 @@ Each item is a vertical slice: domain, persistence, service, page and tests for 
 - [x] Restyled Log in and Account pages
 - [x] Create the account at first start, before the app is usable, instead of leaving registration open to whoever comes first ([ADR 0028](adr/0028-account-created-at-first-start.md))
 
-## Phase 2 — Docker, deployment & demo
+## Phase 2 — Docker & deployment
 
-- [ ] Multi-stage `Dockerfile` (SDK build → ASP.NET runtime), non-root user
-- [ ] Volumes: `/data` (SQLite database, documents, DataProtection keys)
-- [ ] EF Core migrations applied at startup
-- [ ] Forwarded headers enabled for running behind a reverse proxy
-- [ ] `docker-compose.yml` example
-- [ ] GitHub Actions: multi-arch build (`linux/amd64`, `linux/arm64`) with buildx, pushed to Docker Hub on version tags
-- [ ] **Demo**: `DemoDataSeeder` enabled with `Ambio__Demo__Enabled=true`, which seeds a demo account and sample companies, offers posted on several sites, offer and spontaneous applications, cover letters, and an uploaded CV
-- [ ] README: quick start with Docker and a demo section
-- [ ] [deployment.md](deployment.md): volumes, environment variables, backup of `/data`
+- [x] Multi-stage `Dockerfile` (SDK build → ASP.NET runtime), non-root user
+- [x] Volumes: `/data` (SQLite database, documents, DataProtection keys)
+- [x] EF Core migrations applied at startup
+- [x] Forwarded headers enabled for running behind a reverse proxy
+- [x] `compose.yaml` that builds and runs the image
+- [x] Squash the migrations before the first release
+- [x] README: features as built and a quick start with Docker
+- [x] [deployment.md](deployment.md): volumes, environment variables, update, backup of `/data`
 
-## Phase 2b — Company research & contacts
+## Left to the official version
 
-Enriches the company, which is shared by every application to it (see [data-model.md](data-model.md)).
+The proof of concept stops here ([ADR 0029](adr/0029-proof-of-concept-ends-after-phase-2.md)). These features were planned for it and are left to the official version, as a starting point. Their design is in [data-model.md](data-model.md) and the ADRs.
 
-- [ ] `CompanyNote`: dated research notes in plain text, shown as a timeline on the company page
-- [ ] `Contact`: CRUD per company, optional linking to applications (never required: form applications have no contact)
-- [ ] Recruiter company on offers (`RecruiterCompanyId`): agencies and ESNs, with a possibly unknown end client
-- [ ] `Interaction`: interviews, calls, emails, follow-ups per application, with the contacts involved
-- [ ] Dashboard: upcoming interviews
-- [ ] Unit + EF integration tests (hierarchy queries, archived rows filtered out)
-- [ ] Extend demo: a recruitment agency, contacts, research notes, and an upcoming interview
+### Company research & contacts
 
-## Phase 3 — Candidate profile & CV generation
+Enriches the company, which is shared by every application to it.
 
-- [ ] Domain: `CandidateProfile` (identity, headline, summary, experiences, education, skills, languages, links)
-- [ ] Optional profile photo stored in `/data/photos` and passed to templates (templates may ignore it)
-- [ ] **CV per application — selection + override** ([ADR 0007](adr/0007-cv-snapshots-selection-and-override.md)): choose profile items, override the title and summary for the job offer, then freeze the result as a snapshot
-- [ ] **General CV**: `CvDocument` with no application (`JobApplicationId = null`), meant for sharing on LinkedIn and other networks, with a "My CVs" page
-- [ ] QuestPDF rendering (`Source = Generated`), stored under `/data/documents`, with preview and download
-- [ ] Built-in CV template in `Ambio.Infrastructure`
-- [ ] Linux fonts bundled in the Docker image
-- [ ] `tools/Ambio.CvPlayground`: console app using the QuestPDF Companion to design templates by hand
-- [ ] PDF snapshot tests for the default template
-- [ ] Extend demo: seeded profile, a generated general CV, and a generated CV per demo application
+- `CompanyNote`: dated research notes in plain text, shown as a timeline on the company page
+- `Contact`: CRUD per company, optional linking to applications (never required: form applications have no contact)
+- Recruiter company on offers (`RecruiterCompanyId`): agencies and ESNs, with a possibly unknown end client
+- `Interaction`: interviews, calls, emails, follow-ups per application, with the contacts involved
+- Dashboard: upcoming interviews
 
-## Phase 4 — Export & showcase
+### Candidate profile & CV generation
 
-- [ ] JSON export of all data (profile, applications, cover letters, CV metadata), documented as the migration format to the official version; no import
-- [ ] Screenshots in `docs/screenshots/` and embedded in the README
-- [ ] Final README, adjusted to the proof of concept (badges, feature tour, demo link)
-- [ ] Extend demo: downloadable sample export
+- `CandidateProfile` (identity, headline, summary, experiences, education, skills, languages, links), with an optional photo
+- CV per application, selection + override ([ADR 0007](adr/0007-cv-snapshots-selection-and-override.md)): choose profile items, override the title and summary for the job offer, then freeze the result as a snapshot
+- General CV, with no application, meant for sharing on LinkedIn and other networks
+- PDF rendering with a built-in template ([ADR 0004](adr/0004-questpdf-for-cv-generation.md)), with preview and download
+
+### Export & showcase
+
+- JSON export of all data (profile, applications, cover letters, CV metadata)
+- Multi-arch image (`linux/amd64`, `linux/arm64`) published by a CD workflow
+- Demo data, screenshots
