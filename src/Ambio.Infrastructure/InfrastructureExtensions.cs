@@ -83,6 +83,15 @@ public static class InfrastructureExtensions
         return services;
     }
 
+    /// <summary>Applies the migrations the database hasn't got yet, creating it when it doesn't exist. Called before
+    /// the app accepts requests, and before the account is created.</summary>
+    public static async Task MigrateDatabaseAsync(this IServiceProvider services, CancellationToken cancellationToken = default)
+    {
+        await using var db = await services.GetRequiredService<IDbContextFactory<ApplicationDbContext>>()
+            .CreateDbContextAsync(cancellationToken);
+        await db.Database.MigrateAsync(cancellationToken);
+    }
+
     /// <summary>Creates the single account from the <c>Ambio:Account</c> settings while none exists, and throws when
     /// they are missing or refused (ADR 0028). Called before the app accepts requests.</summary>
     public static async Task CreateAccountAtFirstStartAsync(this IServiceProvider services, CancellationToken cancellationToken = default)

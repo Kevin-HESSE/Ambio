@@ -1,21 +1,17 @@
-using Ambio.Infrastructure;
-using Ambio.Infrastructure.Persistence;
 
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Playwright;
 
 namespace Ambio.E2E.Tests.Fixtures;
 
 /// <summary>
-/// Starts the app on an empty, migrated SQLite file, a temporary storage root and a headless Chromium browser. The app
-/// creates the account (<see cref="UserEmail"/>, <see cref="UserPassword"/>) at start. Chromium is installed on first
-/// run, so no separate install step is needed.
+/// Starts the app on a new SQLite file, a temporary storage root and a headless Chromium browser. The app applies the
+/// migrations and creates the account (<see cref="UserEmail"/>, <see cref="UserPassword"/>) at start. Chromium is
+/// installed on first run, so no separate install step is needed.
 /// </summary>
 public sealed class AmbioAppFixture : IAsyncLifetime
 {
@@ -33,20 +29,8 @@ public sealed class AmbioAppFixture : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
-        var connectionString = $"DataSource={_databasePath}";
-
-        // The app reads the account table at start, so the file is migrated first, with the production wiring of
-        // the context (Identity's schema version comes from its options).
-        var configuration = new ConfigurationManager { ["ConnectionStrings:DefaultConnection"] = connectionString };
-        await using (var services = new ServiceCollection().AddLogging().AddDatabase(configuration).BuildServiceProvider())
-        await using (var context = await services
-                         .GetRequiredService<IDbContextFactory<ApplicationDbContext>>()
-                         .CreateDbContextAsync())
-        {
-            await context.Database.MigrateAsync();
-        }
-
-        _factory = new AmbioAppFactory(connectionString, _storageRoot);
+        // The app applies the migrations to the new file at start.
+        _factory = new AmbioAppFactory($"DataSource={_databasePath}", _storageRoot);
         _factory.StartServer();
 
         BaseUrl = _factory.Services.GetRequiredService<IServer>()

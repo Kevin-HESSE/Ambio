@@ -39,6 +39,9 @@ builder.Services.AddApplicationServices();
 
 var app = builder.Build();
 
+// The migrations are applied at start, so a new database or an upgraded image needs no manual step.
+await app.Services.MigrateDatabaseAsync();
+
 // The single account is created from the Ambio:Account settings before the app accepts requests (ADR 0028).
 await app.Services.CreateAccountAtFirstStartAsync();
 
