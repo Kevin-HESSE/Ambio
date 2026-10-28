@@ -24,7 +24,7 @@ Run from the repo root :
 dotnet build
 
 # run (http profile: http://localhost:5160)
-# on a new database, apply the migrations first: the default account of appsettings.Development.json is created at start
+# the migrations are applied and the default account of appsettings.Development.json is created at start
 dotnet run --project src/Ambio.Web
 
 # https://localhost:7009
@@ -41,6 +41,12 @@ dotnet test -- --filter-not-trait "Category=E2E"
 
 # end-to-end tests only (Chromium is installed on the first run)
 dotnet test --project tests/Ambio.E2E.Tests
+```
+
+Docker (http://localhost:8080, data in `./data`, account in `.env` from `.env.example`, see `docs/deployment.md`)
+
+```bash
+docker compose up -d --build
 ```
 
 EF Core migrations

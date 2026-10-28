@@ -53,6 +53,13 @@ Newest first. Each entry follows this format:
 - Change in the official version: what to do differently
 ```
 
+### 2026-10-28 — Run Ambio in Docker (#83)
+
+- Kept: all the state in one folder: the database, the documents and the keys that protect the login cookies and 2FA tokens. A backup is one archive of that folder, and a new container keeps the sessions.
+- Kept: the app migrates its database at start, then creates the account, before accepting requests. A new instance and an update need no manual step, and the end-to-end tests start the app the same way.
+- Not needed: nothing so far.
+- Change in the official version: a migration applied at start changes the database without a way back, so an update needs a backup first; an API could check the backup or run its migrations as a separate step. Every proxy is trusted for the forwarded headers, which holds only while the port is published to the proxy alone.
+
 ### 2026-10-28 — Account created at first start (#41)
 
 - Kept: two settings, read only while no account exists, turned into the account before the app accepts requests, through the same guarded `RegisterUserAsync`. A missing or refused setting stops the start with a message that names it.

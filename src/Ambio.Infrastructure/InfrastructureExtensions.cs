@@ -18,11 +18,17 @@ using Ambio.Infrastructure.Persistence;
 using Ambio.Infrastructure.Settings;
 using Ambio.Infrastructure.Users;
 
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using Microsoft.AspNetCore.DataProtection.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Ambio.Infrastructure;
 
@@ -69,6 +75,13 @@ public static class InfrastructureExtensions
             .Validate(options => options.IsValid(), $"{StorageOptions.Section}: the root must be set, and the upload size limit positive.")
             .ValidateOnStart();
         services.AddSingleton<IDocumentStorage, FileSystemDocumentStorage>();
+        // The keys of the login cookies and 2FA tokens live with the data, so they survive a new container.
+        services.AddDataProtection().SetApplicationName("Ambio");
+        services.AddOptions<KeyManagementOptions>()
+            .Configure<IOptions<StorageOptions>, IHostEnvironment, ILoggerFactory>((options, storage, environment, loggerFactory) =>
+                options.XmlRepository = new FileSystemXmlRepository(
+                    new DirectoryInfo(Path.Combine(storage.Value.GetFullRoot(environment.ContentRootPath), StorageOptions.KeysFolder)),
+                    loggerFactory));
         services.AddOptions<AccountOptions>().BindConfiguration(AccountOptions.Section);
         services.AddScoped<AccountStartup>();
         services.AddScoped<IUserService, UserService>();
@@ -81,6 +94,15 @@ public static class InfrastructureExtensions
         services.AddScoped<IDashboardService, DashboardService>();
 
         return services;
+    }
+
+    /// <summary>Applies the migrations the database hasn't got yet, creating it when it doesn't exist. Called before
+    /// the app accepts requests, and before the account is created.</summary>
+    public static async Task MigrateDatabaseAsync(this IServiceProvider services, CancellationToken cancellationToken = default)
+    {
+        await using var db = await services.GetRequiredService<IDbContextFactory<ApplicationDbContext>>()
+            .CreateDbContextAsync(cancellationToken);
+        await db.Database.MigrateAsync(cancellationToken);
     }
 
     /// <summary>Creates the single account from the <c>Ambio:Account</c> settings while none exists, and throws when
