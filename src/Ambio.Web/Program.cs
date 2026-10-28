@@ -5,6 +5,7 @@ using Ambio.Web.Components.Account;
 using Ambio.Web.Components.CvDocuments;
 using Ambio.Web.Components.Layout;
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 
@@ -26,6 +27,10 @@ builder.Services.AddAuthentication(options =>
     })
     .AddIdentityCookies();
 
+// Every endpoint requires the logged-in user, except the pages and files marked [AllowAnonymous] (ADR 0028).
+builder.Services.AddAuthorizationBuilder()
+    .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
+
 builder.Services.AddDatabase(builder.Configuration);
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
@@ -33,6 +38,9 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSe
 builder.Services.AddApplicationServices();
 
 var app = builder.Build();
+
+// The single account is created from the Ambio:Account settings before the app accepts requests (ADR 0028).
+await app.Services.CreateAccountAtFirstStartAsync();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -50,7 +58,8 @@ app.UseHttpsRedirection();
 
 app.UseAntiforgery();
 
-app.MapStaticAssets();
+// The Log in page needs its styles and scripts before anyone is logged in.
+app.MapStaticAssets().AllowAnonymous();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 

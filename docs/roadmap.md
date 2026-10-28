@@ -65,7 +65,7 @@ Each item is a vertical slice: domain, persistence, service, page and tests for 
 - [x] Settings: follow-up delay (`UserSettings`), theme
 - [x] `Home` dashboard: counts by status, **Follow up** (applications still Applied after the configured delay), recent activity
 - [x] Restyled Log in and Account pages
-- [ ] Create the account at first start, before the app is usable, instead of leaving registration open to whoever comes first ([ADR 0017](adr/0017-account-creation-local-or-github.md))
+- [x] Create the account at first start, before the app is usable, instead of leaving registration open to whoever comes first ([ADR 0028](adr/0028-account-created-at-first-start.md))
 
 ## Phase 2 — Docker, deployment & demo
 

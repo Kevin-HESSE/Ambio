@@ -51,7 +51,7 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
             return TypedResults.LocalRedirect($"~/{returnUrl}");
         });
 
-        var manageGroup = accountGroup.MapGroup("/Manage").RequireAuthorization();
+        var manageGroup = accountGroup.MapGroup("/Manage");
 
         manageGroup.MapPost("/LinkExternalLogin", async (
             HttpContext context,

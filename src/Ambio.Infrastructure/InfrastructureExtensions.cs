@@ -69,6 +69,8 @@ public static class InfrastructureExtensions
             .Validate(options => options.IsValid(), $"{StorageOptions.Section}: the root must be set, and the upload size limit positive.")
             .ValidateOnStart();
         services.AddSingleton<IDocumentStorage, FileSystemDocumentStorage>();
+        services.AddOptions<AccountOptions>().BindConfiguration(AccountOptions.Section);
+        services.AddScoped<AccountStartup>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ICompanyService, CompanyService>();
         services.AddScoped<IJobOfferService, JobOfferService>();
@@ -79,5 +81,13 @@ public static class InfrastructureExtensions
         services.AddScoped<IDashboardService, DashboardService>();
 
         return services;
+    }
+
+    /// <summary>Creates the single account from the <c>Ambio:Account</c> settings while none exists, and throws when
+    /// they are missing or refused (ADR 0028). Called before the app accepts requests.</summary>
+    public static async Task CreateAccountAtFirstStartAsync(this IServiceProvider services, CancellationToken cancellationToken = default)
+    {
+        await using var scope = services.CreateAsyncScope();
+        await scope.ServiceProvider.GetRequiredService<AccountStartup>().CreateAccountIfNoneAsync(cancellationToken);
     }
 }

@@ -1,15 +1,10 @@
-using System.Text;
-using System.Text.Encodings.Web;
-
 using Ambio.Application.Common;
 using Ambio.Application.Users;
 using Ambio.Application.Users.Dtos;
 using Ambio.Infrastructure.Common;
 
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace Ambio.Infrastructure.Users;
 
@@ -17,21 +12,15 @@ internal class UserService : IUserService
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IUserStore<ApplicationUser> _userStore;
-    private readonly IEmailSender<ApplicationUser> _emailSender;
-    private readonly ILogger<UserService> _logger;
     private readonly SemaphoreContainer _semaphoreContainer;
 
     public UserService(
-        IEmailSender<ApplicationUser> emailSender,
         UserManager<ApplicationUser> userManager,
         IUserStore<ApplicationUser> userStore,
-        SemaphoreContainer semaphoreContainer,
-        ILogger<UserService> logger)
+        SemaphoreContainer semaphoreContainer)
     {
         _userManager = userManager;
         _userStore = userStore;
-        _emailSender = emailSender;
-        _logger = logger;
         _semaphoreContainer = semaphoreContainer;
     }
 
@@ -52,6 +41,8 @@ internal class UserService : IUserService
             await _userStore.SetUserNameAsync(user, input.Email, cancellationToken);
             var emailStore = GetEmailStore();
             await emailStore.SetEmailAsync(user, input.Email, cancellationToken);
+            // The email comes from whoever deploys the instance, and Ambio sends no email: it is confirmed at once.
+            await emailStore.SetEmailConfirmedAsync(user, true, cancellationToken);
             var result = await _userManager.CreateAsync(user, input.Password);
 
             if (!result.Succeeded)
@@ -65,37 +56,6 @@ internal class UserService : IUserService
         finally
         {
             _semaphoreContainer.Semaphore.Release();
-        }
-    }
-
-    public async Task<ServiceResult> GenerateConfirmEmailAsync(string userId, string callbackUrl)
-    {
-        var user = await _userManager.FindByIdAsync(userId);
-
-        if (user == null)
-        {
-            return ServiceResult.Failure(UserErrors.NotFound);
-        }
-
-        try
-        {
-            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-            var queryParams = new Dictionary<string, string?>
-            {
-                ["userId"] = userId,
-                ["code"] = code,
-            };
-
-            var confirmationLink = QueryHelpers.AddQueryString(callbackUrl, queryParams);
-
-            await _emailSender.SendConfirmationLinkAsync(user, user.Email!, HtmlEncoder.Default.Encode(confirmationLink));
-            return ServiceResult.Success();
-        }
-        catch (Exception exception)
-        {
-            _logger.LogError(exception, "Failed to send email confirmation link.");
-            return ServiceResult.Failure(UserErrors.EmailConfirmationFailed);
         }
     }
 
