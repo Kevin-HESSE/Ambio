@@ -2,7 +2,7 @@
 
 ## Project state
 
-Ambio is a proof of concept for an official version built in separate repositories: an API, a SPA, maybe a desktop app ([ADR 0024](docs/adr/0024-proof-of-concept.md)). It is in Phase 1 (see `docs/roadmap.md`): a .NET 10 Blazor Web App with ASP.NET Core Identity, split into layered projects (Domain, Application, Infrastructure, Web).
+Ambio is a proof of concept for an official version built in separate repositories: an API, a SPA, maybe a desktop app ([ADR 0024](docs/adr/0024-proof-of-concept.md)). It ended with Phase 2, released as `v0.1.0` ([ADR 0029](docs/adr/0029-proof-of-concept-ends-after-phase-2.md), `docs/roadmap.md`), and is now used for a real job search: a .NET 10 Blazor Web App with ASP.NET Core Identity, split into layered projects (Domain, Application, Infrastructure, Web).
 
 Every project is organised by feature folders ([ADR 0018](docs/adr/0018-feature-folders-in-every-project.md)).
 - Features built so far: `Companies`, `JobOffers` (with their postings), `JobApplications` (to an offer or spontaneous), `CoverLetters`, `CvDocuments` (uploaded CVs), `Settings` and `Dashboard` (the home page).

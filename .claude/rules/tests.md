@@ -12,7 +12,7 @@ See [docs/testing.md](../../docs/testing.md) for the full approach.
 |---|---|---|
 | `Ambio.Domain.Tests` | Domain rules (created in Phase 1) | xUnit |
 | `Ambio.Application.Tests` | DTO, validation, mapping extensions | xUnit |
-| `Ambio.Infrastructure.Tests` | Services, EF Core mappings and queries, storage, PDF snapshots | xUnit, SQLite in-memory, NSubstitute, Bogus |
+| `Ambio.Infrastructure.Tests` | Services, EF Core mappings and queries, storage | xUnit, SQLite in-memory, NSubstitute, Bogus |
 | `Ambio.Web.Tests` | Blazor components with logic: the app shell, the interactive islands, conditional rendering | bUnit, NSubstitute, Bogus |
 | `Ambio.E2E.Tests` | Critical user journeys | xUnit, Playwright |
 

@@ -40,6 +40,17 @@ These choices follow from Blazor Server and won't apply as they are to an API an
 - What replaces the CV template plugins, if anything.
 - One way to authenticate for both the SPA and the desktop app.
 - Whether the UI is translated.
+- How the data of real use moves from the proof of concept (the SQLite database and the `documents/` folder) to the official version, since the JSON export isn't built ([ADR 0029](adr/0029-proof-of-concept-ends-after-phase-2.md)).
+
+## Real use
+
+The proof of concept ends with Phase 2 (`v0.1.0`) and is used for a real job search ([ADR 0029](adr/0029-proof-of-concept-ends-after-phase-2.md)). What that use shows goes here, newest first:
+
+```markdown
+### <date> — <topic>
+
+- What happened, and what it says for the official version
+```
 
 ## Slice log
 

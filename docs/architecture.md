@@ -1,6 +1,6 @@
 # Architecture
 
-Ambio is a .NET 10 Blazor Web App (Interactive Server only) using ASP.NET Core Identity, EF Core with SQLite, and QuestPDF.
+Ambio is a .NET 10 Blazor Web App (Interactive Server only) using ASP.NET Core Identity and EF Core with SQLite.
 
 ## Solution layout
 
@@ -8,14 +8,12 @@ Ambio is a .NET 10 Blazor Web App (Interactive Server only) using ASP.NET Core I
 src/
   Ambio.Domain/                   Entities, value objects, domain rules — no infrastructure dependency
   Ambio.Application/              Service interfaces, DTOs, mapping extensions
-  Ambio.Infrastructure/           Service implementations (EF Core via IDbContextFactory), storage, PDF
+  Ambio.Infrastructure/           Service implementations (EF Core via IDbContextFactory), storage
   Ambio.Web/                      Blazor UI, Identity, composition root
-tools/
-  Ambio.CvPlayground/             Console app + QuestPDF Companion for designing templates
 tests/
   Ambio.Domain.Tests/             Domain rules (created in Phase 1)
   Ambio.Application.Tests/        DTO validation, mapping extensions
-  Ambio.Infrastructure.Tests/     Services, EF integration (SQLite in-memory), PDF snapshots
+  Ambio.Infrastructure.Tests/     Services, EF integration (SQLite in-memory), storage
   Ambio.Web.Tests/                bUnit component tests
   Ambio.E2E.Tests/                Playwright critical journeys
 ```
@@ -94,6 +92,8 @@ The company is the anchor: its profile, research notes and contacts are kept acr
 
 ## CV generation flow
 
+_Not built in the proof of concept: CV generation is [left to the official version](roadmap.md#left-to-the-official-version) ([ADR 0029](adr/0029-proof-of-concept-ends-after-phase-2.md)). The flow below is its design._
+
 ```mermaid
 flowchart LR
     P[CandidateProfile] --> S[Select items + override title/summary]
@@ -105,7 +105,7 @@ flowchart LR
     St --> CV[CvDocument row]
 ```
 
-An uploaded CV (Phase 1) skips every step up to storage: the file is validated (PDF only, size limit), stored, and recorded as `Source = Uploaded`. The browser reads it through two endpoints outside the Blazor pages, `/cvs/{id}` (inline, for the preview) and `/cvs/{id}/download`, for the logged-in user only.
+An uploaded CV, the only kind built, skips every step up to storage: the file is validated (PDF only, size limit), stored, and recorded as `Source = Uploaded`. The browser reads it through two endpoints outside the Blazor pages, `/cvs/{id}` (inline, for the preview) and `/cvs/{id}/download`, for the logged-in user only.
 
 ## Storage layout
 
@@ -113,7 +113,6 @@ An uploaded CV (Phase 1) skips every step up to storage: the file is validated (
 /data
   ambio.db              SQLite database
   documents/<yyyy>/<id>.pdf
-  photos/<id>.<ext>       optional profile photo
   keys/                   ASP.NET Core DataProtection keys
 ```
 

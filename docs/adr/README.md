@@ -11,8 +11,8 @@ A decision that can serve as a basis for the official version (domain, data, bus
 | [0005](0005-sqlite-and-filesystem-storage.md) | SQLite for data, file system for documents | Accepted |
 | [0006](0006-persistence-ignorant-domain-and-dtos.md) | Persistence-ignorant domain, EF mapping classes, DTOs | Accepted, partly superseded by [0018](0018-feature-folders-in-every-project.md) |
 | [0007](0007-cv-snapshots-selection-and-override.md) | Per-application CVs: selection + override, frozen as snapshots | Accepted |
-| [0008](0008-docker-hub-multi-arch-images.md) | Multi-arch Docker images on Docker Hub | Accepted |
-| [0009](0009-early-deployment-and-incremental-demo.md) | Early deployment and an incremental demo | Accepted |
+| [0008](0008-docker-hub-multi-arch-images.md) | Multi-arch Docker images on Docker Hub | Superseded by [0029](0029-proof-of-concept-ends-after-phase-2.md) |
+| [0009](0009-early-deployment-and-incremental-demo.md) | Early deployment and an incremental demo | Superseded by [0029](0029-proof-of-concept-ends-after-phase-2.md) |
 | [0010](0010-dbcontext-factory-without-repositories.md) | DbContext factory, without repositories or unit of work | Accepted |
 | [0011](0011-company-centric-model-with-job-offers.md) | Company-centric model with job offers and an application hierarchy | Accepted |
 | [0012](0012-archive-instead-of-delete.md) | Archive instead of delete | Accepted |
@@ -27,10 +27,11 @@ A decision that can serve as a basis for the official version (domain, data, bus
 | [0021](0021-slug-urls-for-companies.md) | Slug URLs for companies | Accepted |
 | [0022](0022-test-data-with-bogus.md) | Test data built with Bogus, random on every run | Accepted |
 | [0023](0023-interactive-islands-in-static-pages.md) | Interactive islands in static pages | Accepted |
-| [0024](0024-proof-of-concept.md) | Ambio becomes a proof of concept | Accepted |
+| [0024](0024-proof-of-concept.md) | Ambio becomes a proof of concept | Accepted, partly superseded by [0029](0029-proof-of-concept-ends-after-phase-2.md) |
 | [0025](0025-short-id-and-slug-urls-for-offers.md) | Short id and slug in offer URLs | Accepted |
 | [0026](0026-status-workflow-and-history.md) | Status workflow and history | Accepted |
 | [0027](0027-archiving-cascade-and-restore.md) | Archiving cascade and restore | Accepted |
 | [0028](0028-account-created-at-first-start.md) | Account created at first start | Accepted |
+| [0029](0029-proof-of-concept-ends-after-phase-2.md) | The proof of concept ends after Phase 2 | Accepted |
 
 New ADRs copy the structure of an existing one and take the next number. An ADR is never edited once accepted: a new ADR supersedes it.

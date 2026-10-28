@@ -1,6 +1,6 @@
 # CI/CD
 
-The CI runs on GitHub Actions. The CD, which builds and publishes the Docker image, comes in [Phase 2](roadmap.md#phase-2--docker-deployment--demo) (see [deployment.md](deployment.md)).
+The CI runs on GitHub Actions. There is no CD: the Docker image is built locally with `docker compose` (see [deployment.md](deployment.md)).
 
 ## CI
 
@@ -60,4 +60,4 @@ The README badge shows the status of the default branch.
 
 ## CD
 
-_Coming in Phase 2_: multi-arch image (`linux/amd64`, `linux/arm64`) built with buildx and pushed to Docker Hub on version tags ([ADR 0008](adr/0008-docker-hub-multi-arch-images.md)).
+None in the proof of concept ([ADR 0029](adr/0029-proof-of-concept-ends-after-phase-2.md)): the image is built locally from the repository. The `Dockerfile` cross-compiles for the target architecture, so a CD workflow could publish a multi-arch image with buildx without emulating the build.
