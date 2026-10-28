@@ -66,6 +66,7 @@ Tests run against a real SQLite engine in memory, so they catch mapping and tran
 - `SqliteServiceProvider.CreateAsync(settings)` overrides the app configuration, such as a one-character `Ambio:ShortId:Alphabet` to make short ids collide.
 - Its `ContentRootPath` is a new temporary folder, given to the app through an `IHostEnvironment` substitute and deleted with the provider: the documents stored by a test land under it, in the default root `Data`.
 - Test mapping classes (keys, required fields, relationships, cascade rules) and every LINQ projection to DTOs.
+- `Persistence/MigrationsTests` checks that the model has no change without its migration (`HasPendingModelChanges()`): the app migrates its database at start, and would stop on such a change.
 
 ## Component tests
 
@@ -84,7 +85,7 @@ The Identity pages under `Components/Account` are rendered statically on the ser
 Playwright drives a headless Chromium against the real app, hosted in the test process.
 
 - `AmbioAppFactory` is a `WebApplicationFactory<Program>` that starts Kestrel on a free port (`UseKestrel(0)`) and overrides `ConnectionStrings:DefaultConnection`, `Ambio:Storage:Root` and `Ambio:Account` (`AmbioAppFixture.UserEmail`, `UserPassword`), so the app creates the account at start.
-- `AmbioAppFixture` creates a temporary SQLite file and storage folder, applies the migrations before starting the app (which reads the account table at start), starts the browser, and deletes both at the end. The development database and documents are never touched.
+- `AmbioAppFixture` gives the app a new temporary SQLite file and storage folder, which the app migrates and fills at start like a real instance, starts the browser, and deletes both at the end. The development database and documents are never touched.
 - Chromium is installed on the first run (`Microsoft.Playwright.Program.Main(["install", "chromium"])`), so no separate install step is needed locally. On a Linux CI runner, the browser's system dependencies must be installed too (see [ci-cd.md](ci-cd.md)).
 - Every E2E test class carries `[Trait("Category", "E2E")]`, so the fast loop can exclude it.
 - Only **critical journeys** get an E2E test, as one test per journey. The current ones are:
