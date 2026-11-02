@@ -52,6 +52,15 @@ The proof of concept ends with Phase 2 (`v0.1.0`) and is used for a real job sea
 - What happened, and what it says for the official version
 ```
 
+### 2026-10-28 — Visual points left from the slices
+
+Minor points noted while building Phase 1 and left as they were, to be judged from real use:
+
+- On a new offer application (#48), the "Already sent" checkbox sits higher than the "Sent on" input.
+- A disabled `.btn` without a variant shows a border before the circuit starts (#48).
+- On desktop, the "Clear filters" button of the applications list is 38 px high next to 40 px controls (#51).
+- The status chips of the applications list are 36 px high, as in the mockup, below the 44 px touch target of [ui.md](ui.md) (#51).
+
 ## Slice log
 
 Newest first. Each entry follows this format:
